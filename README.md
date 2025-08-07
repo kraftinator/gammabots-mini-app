@@ -1,10 +1,10 @@
-# Hello World Farcaster Mini App
+# Gammabots Mini App
 
-A simple Farcaster Mini App built with Next.js, TypeScript, and the Farcaster Mini App SDK that displays "Hello, world!" when loaded.
+A Farcaster Mini App built with Next.js, TypeScript, and the Farcaster Mini App SDK for the Gammabots ecosystem.
 
 ## Features
 
-- 🌍 Displays "Hello, world!" message
+- 🤖 Gammabots integration and functionality
 - 🎯 Detects Farcaster Mini App environment vs regular browser
 - ⚡ Built with Next.js 15 and Turbopack for fast development
 - 🎨 Styled with Tailwind CSS
@@ -45,6 +45,8 @@ This app includes:
 ## Development
 
 The app automatically detects if it's running in a Farcaster Mini App environment and calls `sdk.actions.ready()` to hide the splash screen when ready.
+
+This Mini App is specifically designed for the Gammabots ecosystem and includes all necessary Farcaster Mini App configurations.
 
 For testing in the Farcaster environment, you'll need to:
 1. Deploy your app to a public URL
