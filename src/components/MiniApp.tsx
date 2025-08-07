@@ -7,12 +7,26 @@ export default function MiniApp() {
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [username, setUsername] = useState<string>('guest') // Default fallback for development
+  const [activeBots, setActiveBots] = useState<number>(0) // Active bots count from API
 
   useEffect(() => {
     const initializeMiniApp = async () => {
       try {
         // First, just show the component works
         setIsReady(true)
+        
+        // Fetch active bots data
+        try {
+          const response = await fetch('/api/bots')
+          if (response.ok) {
+            const data = await response.json()
+            setActiveBots(data.active_count)
+          } else {
+            console.warn('Failed to fetch active bots data')
+          }
+        } catch (botsError) {
+          console.warn('Error fetching bots data:', botsError)
+        }
         
         // Then try to load the SDK
         const { sdk } = await import('@farcaster/miniapp-sdk')
@@ -136,7 +150,7 @@ export default function MiniApp() {
         {/* Platform Metrics */}
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-            <MetricCard label="Active Bots" value="1,247" change="+12%" />
+            <MetricCard label="Active Bots" value={activeBots.toLocaleString()} change="+12%" />
             <MetricCard label="TVL" value="$1.2M" change="+5.2%" />
             <MetricCard label="24h Volume" value="$892K" change="+15.3%" />
           </div>
