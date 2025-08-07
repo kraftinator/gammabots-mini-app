@@ -6,6 +6,7 @@ export default function MiniApp() {
   const [isReady, setIsReady] = useState(false)
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [username, setUsername] = useState<string>('guest') // Default fallback for development
 
   useEffect(() => {
     const initializeMiniApp = async () => {
@@ -24,6 +25,17 @@ export default function MiniApp() {
           // We're in a Mini App, call ready to hide splash screen
           await sdk.actions.ready()
           console.log('Mini App is ready!')
+          
+          // Get user context to display actual username
+          try {
+            const context = await sdk.context
+            if (context?.user?.username) {
+              setUsername(context.user.username)
+            }
+          } catch (userError) {
+            console.warn('Could not fetch user context:', userError)
+            // Keep the default username if user context fails
+          }
         }
         
       } catch (error) {
@@ -104,7 +116,15 @@ export default function MiniApp() {
         </div>
         
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "20px", position: "relative", zIndex: 2 }}>
-          <div style={{ fontSize: "14px", fontWeight: "600", color: "white" }}>Welcome, @adam</div>
+          <div style={{ 
+            fontSize: "14px", 
+            fontWeight: "600", 
+            color: "white",
+            maxWidth: "60%",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+            whiteSpace: "nowrap"
+          }}>Welcome, @{username}</div>
           <div style={{ fontSize: "12px", fontWeight: "500", color: "#ffffff" }}>
             Balance: <span style={{ fontWeight: "700", fontSize: "14px" }}>2200 GAMMA</span>
           </div>
