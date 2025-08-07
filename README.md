@@ -1,33 +1,61 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Hello World Farcaster Mini App
+
+A simple Farcaster Mini App built with Next.js, TypeScript, and the Farcaster Mini App SDK that displays "Hello, world!" when loaded.
+
+## Features
+
+- 🌍 Displays "Hello, world!" message
+- 🎯 Detects Farcaster Mini App environment vs regular browser
+- ⚡ Built with Next.js 15 and Turbopack for fast development
+- 🎨 Styled with Tailwind CSS
+- 📱 Responsive design
+- 🔧 TypeScript for type safety
 
 ## Getting Started
 
-First, run the development server:
+First, install dependencies:
+
+```bash
+npm install
+```
+
+Then run the development server:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
 Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+## Farcaster Mini App Integration
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+This app includes:
+
+- **SDK Integration**: Uses `@farcaster/miniapp-sdk` for Farcaster-specific functionality
+- **Manifest File**: Configured at `public/.well-known/farcaster.json`
+- **Embed Metadata**: Includes `fc:miniapp` meta tags for social sharing
+- **Environment Detection**: Handles both Mini App and browser environments
+
+### Key Files
+
+- `src/components/MiniApp.tsx` - Main Mini App component that calls `sdk.actions.ready()`
+- `src/app/layout.tsx` - Contains Farcaster embed metadata
+- `public/.well-known/farcaster.json` - Farcaster manifest configuration
+
+## Development
+
+The app automatically detects if it's running in a Farcaster Mini App environment and calls `sdk.actions.ready()` to hide the splash screen when ready.
+
+For testing in the Farcaster environment, you'll need to:
+1. Deploy your app to a public URL
+2. Configure the manifest with your actual domain
+3. Use the Farcaster Mini App preview tools
 
 ## Learn More
 
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- [Farcaster Mini Apps Documentation](https://miniapps.farcaster.xyz/)
+- [Next.js Documentation](https://nextjs.org/docs)
+- [Farcaster SDK](https://github.com/farcasterxyz/miniapps)
 
 ## Deploy on Vercel
 
