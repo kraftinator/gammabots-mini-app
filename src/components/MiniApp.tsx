@@ -15,6 +15,7 @@ export default function MiniApp() {
     volume_24h: 0,
     strategies: 0,
     total_profits: 0,
+    trades_executed: 0,
     last_updated: null as string | null
   })
 
@@ -182,7 +183,7 @@ export default function MiniApp() {
               <MetricCard label="Total Profits" value={formatCurrency(dashboardData.total_profits)} change="+8.5%" />
             </div>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
-              <MetricCard label="Win Rate" value="73.2%" />
+              <MetricCard label="Trades Executed" value={dashboardData.trades_executed.toLocaleString()} change="+24%" />
             </div>
           </div>
         </div>
