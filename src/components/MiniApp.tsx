@@ -7,7 +7,16 @@ export default function MiniApp() {
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [username, setUsername] = useState<string>('guest') // Default fallback for development
-  const [activeBots, setActiveBots] = useState<number>(0) // Active bots count from API
+  
+  // Dashboard metrics from API
+  const [dashboardData, setDashboardData] = useState({
+    active_bots: 0,
+    tvl: 0,
+    volume_24h: 0,
+    strategies: 0,
+    total_profits: 0,
+    last_updated: null as string | null
+  })
 
   useEffect(() => {
     const initializeMiniApp = async () => {
@@ -15,17 +24,17 @@ export default function MiniApp() {
         // First, just show the component works
         setIsReady(true)
         
-        // Fetch active bots data
+        // Fetch dashboard metrics data
         try {
-          const response = await fetch('/api/bots')
+          const response = await fetch('/api/dashboard')
           if (response.ok) {
             const data = await response.json()
-            setActiveBots(data.active_count)
+            setDashboardData(data)
           } else {
-            console.warn('Failed to fetch active bots data')
+            console.warn('Failed to fetch dashboard metrics data')
           }
-        } catch (botsError) {
-          console.warn('Error fetching bots data:', botsError)
+        } catch (dashboardError) {
+          console.warn('Error fetching dashboard data:', dashboardError)
         }
         
         // Then try to load the SDK
@@ -61,6 +70,17 @@ export default function MiniApp() {
 
     initializeMiniApp()
   }, [])
+
+  // Helper function to format currency values
+  const formatCurrency = (value: number): string => {
+    if (value >= 1000000) {
+      return `$${(value / 1000000).toFixed(1)}M`
+    } else if (value >= 1000) {
+      return `$${(value / 1000).toFixed(0)}K`
+    } else {
+      return `$${value.toLocaleString()}`
+    }
+  }
 
   if (!isReady) {
     return (
@@ -150,16 +170,16 @@ export default function MiniApp() {
         {/* Platform Metrics */}
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-            <MetricCard label="Active Bots" value={activeBots.toLocaleString()} change="+12%" />
-            <MetricCard label="TVL" value="$1.2M" change="+5.2%" />
-            <MetricCard label="24h Volume" value="$892K" change="+15.3%" />
+            <MetricCard label="Active Bots" value={dashboardData.active_bots.toLocaleString()} change="+12%" />
+            <MetricCard label="TVL" value={formatCurrency(dashboardData.tvl)} change="+5.2%" />
+            <MetricCard label="24h Volume" value={formatCurrency(dashboardData.volume_24h)} change="+15.3%" />
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "12px" }}>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
-              <MetricCard label="Strategies" value="1,847" change="+18%" />
+              <MetricCard label="Strategies" value={dashboardData.strategies.toLocaleString()} change="+18%" />
             </div>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
-              <MetricCard label="Total Profits" value="$284K" change="+8.5%" />
+              <MetricCard label="Total Profits" value={formatCurrency(dashboardData.total_profits)} change="+8.5%" />
             </div>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
               <MetricCard label="Win Rate" value="73.2%" />
