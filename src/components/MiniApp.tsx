@@ -17,6 +17,14 @@ export default function MiniApp() {
     total_profits: 0,
     trades_executed: 0,
     popular_tokens: {} as Record<string, number>,
+    recent_activity: [] as Array<{
+      action: string;
+      amount: number;
+      token_symbol: string;
+      strategy_id: string;
+      bot_id: number;
+      time_ago: string;
+    }>,
     last_updated: null as string | null
   })
 
@@ -210,38 +218,18 @@ export default function MiniApp() {
         {/* Recent Activity */}
         <div style={{ marginBottom: "24px" }}>
           <ActivityCard title="Recent Bot Activity">
-            <ActivityItem
-              action="Sold"
-              amount="700K DEGEN"
-              strategy="Strategy #1847"
-              time="2m ago"
-              creator="@crypto_mike"
-              profit="+15.4%"
-              isProfit={true}
-            />
-            <ActivityItem
-              action="Bought"
-              amount="1.2M HIGHER"
-              strategy="Strategy #924"
-              time="5m ago"
-              creator="@tradingpro"
-            />
-            <ActivityItem
-              action="Sold"
-              amount="450K ENJOY"
-              strategy="Strategy #623"
-              time="8m ago"
-              creator="@aitrader"
-              profit="-3.1%"
-              isProfit={false}
-            />
-            <ActivityItem
-              action="Bought"
-              amount="2.1M TN100X"
-              strategy="Strategy #1205"
-              time="12m ago"
-              creator="@moonshot"
-            />
+            {dashboardData.recent_activity.map((activity, index) => (
+              <ActivityItem
+                key={index}
+                action={activity.action === "Buy" ? "Bought" : "Sold"}
+                amount={`${activity.amount.toLocaleString()} ${activity.token_symbol}`}
+                strategy={`Strategy #${activity.strategy_id}`}
+                time={`${activity.time_ago} ago`}
+                creator={`Bot #${activity.bot_id}`}
+                tokenAmount={activity.amount.toLocaleString()}
+                tokenSymbol={activity.token_symbol}
+              />
+            ))}
           </ActivityCard>
 
           {/* Leaderboard */}
@@ -424,7 +412,9 @@ function ActivityItem({
   time, 
   creator, 
   profit, 
-  isProfit 
+  isProfit,
+  tokenAmount,
+  tokenSymbol
 }: { 
   action: string; 
   amount: string; 
@@ -433,6 +423,8 @@ function ActivityItem({
   creator: string; 
   profit?: string; 
   isProfit?: boolean;
+  tokenAmount?: string;
+  tokenSymbol?: string;
 }) {
   // Determine circle color based on action
   const getCircleColor = (action: string) => {
@@ -461,7 +453,13 @@ function ActivityItem({
           color: "#1c1c1e",
           marginBottom: "4px"
         }}>
-          {action} <span style={{ fontWeight: "700" }}>{amount}</span>
+          {action} {tokenAmount && tokenSymbol ? (
+            <>
+              {tokenAmount} <span style={{ fontWeight: "700" }}>{tokenSymbol}</span>
+            </>
+          ) : (
+            <span style={{ fontWeight: "700" }}>{amount}</span>
+          )}
         </div>
         <div style={{
           fontSize: "11px",
