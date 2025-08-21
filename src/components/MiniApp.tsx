@@ -16,6 +16,7 @@ export default function MiniApp() {
     strategies: 0,
     total_profits: 0,
     trades_executed: 0,
+    popular_tokens: {} as Record<string, number>,
     last_updated: null as string | null
   })
 
@@ -183,7 +184,7 @@ export default function MiniApp() {
               <MetricCard label="Total Profits" value={formatCurrency(dashboardData.total_profits)} change="+8.5%" />
             </div>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
-              <MetricCard label="Trades Executed" value={dashboardData.trades_executed.toLocaleString()} change="+24%" />
+              <MetricCard label="Total Trades" value={dashboardData.trades_executed.toLocaleString()} change="+24%" />
             </div>
           </div>
         </div>
@@ -192,10 +193,17 @@ export default function MiniApp() {
         <div style={{ marginBottom: "24px" }}>
           <div style={{ fontSize: "18px", fontWeight: "700", color: "#1c1c1e", marginBottom: "16px", padding: "0 4px" }}>Popular Tokens</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            <TokenCard name="DEGEN" tvl="$47K TVL" borderColor="#3b82f6" />
-            <TokenCard name="HIGHER" tvl="$32K TVL" borderColor="#10b981" />
-            <TokenCard name="ENJOY" tvl="$28K TVL" borderColor="#f59e0b" />
-            <TokenCard name="TN100X" tvl="$19K TVL" borderColor="#ef4444" />
+            {Object.entries(dashboardData.popular_tokens).map(([tokenName, tvl], index) => {
+              const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+              return (
+                <TokenCard 
+                  key={tokenName}
+                  name={tokenName} 
+                  tvl={`${formatCurrency(tvl)} TVL`} 
+                  borderColor={colors[index % colors.length]} 
+                />
+              );
+            })}
           </div>
         </div>
 
@@ -370,7 +378,15 @@ function TokenCard({ name, tvl, borderColor }: { name: string; tvl: string; bord
       boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
       border: `2px solid ${borderColor}`
     }}>
-      <div style={{ fontSize: "14px", fontWeight: "700", color: "#1c1c1e", marginBottom: "4px" }}>{name}</div>
+      <div style={{ 
+        fontSize: "14px", 
+        fontWeight: "700", 
+        color: "#1c1c1e", 
+        marginBottom: "4px",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap"
+      }}>{name}</div>
       <div style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "500" }}>{tvl}</div>
     </div>
   )
