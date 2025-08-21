@@ -24,6 +24,8 @@ export default function MiniApp() {
       strategy_id: string;
       bot_id: number;
       time_ago: string;
+      farcaster_username: string;
+      farcaster_avatar_url: string;
     }>,
     last_updated: null as string | null
   })
@@ -217,17 +219,18 @@ export default function MiniApp() {
 
         {/* Recent Activity */}
         <div style={{ marginBottom: "24px" }}>
-          <ActivityCard title="Recent Bot Activity">
+          <ActivityCard title="Recent Activity">
             {dashboardData.recent_activity.map((activity, index) => (
               <ActivityItem
                 key={index}
                 action={activity.action === "Buy" ? "Bought" : "Sold"}
                 amount={`${activity.amount.toLocaleString()} ${activity.token_symbol}`}
-                strategy={`Strategy #${activity.strategy_id}`}
-                time={`${activity.time_ago} ago`}
-                creator={`Bot #${activity.bot_id}`}
+                strategy={`Bot #${activity.bot_id} by @${activity.farcaster_username} • ${activity.time_ago} ago`}
+                time=""
+                creator=""
                 tokenAmount={activity.amount.toLocaleString()}
                 tokenSymbol={activity.token_symbol}
+                avatarUrl={activity.farcaster_avatar_url}
               />
             ))}
           </ActivityCard>
@@ -414,7 +417,8 @@ function ActivityItem({
   profit, 
   isProfit,
   tokenAmount,
-  tokenSymbol
+  tokenSymbol,
+  avatarUrl
 }: { 
   action: string; 
   amount: string; 
@@ -425,6 +429,7 @@ function ActivityItem({
   isProfit?: boolean;
   tokenAmount?: string;
   tokenSymbol?: string;
+  avatarUrl?: string;
 }) {
   // Determine circle color based on action
   const getCircleColor = (action: string) => {
@@ -440,12 +445,44 @@ function ActivityItem({
       gap: "16px"
     }}>
       <div style={{
-        width: "32px",
-        height: "32px",
+        width: "40px",
+        height: "40px",
         borderRadius: "50%",
-        background: getCircleColor(action),
-        flexShrink: 0
-      }}></div>
+        flexShrink: 0,
+        overflow: "hidden"
+      }}>
+        {avatarUrl ? (
+          <img 
+            src={avatarUrl.replace('/rectcrop3', '/original')}
+            alt={creator}
+            style={{
+              width: "100%",
+              height: "100%",
+              objectFit: "contain"
+            }}
+            onError={(e) => {
+              // Try fallback to original URL if modified URL fails
+              const target = e.target as HTMLImageElement;
+              if (target.src.includes('/original')) {
+                target.src = avatarUrl; // Use original URL
+              } else {
+                // Final fallback to colored circle
+                target.style.display = 'none';
+                const parent = target.parentElement;
+                if (parent) {
+                  parent.style.background = getCircleColor(action);
+                }
+              }
+            }}
+          />
+        ) : (
+          <div style={{
+            width: "100%",
+            height: "100%",
+            background: getCircleColor(action)
+          }}></div>
+        )}
+      </div>
       <div style={{ flex: 1 }}>
         <div style={{
           fontSize: "15px",
@@ -467,7 +504,7 @@ function ActivityItem({
           marginTop: "2px",
           fontWeight: "500"
         }}>
-          {strategy} • {time} • {creator}
+          {time && creator ? `${strategy} • ${time} • ${creator}` : strategy}
         </div>
       </div>
       {profit && (
