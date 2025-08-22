@@ -26,6 +26,7 @@ export default function MiniApp() {
       time_ago: string;
       farcaster_username: string;
       farcaster_avatar_url: string;
+      performance_pct: number | null;
     }>,
     top_performers: [] as Array<{
       bot_id: number;
@@ -240,6 +241,8 @@ export default function MiniApp() {
                 tokenAmount={activity.amount.toLocaleString()}
                 tokenSymbol={activity.token_symbol}
                 avatarUrl={activity.farcaster_avatar_url}
+                profit={activity.performance_pct !== null && activity.performance_pct !== undefined ? `${activity.performance_pct > 0 ? '+' : ''}${Number(activity.performance_pct).toFixed(1)}%` : undefined}
+                isProfit={activity.performance_pct !== null && activity.performance_pct !== undefined ? activity.performance_pct > 0 : undefined}
               />
             ))}
           </ActivityCard>
