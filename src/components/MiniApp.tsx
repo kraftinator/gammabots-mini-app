@@ -16,6 +16,9 @@ export default function MiniApp() {
     strategies: 0,
     total_profits: 0,
     trades_executed: 0,
+    active_bots_change_24h: 0,
+    tvl_change_24h: 0,
+    volume_24h_change_24h: 0,
     popular_tokens: {} as Record<string, number>,
     recent_activity: [] as Array<{
       action: string;
@@ -102,6 +105,13 @@ export default function MiniApp() {
     } else {
       return `$${Number(value).toFixed(2)}`
     }
+  }
+
+  // Helper function to format percentage changes
+  const formatPercentageChange = (value: number | null | undefined): string => {
+    if (value === null || value === undefined || isNaN(value) || value === 0) return ""
+    const sign = value > 0 ? "+" : ""
+    return `${sign}${Number(value).toFixed(1)}%`
   }
 
   if (!isReady) {
@@ -192,19 +202,19 @@ export default function MiniApp() {
         {/* Platform Metrics */}
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-            <MetricCard label="Active Bots" value={dashboardData.active_bots.toLocaleString()} change="+12%" />
-            <MetricCard label="TVL" value={formatCurrency(dashboardData.tvl)} change="+5.2%" />
-            <MetricCard label="24h Volume" value={formatCurrency(dashboardData.volume_24h)} change="+15.3%" />
+            <MetricCard label="Active Bots" value={dashboardData.active_bots.toLocaleString()} change={formatPercentageChange(dashboardData.active_bots_change_24h)} />
+            <MetricCard label="TVL" value={formatCurrency(dashboardData.tvl)} change={formatPercentageChange(dashboardData.tvl_change_24h)} />
+            <MetricCard label="24h Volume" value={formatCurrency(dashboardData.volume_24h)} change={formatPercentageChange(dashboardData.volume_24h_change_24h)} />
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "12px" }}>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
-              <MetricCard label="Strategies" value={dashboardData.strategies.toLocaleString()} change="+18%" />
+              <MetricCard label="Strategies" value={dashboardData.strategies.toLocaleString()} change="" />
             </div>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
-              <MetricCard label="Total Profits" value={formatCurrency(dashboardData.total_profits)} change="+8.5%" />
+              <MetricCard label="Total Profits" value={formatCurrency(dashboardData.total_profits)} change="" />
             </div>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
-              <MetricCard label="Total Trades" value={dashboardData.trades_executed.toLocaleString()} change="+24%" />
+              <MetricCard label="Total Trades" value={dashboardData.trades_executed.toLocaleString()} change="" />
             </div>
           </div>
         </div>
@@ -341,6 +351,13 @@ export default function MiniApp() {
 
 // Component helpers
 function MetricCard({ label, value, change }: { label: string; value: string; change?: string }) {
+  // Determine color based on change value
+  const getChangeColor = (changeValue?: string) => {
+    if (!changeValue || changeValue === "") return "#34c759" // Default green
+    if (changeValue.startsWith("-")) return "#ff3b30" // Red for negative
+    return "#34c759" // Green for positive
+  }
+
   return (
     <div style={{ 
       background: "white", 
@@ -356,7 +373,7 @@ function MetricCard({ label, value, change }: { label: string; value: string; ch
     }}>
       <div style={{ fontSize: "11px", color: "#8e8e93", fontWeight: "500" }}>{label}</div>
       <div style={{ fontSize: "16px", fontWeight: "700", color: "#1c1c1e" }}>{value}</div>
-      <div style={{ fontSize: "10px", fontWeight: "600", color: "#34c759", height: "12px", lineHeight: "12px" }}>
+      <div style={{ fontSize: "10px", fontWeight: "600", color: getChangeColor(change), height: "12px", lineHeight: "12px" }}>
         {change || "\u00A0"}
       </div>
     </div>
