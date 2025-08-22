@@ -2,10 +2,10 @@
   "miniapp": {
     "version": "1",
     "name": "Gammabots - Trading Bot Platform",
-    "iconUrl": "https://b6ca83becc74.ngrok-free.app/icon.png",
-    "homeUrl": "https://b6ca83becc74.ngrok-free.app",
+    "iconUrl": "https://gammabots-mini-app.vercel.app/icon.png",
+    "homeUrl": "https://gammabots-mini-app.vercel.app",
     "description": "Trading Bots Made Easy - Create and manage automated trading bots on Farcaster",
-    "splashImageUrl": "https://b6ca83becc74.ngrok-free.app/splash.png",
+    "splashImageUrl": "https://gammabots-mini-app.vercel.app/splash.png",
     "splashBackgroundColor": "#8B5CF6"
   }
 }
