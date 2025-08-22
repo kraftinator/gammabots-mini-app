@@ -27,6 +27,13 @@ export default function MiniApp() {
       farcaster_username: string;
       farcaster_avatar_url: string;
     }>,
+    top_performers: [] as Array<{
+      bot_id: number;
+      username: string;
+      strategy_id: string;
+      token_symbol: string;
+      performance: string;
+    }>,
     last_updated: null as string | null
   })
 
@@ -236,32 +243,24 @@ export default function MiniApp() {
           </ActivityCard>
 
           {/* Leaderboard */}
-          <ActivityCard title="Top Performers (24h)">
-            <LeaderboardItem
-              rank={1}
-              rankColor="bg-orange-500"
-              botName="Bot #7429"
-              creator="@cryptoking"
-              strategy="Strategy #1847"
-              profit="+47.3%"
-            />
-            <LeaderboardItem
-              rank={2}
-              rankColor="bg-gray-500"
-              botName="Bot #3815"
-              creator="@degenerate"
-              strategy="Strategy #924"
-              profit="+31.8%"
-            />
-            <LeaderboardItem
-              rank={3}
-              rankColor="bg-yellow-600"
-              botName="Bot #9204"
-              creator="@aidev"
-              strategy="Strategy #623"
-              profit="+22.9%"
-            />
-          </ActivityCard>
+          {dashboardData.top_performers.length > 0 && (
+            <ActivityCard title="Top Performers (7d)">
+              {dashboardData.top_performers.map((performer, index) => {
+                const rankColors = ["bg-orange-500", "bg-gray-500", "bg-yellow-600"];
+                return (
+                  <LeaderboardItem
+                    key={index}
+                    rank={index + 1}
+                    rankColor={rankColors[index] || "bg-blue-500"}
+                    botName={`Bot #${performer.bot_id}`}
+                    creator={`@${performer.username}`}
+                    strategy={performer.token_symbol}
+                    profit={`+${performer.performance}%`}
+                  />
+                );
+              })}
+            </ActivityCard>
+          )}
         </div>
 
         {/* Action Buttons */}
