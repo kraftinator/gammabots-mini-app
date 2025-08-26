@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 export default function MiniApp() {
   const [isReady, setIsReady] = useState(false)
@@ -301,7 +302,7 @@ export default function MiniApp() {
           }}>
             Create Bot
           </button>
-          <a href="/my-bots" style={{ textDecoration: "none", flex: 1 }}>
+          <Link href="/my-bots" style={{ textDecoration: "none", flex: 1 }}>
             <button style={{
               width: "100%",
               padding: "16px 20px",
@@ -319,7 +320,7 @@ export default function MiniApp() {
             }}>
               My Bots
             </button>
-          </a>
+          </Link>
         </div>
       </div>
 

@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import Link from 'next/link'
 
 export default function MyBotsPage() {
   const [isReady, setIsReady] = useState(false)
@@ -224,9 +225,9 @@ export default function MyBotsPage() {
         paddingBottom: "env(safe-area-inset-bottom)",
         zIndex: 100
       }}>
-        <a href="/" style={{ textDecoration: "none" }}>
+        <Link href="/" style={{ textDecoration: "none" }}>
           <NavItem label="HOME" />
-        </a>
+        </Link>
         <NavItem label="MY BOTS" active={true} />
         <NavItem label="LEADERBOARD" />
         <NavItem label="STRATEGIES" />
