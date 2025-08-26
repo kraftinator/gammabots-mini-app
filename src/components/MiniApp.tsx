@@ -286,6 +286,7 @@ export default function MiniApp() {
           marginTop: "20px"
         }}>
           <button style={{
+            flex: 1,
             padding: "16px 20px",
             borderRadius: "25px",
             fontFamily: "'Inter', sans-serif",
@@ -300,21 +301,25 @@ export default function MiniApp() {
           }}>
             Create Bot
           </button>
-          <button style={{
-            padding: "16px 20px",
-            borderRadius: "25px",
-            fontFamily: "'Inter', sans-serif",
-            fontWeight: "700",
-            fontSize: "15px",
-            border: "2px solid #3b82f6",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            textAlign: "center",
-            background: "white",
-            color: "#3b82f6"
-          }}>
-            My Bots (0)
-          </button>
+          <a href="/my-bots" style={{ textDecoration: "none", flex: 1 }}>
+            <button style={{
+              width: "100%",
+              padding: "16px 20px",
+              borderRadius: "25px",
+              fontFamily: "'Inter', sans-serif",
+              fontWeight: "700",
+              fontSize: "15px",
+              border: "2px solid #3b82f6",
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+              textAlign: "center",
+              background: "white",
+              color: "#3b82f6",
+              boxSizing: "border-box"
+            }}>
+              My Bots
+            </button>
+          </a>
         </div>
       </div>
 
