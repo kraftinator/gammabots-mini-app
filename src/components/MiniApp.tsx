@@ -1,12 +1,16 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import { useRouter } from 'next/navigation'
 
 export default function MiniApp() {
+  const router = useRouter()
   const [isReady, setIsReady] = useState(false)
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [authError, setAuthError] = useState<string | null>(null)
+  const [authLoading, setAuthLoading] = useState(false)
+  const [sdkRef, setSdkRef] = useState<any>(null)
   const [username, setUsername] = useState<string>('guest') // Default fallback for development
   
   // Dashboard metrics from API
@@ -63,6 +67,7 @@ export default function MiniApp() {
         
         // Then try to load the SDK
         const { sdk } = await import('@farcaster/miniapp-sdk')
+        setSdkRef(sdk)
         
         // Check if we're running in a Mini App environment
         const inMiniApp = await sdk.isInMiniApp()
@@ -94,6 +99,47 @@ export default function MiniApp() {
 
     initializeMiniApp()
   }, [])
+
+  // Require Quick Auth before navigating to /my-bots
+  const handleMyBotsClick = async (e: React.MouseEvent) => {
+    e.preventDefault()
+    setAuthError(null)
+
+    if (!sdkRef) {
+      setAuthError('Mini App SDK not ready yet.')
+      return
+    }
+
+    try {
+      setAuthLoading(true);
+
+      // ⬇️ getToken returns { token: string }
+      const { token } = await sdkRef.quickAuth.getToken();
+
+      if (typeof token !== "string" || token.length === 0) {
+        setAuthError("Quick Auth did not return a token.");
+        return;
+      }
+
+      // Optional debug: peek at the token and payload
+      console.log("QA token:", token.slice(0, 20), "…");
+      try 
+      {
+        const [, payloadB64] = token.split(".");
+        const payloadJson = atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/"));
+        const payload = JSON.parse(payloadJson);
+        console.log("QA payload:", payload); // iss, sub (fid), aud, exp, iat
+      } catch (e) {
+        console.warn("Could not decode token", e);
+      }
+
+      router.push("/my-bots");
+    } catch (err: any) {
+      setAuthError(err?.message || "Quick Auth failed.");
+    } finally {
+      setAuthLoading(false);
+    }
+  }
 
   // Helper function to format currency values
   const formatCurrency = (value: number): string => {
@@ -302,8 +348,10 @@ export default function MiniApp() {
           }}>
             Create Bot
           </button>
-          <Link href="/my-bots" style={{ textDecoration: "none", flex: 1 }}>
-            <button style={{
+          <button
+            onClick={handleMyBotsClick}
+            disabled={authLoading}
+            style={{
               width: "100%",
               padding: "16px 20px",
               borderRadius: "25px",
@@ -317,10 +365,10 @@ export default function MiniApp() {
               background: "white",
               color: "#3b82f6",
               boxSizing: "border-box"
-            }}>
-              My Bots
-            </button>
-          </Link>
+            }}
+          >
+            {authLoading ? "Checking…" : "My Bots"}
+          </button>
         </div>
       </div>
 
@@ -346,6 +394,11 @@ export default function MiniApp() {
       </div>
 
       {/* Debug Info */}
+      {authError && (
+        <div className="fixed top-16 left-4 right-4 p-3 bg-yellow-100 rounded-lg border border-yellow-200 z-50">
+          <p className="text-xs text-yellow-800">Authentication: {authError}</p>
+        </div>
+      )}
       {error && (
         <div className="fixed top-4 left-4 right-4 p-3 bg-red-100 rounded-lg border border-red-200 z-50">
           <p className="text-xs text-red-700">Error: {error}</p>

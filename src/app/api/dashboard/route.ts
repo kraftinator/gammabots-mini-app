@@ -13,8 +13,8 @@ export async function GET() {
       )
     }
 
-    // Construct the URL with API key as query parameter
-    const url = `${apiUrl}/dashboard_metrics?apikey=${apiKey}`
+    // Construct the URL (no query parameter needed)
+    const url = `${apiUrl}/dashboard_metrics`
     
     console.log('Fetching from Gammabots Dashboard API:', apiUrl)
     
@@ -22,6 +22,7 @@ export async function GET() {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
+        'X-API-Key': apiKey // API key in header instead of query param
       },
     })
 
