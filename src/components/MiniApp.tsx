@@ -6,11 +6,10 @@ import { useRouter } from 'next/navigation'
 export default function MiniApp() {
   const router = useRouter()
   const [isReady, setIsReady] = useState(false)
-    const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [authError, setAuthError] = useState<string | null>(null)
   const [authLoading, setAuthLoading] = useState(false)
-    const [sdkRef, setSdkRef] = useState<any>(null)
+  const [sdkRef, setSdkRef] = useState<typeof import('@farcaster/miniapp-sdk').sdk | null>(null)
   const [username, setUsername] = useState<string>('guest') // Default fallback for development
   
   // Dashboard metrics from API
@@ -70,8 +69,7 @@ export default function MiniApp() {
         setSdkRef(sdk)
         
         // Check if we're running in a Mini App environment
-  const inMiniApp = await sdk.isInMiniApp()
-  setIsMiniApp(inMiniApp)
+        const inMiniApp = await sdk.isInMiniApp()
 
         if (inMiniApp) {
           // We're in a Mini App, call ready to hide splash screen
@@ -93,7 +91,6 @@ export default function MiniApp() {
       } catch (error) {
         console.error('Error initializing Mini App:', error)
         setError(error instanceof Error ? error.message : 'Unknown error')
-  setIsMiniApp(false) // Restore error fallback
       }
     }
 
@@ -134,8 +131,8 @@ export default function MiniApp() {
       }
 
       router.push("/my-bots");
-    } catch (err: any) {
-      setAuthError(err?.message || "Quick Auth failed.");
+    } catch (err: unknown) {
+      setAuthError(err instanceof Error ? err.message : "Quick Auth failed.");
     } finally {
       setAuthLoading(false);
     }

@@ -62,7 +62,7 @@ export default function MyBotsPage() {
       }
     }
 
-    async function authenticateAndFetchBots(sdk: any) {
+    async function authenticateAndFetchBots(sdk: typeof import('@farcaster/miniapp-sdk').sdk) {
       try {
         setAuthLoading(true)
         setAuthError(null)
@@ -80,10 +80,10 @@ export default function MyBotsPage() {
         setAuthLoading(false)
         await fetchBots(token)
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Authentication failed:', error)
         setAuthLoading(false)
-        setAuthError(error?.message || 'Authentication failed')
+        setAuthError(error instanceof Error ? error.message : 'Authentication failed')
       }
     }
 
@@ -111,9 +111,9 @@ export default function MyBotsPage() {
         console.log('Processed bots array:', botsArray)
         setBots(botsArray)
         
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Failed to fetch bots:', error)
-        setBotsError(error?.message || 'Failed to fetch bots')
+        setBotsError(error instanceof Error ? error.message : 'Failed to fetch bots')
       } finally {
         setBotsLoading(false)
       }
