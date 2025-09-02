@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import Link from 'next/link'
+import BottomNavigation from '@/components/BottomNavigation'
 
 interface Bot {
   bot_id: string
@@ -351,72 +351,7 @@ export default function MyBotsPage() {
       )}
 
       {/* Bottom Navigation */}
-      <div style={{
-        position: 'fixed',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: '#111',
-        borderTop: '1px solid #333',
-        padding: '12px 20px',
-        display: 'flex',
-        justifyContent: 'space-around'
-      }}>
-        <Link 
-          href="/"
-          style={{
-            display: 'flex',
-            flexDirection: 'column',
-            alignItems: 'center',
-            textDecoration: 'none',
-            color: '#888',
-            fontSize: '12px'
-          }}
-        >
-          <div style={{
-            width: '24px',
-            height: '24px',
-            backgroundColor: '#666',
-            borderRadius: '4px',
-            marginBottom: '4px'
-          }} />
-          Dashboard
-        </Link>
-        
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          color: '#00ff00',
-          fontSize: '12px'
-        }}>
-          <div style={{
-            width: '24px',
-            height: '24px',
-            backgroundColor: '#00ff00',
-            borderRadius: '4px',
-            marginBottom: '4px'
-          }} />
-          My Bots
-        </div>
-        
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          color: '#888',
-          fontSize: '12px'
-        }}>
-          <div style={{
-            width: '24px',
-            height: '24px',
-            backgroundColor: '#666',
-            borderRadius: '4px',
-            marginBottom: '4px'
-          }} />
-          Settings
-        </div>
-      </div>
+      <BottomNavigation activeTab="my-bots" />
     </div>
   )
 }

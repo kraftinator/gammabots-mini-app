@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import BottomNavigation from './BottomNavigation'
 
 export default function MiniApp() {
   const router = useRouter()
@@ -370,25 +371,7 @@ export default function MiniApp() {
       </div>
 
       {/* Bottom Navigation */}
-      <div style={{
-        position: "fixed",
-        bottom: 0,
-        left: "50%",
-        transform: "translateX(-50%)",
-        width: "420px",
-        maxWidth: "100vw",
-        background: "white",
-        borderTop: "1px solid #f2f2f7",
-        display: "flex",
-        zIndex: 5,
-        boxShadow: "0 -2px 12px rgba(0, 0, 0, 0.08)",
-        borderRadius: "20px 20px 0 0"
-      }}>
-        <NavItem label="HOME" active />
-        <NavItem label="MY BOTS" />
-        <NavItem label="LEADERBOARD" />
-        <NavItem label="STRATEGIES" />
-      </div>
+      <BottomNavigation activeTab="home" />
 
       {/* Debug Info */}
       {authError && (
@@ -670,36 +653,3 @@ function LeaderboardItem({
   )
 }
 
-function NavItem({ label, active = false }: { label: string; active?: boolean }) {
-  return (
-    <div style={{
-      flex: 1,
-      padding: "12px 8px 16px",
-      textAlign: "center",
-      cursor: "pointer",
-      transition: "all 0.2s ease",
-      color: active ? "#8b5cf6" : "#8e8e93",
-      fontSize: "11px",
-      fontWeight: "600",
-      textTransform: "uppercase",
-      letterSpacing: "0.5px",
-      margin: "8px 4px",
-      position: "relative"
-    }}>
-      {label}
-      {active && (
-        <div style={{
-          content: '',
-          position: "absolute",
-          bottom: "8px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "20px",
-          height: "3px",
-          background: "#8b5cf6",
-          borderRadius: "1px"
-        }}></div>
-      )}
-    </div>
-  )
-}
