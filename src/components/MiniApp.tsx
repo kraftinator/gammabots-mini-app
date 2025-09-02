@@ -43,6 +43,7 @@ export default function MiniApp() {
       token_symbol: string;
       performance: string;
     }>,
+    user_bot_count: 0,
     last_updated: null as string | null
   })
 
@@ -52,20 +53,7 @@ export default function MiniApp() {
         // First, just show the component works
         setIsReady(true)
         
-        // Fetch dashboard metrics data
-        try {
-          const response = await fetch('/api/dashboard')
-          if (response.ok) {
-            const data = await response.json()
-            setDashboardData(data)
-          } else {
-            console.warn('Failed to fetch dashboard metrics data')
-          }
-        } catch (dashboardError) {
-          console.warn('Error fetching dashboard data:', dashboardError)
-        }
-        
-        // Then try to load the SDK
+        // Load the SDK first
         const { sdk } = await import('@farcaster/miniapp-sdk')
         setSdkRef(sdk)
         
@@ -88,10 +76,64 @@ export default function MiniApp() {
             // Keep the default username if user context fails
           }
         }
+
+        // Perform Quick Auth and fetch dashboard data with auth
+        await authenticateAndFetchDashboard(sdk)
         
       } catch (error) {
         console.error('Error initializing Mini App:', error)
         setError(error instanceof Error ? error.message : 'Unknown error')
+      }
+    }
+
+    // Function to perform Quick Auth and fetch authenticated dashboard data
+    async function authenticateAndFetchDashboard(sdk: typeof import('@farcaster/miniapp-sdk').sdk) {
+      try {
+        setAuthLoading(true)
+        setAuthError(null)
+
+        // Perform Quick Auth
+        const { token } = await sdk.quickAuth.getToken()
+        
+        if (typeof token !== "string" || token.length === 0) {
+          throw new Error("Quick Auth did not return a valid token")
+        }
+
+        console.log("Dashboard QA token received:", token.slice(0, 20), "...")
+        
+        // Fetch dashboard data with auth token
+        await fetchDashboardData(token)
+
+      } catch (error: unknown) {
+        console.error('Dashboard authentication failed:', error)
+        setAuthError(error instanceof Error ? error.message : 'Dashboard authentication failed')
+      } finally {
+        setAuthLoading(false)
+      }
+    }
+
+    // Function to fetch dashboard data with auth token
+    async function fetchDashboardData(token: string) {
+      try {
+        console.log('🔍 Frontend: Calling /api/dashboard with token')
+        
+        const response = await fetch('/api/dashboard', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setDashboardData(data)
+          console.log('✅ Frontend: Dashboard data loaded successfully')
+        } else {
+          console.warn('🚨 Frontend: Failed to fetch dashboard metrics data:', response.status)
+        }
+      } catch (dashboardError) {
+        console.warn('🚨 Frontend: Error fetching dashboard data:', dashboardError)
       }
     }
 
@@ -365,7 +407,7 @@ export default function MiniApp() {
               boxSizing: "border-box"
             }}
           >
-            {authLoading ? "Checking…" : "My Bots"}
+            {authLoading ? "Checking…" : `My Bots${dashboardData.user_bot_count > 0 ? ` (${dashboardData.user_bot_count})` : ""}`}
           </button>
         </div>
       </div>
