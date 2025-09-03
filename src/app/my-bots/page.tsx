@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import BottomNavigation from '@/components/BottomNavigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
+import { styles, colors } from '@/styles/common'
 
 interface Bot {
   bot_id: string
@@ -100,25 +101,19 @@ export default function MyBotsPage() {
   if (!isReady) {
     return (
       <div style={{
-        padding: '20px',
-        textAlign: 'center',
-        minHeight: '100vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#000'
+        ...styles.loadingContainer,
+        backgroundColor: colors.black
       }}>
-        <p style={{ color: '#fff' }}>Loading...</p>
+        <p style={{ color: colors.white }}>Loading...</p>
       </div>
     )
   }
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#000',
-      color: '#fff',
-      padding: '20px',
-      paddingBottom: '80px'
+      backgroundColor: colors.black,
+      color: colors.white,
+      ...styles.contentPadding
     }}>
       {/* Header */}
       <div style={{
@@ -128,16 +123,12 @@ export default function MyBotsPage() {
         marginBottom: '30px'
       }}>
         <div>
-          <h1 style={{
-            fontSize: '28px',
-            fontWeight: 'bold',
-            margin: '0 0 8px 0'
-          }}>
+          <h1 style={styles.heading1}>
             My Bots
           </h1>
           <p style={{
             margin: 0,
-            color: '#888',
+            color: colors.text.secondary,
             fontSize: '14px'
           }}>
             {isMiniApp ? `@${username}` : 'Web Browser Mode'}
@@ -148,13 +139,13 @@ export default function MyBotsPage() {
       {/* Auth Status */}
       {authLoading && (
         <div style={{
-          backgroundColor: '#111',
+          backgroundColor: colors.background.dark,
           borderRadius: '12px',
           padding: '24px',
           marginBottom: '20px',
           textAlign: 'center'
         }}>
-          <p style={{ color: '#888', margin: 0 }}>
+          <p style={{ color: colors.text.secondary, margin: 0 }}>
             Authenticating...
           </p>
         </div>
@@ -172,12 +163,12 @@ export default function MyBotsPage() {
             fontSize: '16px',
             fontWeight: 'bold',
             margin: '0 0 8px 0',
-            color: '#ffaa44'
+            color: colors.warning
           }}>
             Authentication Error
           </h3>
           <p style={{
-            color: '#ffaa44',
+            color: colors.warning,
             margin: 0,
             fontSize: '14px'
           }}>
@@ -190,21 +181,12 @@ export default function MyBotsPage() {
       {!authLoading && !authError && (
         <>
           {/* Main Content */}
-          <div style={{
-            backgroundColor: '#111',
-            borderRadius: '12px',
-            padding: '24px',
-            marginBottom: '20px'
-          }}>
-            <h2 style={{
-              fontSize: '20px',
-              fontWeight: 'bold',
-              margin: '0 0 16px 0'
-            }}>
+          <div style={styles.darkCard}>
+            <h2 style={styles.heading2}>
               Your Trading Bots
             </h2>
             <p style={{
-              color: '#888',
+              ...styles.textSecondary,
               margin: '0',
               lineHeight: '1.5'
             }}>
@@ -213,23 +195,19 @@ export default function MyBotsPage() {
           </div>
 
           {/* Bots List */}
-          <div style={{
-            backgroundColor: '#111',
-            borderRadius: '12px',
-            padding: '24px'
-          }}>
+          <div style={styles.darkCard}>
             <h3 style={{
               fontSize: '16px',
               fontWeight: 'bold',
               margin: '0 0 16px 0',
-              color: '#fff'
+              color: colors.white
             }}>
               Active Bots
             </h3>
 
             {botsLoading && (
               <div style={{
-                color: '#888',
+                color: colors.text.secondary,
                 textAlign: 'center',
                 padding: '20px'
               }}>
@@ -245,7 +223,7 @@ export default function MyBotsPage() {
                 border: '1px solid #664444'
               }}>
                 <p style={{
-                  color: '#ff6666',
+                  color: colors.error,
                   margin: 0,
                   fontSize: '14px'
                 }}>
@@ -258,7 +236,7 @@ export default function MyBotsPage() {
               <>
                 {bots.length === 0 ? (
                   <div style={{
-                    color: '#888',
+                    color: colors.text.secondary,
                     textAlign: 'center',
                     padding: '20px'
                   }}>
@@ -270,13 +248,7 @@ export default function MyBotsPage() {
                 ) : (
                   <div>
                     {bots.map((bot) => (
-                      <div key={bot.bot_id} style={{
-                        backgroundColor: '#222',
-                        borderRadius: '8px',
-                        padding: '16px',
-                        marginBottom: '12px',
-                        border: '1px solid #333'
-                      }}>
+                      <div key={bot.bot_id} style={styles.darkCardSmall}>
                         <div style={{
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -287,14 +259,14 @@ export default function MyBotsPage() {
                             fontSize: '16px',
                             fontWeight: 'bold',
                             margin: 0,
-                            color: '#fff'
+                            color: colors.white
                           }}>
                             {bot.token_symbol} Bot
                           </h4>
                           <span style={{
                             padding: '4px 8px',
                             backgroundColor: '#00ff0020',
-                            color: '#00ff00',
+                            color: colors.success,
                             borderRadius: '4px',
                             fontSize: '12px'
                           }}>
@@ -302,14 +274,14 @@ export default function MyBotsPage() {
                           </span>
                         </div>
                         <p style={{
-                          color: '#888',
+                          color: colors.text.secondary,
                           margin: '0 0 8px 0',
                           fontSize: '14px'
                         }}>
                           Strategy: {bot.strategy_id}
                         </p>
                         <p style={{
-                          color: '#666',
+                          color: colors.text.tertiary,
                           margin: 0,
                           fontSize: '12px'
                         }}>

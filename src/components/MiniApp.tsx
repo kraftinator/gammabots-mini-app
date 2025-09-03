@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNavigation from './BottomNavigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
+import { styles, colors, getChangeColor, getCircleColor, getRankColor } from '@/styles/common'
 
 export default function MiniApp() {
   const router = useRouter()
@@ -145,25 +146,16 @@ export default function MiniApp() {
 
   if (!isReady) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-cyan-400 to-purple-400">
-        <div className="text-white text-xl">Loading...</div>
+      <div style={styles.loadingContainerLight}>
+        <div style={{ color: colors.white, fontSize: "20px" }}>Loading...</div>
       </div>
     )
   }
 
   return (
-    <div style={{ maxWidth: "420px", margin: "0 auto", background: "#f5f5f5", minHeight: "100vh", position: "relative" }}>
+    <div style={styles.container}>
       {/* Hero Section */}
-      <div style={{ 
-        background: "linear-gradient(135deg, #00d9ff 0%, #a78bfa 100%)", 
-        padding: "32px 20px 20px", 
-        textAlign: "center", 
-        color: "white", 
-        position: "relative", 
-        overflow: "hidden", 
-        borderRadius: "24px 24px 0 0", 
-        marginTop: "16px" 
-      }}>
+      <div style={styles.heroGradient}>
         {/* Decorative elements */}
         <div style={{ 
           content: '', 
@@ -189,24 +181,10 @@ export default function MiniApp() {
         }}></div>
         
         <div style={{ position: "relative", zIndex: 2 }}>
-          <div style={{ 
-            width: "80px", 
-            height: "80px", 
-            background: "#1e3a8a", 
-            borderRadius: "20px", 
-            display: "flex", 
-            alignItems: "center", 
-            justifyContent: "center", 
-            fontSize: "40px", 
-            fontWeight: "900", 
-            color: "white", 
-            margin: "0 auto 16px", 
-            border: "3px solid #3b82f6", 
-            boxShadow: "0 8px 20px rgba(0, 0, 0, 0.3)" 
-          }}>
+          <div style={styles.logo}>
             Γ
           </div>
-          <div style={{ fontSize: "28px", fontWeight: "800", marginBottom: "8px", letterSpacing: "-0.5px" }}>GAMMABOTS</div>
+          <div style={styles.heading1}>GAMMABOTS</div>
           <div style={{ fontSize: "16px", fontWeight: "500", opacity: "0.9" }}>Trading Bots Made Easy</div>
         </div>
         
@@ -227,7 +205,7 @@ export default function MiniApp() {
       </div>
 
       {/* Main Content */}
-      <div style={{ padding: "20px 16px 100px" }}>
+      <div style={styles.contentPadding}>
         {/* Platform Metrics */}
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
@@ -314,40 +292,13 @@ export default function MiniApp() {
           gap: "12px",
           marginTop: "20px"
         }}>
-          <button style={{
-            flex: 1,
-            padding: "16px 20px",
-            borderRadius: "25px",
-            fontFamily: "'Inter', sans-serif",
-            fontWeight: "700",
-            fontSize: "15px",
-            border: "none",
-            cursor: "pointer",
-            transition: "all 0.2s ease",
-            textAlign: "center",
-            background: "#3b82f6",
-            color: "white"
-          }}>
+          <button style={styles.buttonPrimary}>
             Create Bot
           </button>
           <button
             onClick={handleMyBotsClick}
             disabled={authLoading}
-            style={{
-              width: "100%",
-              padding: "16px 20px",
-              borderRadius: "25px",
-              fontFamily: "'Inter', sans-serif",
-              fontWeight: "700",
-              fontSize: "15px",
-              border: "2px solid #3b82f6",
-              cursor: "pointer",
-              transition: "all 0.2s ease",
-              textAlign: "center",
-              background: "white",
-              color: "#3b82f6",
-              boxSizing: "border-box"
-            }}
+            style={styles.buttonSecondary}
           >
             {authLoading ? "Checking…" : `My Bots${dashboardData.user_bot_count > 0 ? ` (${dashboardData.user_bot_count})` : ""}`}
           </button>
@@ -374,28 +325,10 @@ export default function MiniApp() {
 
 // Component helpers
 function MetricCard({ label, value, change }: { label: string; value: string; change?: string }) {
-  // Determine color based on change value
-  const getChangeColor = (changeValue?: string) => {
-    if (!changeValue || changeValue === "") return "#34c759" // Default green
-    if (changeValue.startsWith("-")) return "#ff3b30" // Red for negative
-    return "#34c759" // Green for positive
-  }
-
   return (
-    <div style={{ 
-      background: "white", 
-      borderRadius: "16px", 
-      padding: "16px 12px", 
-      textAlign: "center", 
-      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)", 
-      border: "1px solid rgba(0, 0, 0, 0.05)",
-      height: "84px",
-      display: "flex",
-      flexDirection: "column",
-      justifyContent: "space-between"
-    }}>
-      <div style={{ fontSize: "11px", color: "#8e8e93", fontWeight: "500" }}>{label}</div>
-      <div style={{ fontSize: "16px", fontWeight: "700", color: "#1c1c1e" }}>{value}</div>
+    <div style={styles.metricCard}>
+      <div style={styles.textSmall}>{label}</div>
+      <div style={{ fontSize: "16px", fontWeight: "700", ...styles.textPrimary }}>{value}</div>
       <div style={{ fontSize: "10px", fontWeight: "600", color: getChangeColor(change), height: "12px", lineHeight: "12px" }}>
         {change || "\u00A0"}
       </div>
@@ -406,46 +339,32 @@ function MetricCard({ label, value, change }: { label: string; value: string; ch
 function TokenCard({ name, tvl, borderColor }: { name: string; tvl: string; borderColor: string }) {
   return (
     <div style={{
-      background: "white",
-      borderRadius: "16px",
-      padding: "16px",
+      ...styles.card,
       textAlign: "center",
-      boxShadow: "0 1px 3px rgba(0, 0, 0, 0.1)",
       border: `2px solid ${borderColor}`
     }}>
       <div style={{ 
         fontSize: "14px", 
         fontWeight: "700", 
-        color: "#1c1c1e", 
         marginBottom: "4px",
         overflow: "hidden",
         textOverflow: "ellipsis",
-        whiteSpace: "nowrap"
+        whiteSpace: "nowrap",
+        ...styles.textPrimary
       }}>{name}</div>
-      <div style={{ fontSize: "12px", color: "#8e8e93", fontWeight: "500" }}>{tvl}</div>
+      <div style={{ fontSize: "12px", fontWeight: "500", ...styles.textSecondary }}>{tvl}</div>
     </div>
   )
 }
 
 function ActivityCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div style={{
-      background: "white",
-      borderRadius: "20px",
-      marginBottom: "16px",
-      overflow: "hidden",
-      boxShadow: "0 2px 8px rgba(0, 0, 0, 0.08)",
-      border: "1px solid rgba(0, 0, 0, 0.05)"
-    }}>
+    <div style={styles.activityCard}>
       <div style={{
         padding: "20px 20px 16px",
-        borderBottom: "1px solid #f2f2f7"
+        borderBottom: `1px solid ${colors.background.border}`
       }}>
-        <h3 style={{
-          fontSize: "18px",
-          fontWeight: "700",
-          color: "#1c1c1e"
-        }}>{title}</h3>
+        <h3 style={styles.heading3}>{title}</h3>
       </div>
       {children}
     </div>
@@ -475,10 +394,8 @@ function ActivityItem({
   tokenSymbol?: string;
   avatarUrl?: string;
 }) {
-  // Determine circle color based on action
-  const getCircleColor = (action: string) => {
-    return action === "Sold" ? "#3b82f6" : "#a855f7"; // Blue for Sold, Purple for Bought
-  };
+  // Use imported utility
+  const circleColor = getCircleColor(action);
 
   return (
     <div style={{
@@ -514,7 +431,7 @@ function ActivityItem({
                 target.style.display = 'none';
                 const parent = target.parentElement;
                 if (parent) {
-                  parent.style.background = getCircleColor(action);
+                  parent.style.background = circleColor;
                 }
               }
             }}
@@ -523,7 +440,7 @@ function ActivityItem({
           <div style={{
             width: "100%",
             height: "100%",
-            background: getCircleColor(action)
+            background: circleColor
           }}></div>
         )}
       </div>
@@ -531,8 +448,8 @@ function ActivityItem({
         <div style={{
           fontSize: "15px",
           fontWeight: "400",
-          color: "#1c1c1e",
-          marginBottom: "4px"
+          marginBottom: "4px",
+          ...styles.textPrimary
         }}>
           {action} {tokenAmount && tokenSymbol ? (
             <>
@@ -544,9 +461,9 @@ function ActivityItem({
         </div>
         <div style={{
           fontSize: "11px",
-          color: "#8e8e93",
           marginTop: "2px",
-          fontWeight: "500"
+          fontWeight: "500",
+          ...styles.textSecondary
         }}>
           {time && creator ? `${strategy} • ${time} • ${creator}` : strategy}
         </div>
@@ -579,15 +496,8 @@ function LeaderboardItem({
   strategy: string; 
   profit: string;
 }) {
-  // Map Tailwind colors to actual hex values
-  const getBackgroundColor = (tailwindColor: string) => {
-    switch(tailwindColor) {
-      case 'bg-orange-500': return '#ff9500';
-      case 'bg-gray-500': return '#8e8e93';
-      case 'bg-yellow-600': return '#d2691e';
-      default: return '#8e8e93';
-    }
-  };
+  // Use imported utility
+  const backgroundColor = getRankColor(rankColor);
 
   return (
     <div style={{
@@ -608,7 +518,7 @@ function LeaderboardItem({
         fontWeight: "700",
         color: "white",
         flexShrink: 0,
-        background: getBackgroundColor(rankColor)
+        background: backgroundColor
       }}>
         {rank}
       </div>

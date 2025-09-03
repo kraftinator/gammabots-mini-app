@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
+import { styles, colors } from '@/styles/common'
 
 interface BottomNavigationProps {
   activeTab: 'home' | 'my-bots' | 'leaderboard' | 'strategies'
@@ -19,20 +20,7 @@ export default function BottomNavigation({ activeTab }: BottomNavigationProps) {
     await navigateToMyBots()
   }
   return (
-    <div style={{
-      position: "fixed",
-      bottom: 0,
-      left: "50%",
-      transform: "translateX(-50%)",
-      width: "420px",
-      maxWidth: "100vw",
-      background: "white",
-      borderTop: "1px solid #f2f2f7",
-      display: "flex",
-      zIndex: 5,
-      boxShadow: "0 -2px 12px rgba(0, 0, 0, 0.08)",
-      borderRadius: "20px 20px 0 0"
-    }}>
+    <div style={styles.bottomNav}>
       <NavItem 
         label="HOME" 
         active={activeTab === 'home'} 
@@ -73,36 +61,15 @@ function NavItem({
   loading?: boolean;
 }) {
   const style = {
-    flex: 1,
-    padding: "12px 8px 16px",
-    textAlign: "center" as const,
-    cursor: "pointer",
-    transition: "all 0.2s ease",
-    color: active ? "#8b5cf6" : "#8e8e93",
-    fontSize: "11px",
-    fontWeight: "600",
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.5px",
-    margin: "8px 4px",
-    position: "relative" as const,
-    textDecoration: "none"
+    ...styles.navItem,
+    color: active ? colors.secondary : colors.text.secondary
   }
 
   const content = (
     <>
       {loading ? "..." : label}
       {active && (
-        <div style={{
-          content: '',
-          position: "absolute",
-          bottom: "8px",
-          left: "50%",
-          transform: "translateX(-50%)",
-          width: "20px",
-          height: "3px",
-          background: "#8b5cf6",
-          borderRadius: "1px"
-        }}></div>
+        <div style={styles.navIndicator}></div>
       )}
     </>
   )
