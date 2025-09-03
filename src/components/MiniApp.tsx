@@ -3,13 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNavigation from './BottomNavigation'
+import { useQuickAuth } from '@/hooks/useQuickAuth'
 
 export default function MiniApp() {
   const router = useRouter()
+  const { authLoading, authError, authenticate, navigateToMyBots } = useQuickAuth()
   const [isReady, setIsReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [authError, setAuthError] = useState<string | null>(null)
-  const [authLoading, setAuthLoading] = useState(false)
   const [sdkRef, setSdkRef] = useState<typeof import('@farcaster/miniapp-sdk').sdk | null>(null)
   const [username, setUsername] = useState<string>('guest') // Default fallback for development
   
@@ -78,7 +78,10 @@ export default function MiniApp() {
         }
 
         // Perform Quick Auth and fetch dashboard data with auth
-        await authenticateAndFetchDashboard(sdk)
+        const token = await authenticate()
+        if (token) {
+          await fetchDashboardData(token)
+        }
         
       } catch (error) {
         console.error('Error initializing Mini App:', error)
@@ -86,31 +89,6 @@ export default function MiniApp() {
       }
     }
 
-    // Function to perform Quick Auth and fetch authenticated dashboard data
-    async function authenticateAndFetchDashboard(sdk: typeof import('@farcaster/miniapp-sdk').sdk) {
-      try {
-        setAuthLoading(true)
-        setAuthError(null)
-
-        // Perform Quick Auth
-        const { token } = await sdk.quickAuth.getToken()
-        
-        if (typeof token !== "string" || token.length === 0) {
-          throw new Error("Quick Auth did not return a valid token")
-        }
-
-        console.log("Dashboard QA token received:", token.slice(0, 20), "...")
-        
-        // Fetch dashboard data with auth token
-        await fetchDashboardData(token)
-
-      } catch (error: unknown) {
-        console.error('Dashboard authentication failed:', error)
-        setAuthError(error instanceof Error ? error.message : 'Dashboard authentication failed')
-      } finally {
-        setAuthLoading(false)
-      }
-    }
 
     // Function to fetch dashboard data with auth token
     async function fetchDashboardData(token: string) {
@@ -140,45 +118,9 @@ export default function MiniApp() {
     initializeMiniApp()
   }, [])
 
-  // Require Quick Auth before navigating to /my-bots
   const handleMyBotsClick = async (e: React.MouseEvent) => {
     e.preventDefault()
-    setAuthError(null)
-
-    if (!sdkRef) {
-      setAuthError('Mini App SDK not ready yet.')
-      return
-    }
-
-    try {
-      setAuthLoading(true);
-
-      // ⬇️ getToken returns { token: string }
-      const { token } = await sdkRef.quickAuth.getToken();
-
-      if (typeof token !== "string" || token.length === 0) {
-        setAuthError("Quick Auth did not return a token.");
-        return;
-      }
-
-      // Optional debug: peek at the token and payload
-      console.log("QA token:", token.slice(0, 20), "…");
-      try 
-      {
-        const [, payloadB64] = token.split(".");
-        const payloadJson = atob(payloadB64.replace(/-/g, "+").replace(/_/g, "/"));
-        const payload = JSON.parse(payloadJson);
-        console.log("QA payload:", payload); // iss, sub (fid), aud, exp, iat
-      } catch (e) {
-        console.warn("Could not decode token", e);
-      }
-
-      router.push("/my-bots");
-    } catch (err: unknown) {
-      setAuthError(err instanceof Error ? err.message : "Quick Auth failed.");
-    } finally {
-      setAuthLoading(false);
-    }
+    await navigateToMyBots()
   }
 
   // Helper function to format currency values

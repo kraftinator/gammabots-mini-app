@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
+import { useQuickAuth } from '@/hooks/useQuickAuth'
 
 interface BottomNavigationProps {
   activeTab: 'home' | 'my-bots' | 'leaderboard' | 'strategies'
@@ -10,43 +11,12 @@ interface BottomNavigationProps {
 
 export default function BottomNavigation({ activeTab }: BottomNavigationProps) {
   const router = useRouter()
-  const [authError, setAuthError] = useState<string | null>(null)
-  const [authLoading, setAuthLoading] = useState(false)
+  const { authLoading, navigateToMyBots } = useQuickAuth()
 
   // Handle My Bots navigation with Quick Auth
   const handleMyBotsClick = async (e: React.MouseEvent) => {
     e.preventDefault()
-    setAuthError(null)
-
-    try {
-      setAuthLoading(true)
-      
-      // Load the SDK
-      const { sdk } = await import('@farcaster/miniapp-sdk')
-      
-      // Check if we're in a Mini App environment
-      const inMiniApp = await sdk.isInMiniApp()
-      
-      if (!inMiniApp) {
-        setAuthError('Not running in Farcaster Mini App environment')
-        return
-      }
-
-      // Perform Quick Auth
-      const { token } = await sdk.quickAuth.getToken()
-
-      if (typeof token !== "string" || token.length === 0) {
-        setAuthError("Quick Auth did not return a token.")
-        return
-      }
-
-      // Navigate to My Bots page
-      router.push("/my-bots")
-    } catch (err: unknown) {
-      setAuthError(err instanceof Error ? err.message : "Quick Auth failed.")
-    } finally {
-      setAuthLoading(false)
-    }
+    await navigateToMyBots()
   }
   return (
     <div style={{

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import BottomNavigation from '@/components/BottomNavigation'
+import { useQuickAuth } from '@/hooks/useQuickAuth'
 
 interface Bot {
   bot_id: string
@@ -11,11 +12,10 @@ interface Bot {
 }
 
 export default function MyBotsPage() {
+  const { authLoading, authError, authenticate } = useQuickAuth()
   const [isReady, setIsReady] = useState(false)
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [username, setUsername] = useState<string>('guest')
-  const [authLoading, setAuthLoading] = useState(true)
-  const [authError, setAuthError] = useState<string | null>(null)
   const [bots, setBots] = useState<Bot[]>([])
   const [botsLoading, setBotsLoading] = useState(false)
   const [botsError, setBotsError] = useState<string | null>(null)
@@ -48,42 +48,17 @@ export default function MyBotsPage() {
           }
 
           // Now perform Quick Auth and fetch bots
-          await authenticateAndFetchBots(sdk)
+          const token = await authenticate()
+          if (token) {
+            await fetchBots(token)
+          }
         } else {
           console.log('Not running in Mini App environment')
-          setAuthLoading(false)
-          setAuthError('Not running in Farcaster Mini App environment')
+          // authError will be set by the hook
         }
       } catch (error) {
         console.error('Error initializing page:', error)
         setIsReady(true)
-        setAuthLoading(false)
-        setAuthError('Failed to initialize page')
-      }
-    }
-
-    async function authenticateAndFetchBots(sdk: typeof import('@farcaster/miniapp-sdk').sdk) {
-      try {
-        setAuthLoading(true)
-        setAuthError(null)
-
-        // Perform Quick Auth
-        const { token } = await sdk.quickAuth.getToken()
-        
-        if (typeof token !== "string" || token.length === 0) {
-          throw new Error("Quick Auth did not return a valid token")
-        }
-
-        console.log("QA token received:", token.slice(0, 20), "...")
-        
-        // Auth successful, now fetch bots
-        setAuthLoading(false)
-        await fetchBots(token)
-
-      } catch (error: unknown) {
-        console.error('Authentication failed:', error)
-        setAuthLoading(false)
-        setAuthError(error instanceof Error ? error.message : 'Authentication failed')
       }
     }
 
