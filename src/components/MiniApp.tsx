@@ -292,7 +292,10 @@ export default function MiniApp() {
           gap: "12px",
           marginTop: "20px"
         }}>
-          <button style={styles.buttonPrimary}>
+          <button 
+            style={styles.buttonPrimary}
+            onClick={() => router.push('/my-bots/create')}
+          >
             Create Bot
           </button>
           <button

@@ -30,3 +30,36 @@ export const GET = withAuth(async (request: NextRequest, auth) => {
     )
   }
 })
+
+export const POST = withAuth(async (request: NextRequest, auth) => {
+  console.log('Create Bot API called with authenticated token:', auth.token.slice(0, 20), '...')
+
+  try {
+    const body = await request.json()
+    const url = `${auth.apiUrl}/bots`
+    
+    const response = await callExternalAPI(url, auth, {
+      method: 'POST',
+      body: JSON.stringify(body)
+    })
+
+    if (!response.ok) {
+      console.error('Gammabots Create Bot API error:', response.status, response.statusText)
+      return NextResponse.json(
+        { error: 'Failed to create bot' },
+        { status: response.status }
+      )
+    }
+
+    const botData = await response.json()
+    console.log('✅ Bot created successfully')
+    return NextResponse.json(botData)
+    
+  } catch (error) {
+    console.error('Error creating bot:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+})
