@@ -12,8 +12,8 @@ export default function CreateBotPage() {
   const [isReady, setIsReady] = useState(false)
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [formData, setFormData] = useState({
-    tokenAddress: '',
-    ethAmount: '0.1',
+    tokenAddress: '0x18b6f6049a0af4ed2bbe0090319174eeef89f53a',
+    ethAmount: '0.0001',
     movingAverage: '20',
     strategyId: '1'
   })
@@ -76,6 +76,81 @@ export default function CreateBotPage() {
       })
 
       if (response.ok) {
+        const responseData = await response.json()
+        console.log('Create Bot API response:', responseData)
+        
+        // Handle payment if required
+        if (responseData.payment && isMiniApp) {
+          try {
+            console.log('Payment required:', responseData.payment)
+            
+            const { sdk } = await import('@farcaster/miniapp-sdk')
+            
+            // Check if we're on mobile
+            const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)
+            console.log('Is mobile:', isMobile)
+            
+            let result
+            try {
+              // First get the user's account
+              const accounts = await sdk.wallet.ethProvider.request({
+                method: 'eth_requestAccounts',
+              })
+              
+              console.log('Connected accounts:', accounts)
+              
+              if (!accounts || accounts.length === 0) {
+                throw new Error('No accounts available')
+              }
+              
+              // Ensure value is in correct format (hex string with 0x prefix)
+              let valueHex = responseData.payment.value
+              if (!valueHex.startsWith('0x')) {
+                valueHex = `0x${parseInt(valueHex).toString(16)}`
+              }
+              
+              console.log('Sending transaction with params:', {
+                from: accounts[0],
+                to: responseData.payment.to,
+                value: valueHex
+              })
+              
+              // Send ETH transaction
+              result = await sdk.wallet.ethProvider.request({
+                method: 'eth_sendTransaction',
+                params: [{
+                  from: accounts[0],
+                  to: responseData.payment.to,
+                  value: valueHex,
+                }]
+              })
+              
+              console.log('Payment transaction successful:', result)
+            } catch (walletError) {
+              console.error('Wallet transaction error:', walletError)
+              throw walletError
+            }
+            
+            // Optionally confirm payment with your API
+            await fetch('/api/bots/confirm-payment', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                botId: responseData.botId || responseData.id,
+                txHash: result
+              })
+            })
+            
+          } catch (paymentError) {
+            console.error('Payment transaction failed:', paymentError)
+            alert('Bot created but payment failed. You can retry payment later from your bots list.')
+            // Continue to redirect even if payment fails - user can retry later
+          }
+        }
+        
         router.push('/my-bots')
       }
     } catch (error) {
@@ -209,8 +284,8 @@ export default function CreateBotPage() {
               type="number"
               value={formData.ethAmount}
               onChange={(e) => handleInputChange('ethAmount', e.target.value)}
-              step="0.01"
-              min="0"
+              step="0.001"
+              min="0.0001"
               style={{
                 width: '100%',
                 padding: '16px',
