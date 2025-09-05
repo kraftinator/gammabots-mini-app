@@ -261,6 +261,128 @@ export const styles = {
     alignItems: "center",
     justifyContent: "center",
     background: "linear-gradient(135deg, #00d9ff 0%, #a78bfa 100%)"
+  },
+
+  // Form styles
+  formContainer: {
+    minHeight: "100vh",
+    backgroundColor: colors.background.primary,
+    color: colors.text.primary,
+    padding: "20px",
+    paddingBottom: "80px"
+  },
+
+  formHeader: {
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "space-between",
+    marginBottom: "30px"
+  },
+
+  formTitle: {
+    fontSize: "28px",
+    fontWeight: "bold",
+    margin: "0 0 8px 0",
+    color: colors.text.primary
+  },
+
+  formSubtitle: {
+    margin: 0,
+    color: colors.text.secondary,
+    fontSize: "14px"
+  },
+
+  formCard: {
+    backgroundColor: colors.background.card,
+    borderRadius: "12px",
+    padding: "24px",
+    marginBottom: "20px",
+    border: `1px solid ${colors.background.border}`
+  },
+
+  formGroup: {
+    marginBottom: "20px"
+  },
+
+  formLabel: {
+    display: "block",
+    fontSize: "16px",
+    fontWeight: "600",
+    marginBottom: "8px",
+    color: colors.text.primary
+  },
+
+  formInput: {
+    width: "100%",
+    padding: "16px",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    backgroundColor: colors.background.card,
+    color: colors.text.primary,
+    fontSize: "16px",
+    boxSizing: "border-box" as const,
+    outline: "none"
+  },
+
+  formSelect: {
+    width: "100%",
+    padding: "16px",
+    borderRadius: "12px",
+    border: "1px solid #e5e7eb",
+    backgroundColor: colors.background.card,
+    color: colors.text.primary,
+    fontSize: "16px",
+    boxSizing: "border-box" as const,
+    outline: "none",
+    appearance: "none" as const
+  },
+
+  submitButton: {
+    width: "100%",
+    padding: "18px",
+    borderRadius: "12px",
+    border: "none",
+    backgroundColor: colors.primary,
+    color: colors.white,
+    fontSize: "18px",
+    fontWeight: "600",
+    cursor: "pointer",
+    transition: "background-color 0.2s ease",
+    outline: "none"
+  },
+
+  submitButtonDisabled: {
+    width: "100%",
+    padding: "18px",
+    borderRadius: "12px",
+    border: "none",
+    backgroundColor: "#cccccc",
+    color: "#666666",
+    fontSize: "18px",
+    fontWeight: "600",
+    cursor: "not-allowed",
+    outline: "none"
+  },
+
+  errorCard: {
+    backgroundColor: "#332211",
+    borderRadius: "12px",
+    padding: "24px",
+    marginBottom: "20px",
+    border: "1px solid #664433"
+  },
+
+  errorTitle: {
+    fontSize: "16px",
+    fontWeight: "bold",
+    margin: "0 0 8px 0",
+    color: "#ffaa44"
+  },
+
+  errorText: {
+    color: "#ffaa44",
+    margin: 0,
+    fontSize: "14px"
   }
 } as const
 

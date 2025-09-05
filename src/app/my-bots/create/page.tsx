@@ -169,33 +169,14 @@ export default function CreateBotPage() {
   }
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: colors.background.primary,
-      color: colors.text.primary,
-      ...styles.contentPadding
-    }}>
+    <div style={styles.formContainer}>
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '30px'
-      }}>
+      <div style={styles.formHeader}>
         <div>
-          <h1 style={{
-            fontSize: '28px',
-            fontWeight: 'bold',
-            margin: '0 0 8px 0',
-            color: colors.text.primary
-          }}>
+          <h1 style={styles.formTitle}>
             Create Bot
           </h1>
-          <p style={{
-            margin: 0,
-            color: colors.text.secondary,
-            fontSize: '14px'
-          }}>
+          <p style={styles.formSubtitle}>
             Set up your new trading bot
           </p>
         </div>
@@ -203,26 +184,11 @@ export default function CreateBotPage() {
 
       {/* Auth Error */}
       {authError && (
-        <div style={{
-          backgroundColor: '#332211',
-          borderRadius: '12px',
-          padding: '24px',
-          marginBottom: '20px',
-          border: '1px solid #664433'
-        }}>
-          <h3 style={{
-            fontSize: '16px',
-            fontWeight: 'bold',
-            margin: '0 0 8px 0',
-            color: colors.warning
-          }}>
-            Authentication Required
+        <div style={styles.errorCard}>
+          <h3 style={styles.errorTitle}>
+            Authentication Error
           </h3>
-          <p style={{
-            color: colors.warning,
-            margin: 0,
-            fontSize: '14px'
-          }}>
+          <p style={styles.errorText}>
             {authError}
           </p>
         </div>
@@ -232,14 +198,8 @@ export default function CreateBotPage() {
       {!authError && (
         <form onSubmit={handleSubmit}>
           {/* Token Address */}
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '16px',
-              fontWeight: '600',
-              marginBottom: '8px',
-              color: colors.text.primary
-            }}>
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>
               Token Address
             </label>
             <input
@@ -247,18 +207,7 @@ export default function CreateBotPage() {
               value={formData.tokenAddress}
               onChange={(e) => handleInputChange('tokenAddress', e.target.value)}
               placeholder="0x..."
-              style={{
-                width: '100%',
-                padding: '16px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                backgroundColor: colors.background.card,
-                color: colors.text.primary,
-                fontSize: '16px',
-                fontFamily: 'inherit',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
+              style={styles.formInput}
             />
             <p style={{
               margin: '4px 0 0 0',
@@ -270,14 +219,8 @@ export default function CreateBotPage() {
           </div>
 
           {/* ETH Amount */}
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '16px',
-              fontWeight: '600',
-              marginBottom: '8px',
-              color: colors.text.primary
-            }}>
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>
               ETH Amount
             </label>
             <input
@@ -286,18 +229,7 @@ export default function CreateBotPage() {
               onChange={(e) => handleInputChange('ethAmount', e.target.value)}
               step="0.001"
               min="0.0001"
-              style={{
-                width: '100%',
-                padding: '16px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                backgroundColor: colors.background.card,
-                color: colors.text.primary,
-                fontSize: '16px',
-                fontFamily: 'inherit',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
+              style={styles.formInput}
             />
             <p style={{
               margin: '4px 0 0 0',
@@ -309,14 +241,8 @@ export default function CreateBotPage() {
           </div>
 
           {/* Moving Average */}
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '16px',
-              fontWeight: '600',
-              marginBottom: '8px',
-              color: colors.text.primary
-            }}>
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>
               Moving Average
             </label>
             <input
@@ -324,18 +250,7 @@ export default function CreateBotPage() {
               value={formData.movingAverage}
               onChange={(e) => handleInputChange('movingAverage', e.target.value)}
               min="1"
-              style={{
-                width: '100%',
-                padding: '16px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                backgroundColor: colors.background.card,
-                color: colors.text.primary,
-                fontSize: '16px',
-                fontFamily: 'inherit',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
+              style={styles.formInput}
             />
             <p style={{
               margin: '4px 0 0 0',
@@ -347,14 +262,8 @@ export default function CreateBotPage() {
           </div>
 
           {/* Strategy ID */}
-          <div style={{ marginBottom: '32px' }}>
-            <label style={{
-              display: 'block',
-              fontSize: '16px',
-              fontWeight: '600',
-              marginBottom: '8px',
-              color: colors.text.primary
-            }}>
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>
               Strategy ID
             </label>
             <input
@@ -362,18 +271,7 @@ export default function CreateBotPage() {
               value={formData.strategyId}
               onChange={(e) => handleInputChange('strategyId', e.target.value)}
               min="1"
-              style={{
-                width: '100%',
-                padding: '16px',
-                borderRadius: '12px',
-                border: '1px solid #e5e7eb',
-                backgroundColor: colors.background.card,
-                color: colors.text.primary,
-                fontSize: '16px',
-                fontFamily: 'inherit',
-                outline: 'none',
-                boxSizing: 'border-box'
-              }}
+              style={styles.formInput}
             />
             <p style={{
               margin: '4px 0 0 0',
@@ -388,13 +286,7 @@ export default function CreateBotPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            style={{
-              ...styles.buttonPrimary,
-              width: '100%',
-              backgroundColor: isSubmitting ? colors.gray[600] : colors.secondary,
-              cursor: isSubmitting ? 'not-allowed' : 'pointer',
-              opacity: isSubmitting ? 0.6 : 1
-            }}
+            style={isSubmitting ? styles.submitButtonDisabled : styles.submitButton}
           >
             {isSubmitting ? 'Creating Bot...' : 'Create Trading Bot'}
           </button>
