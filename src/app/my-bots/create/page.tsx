@@ -131,16 +131,18 @@ export default function CreateBotPage() {
               throw walletError
             }
             
-            // Optionally confirm payment with your API
-            await fetch('/api/bots/confirm-payment', {
+            // Send transaction hash to backend to confirm funding
+            const botId = responseData.bot_id
+            console.log('Sending tx_hash to fund endpoint for bot:', botId)
+            
+            await fetch(`/api/bots/${botId}/fund`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`,
                 'Content-Type': 'application/json'
               },
               body: JSON.stringify({
-                botId: responseData.botId || responseData.id,
-                txHash: result
+                tx_hash: result
               })
             })
             
