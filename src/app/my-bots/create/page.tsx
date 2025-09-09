@@ -229,7 +229,7 @@ export default function CreateBotPage() {
               type="number"
               value={formData.ethAmount}
               onChange={(e) => handleInputChange('ethAmount', e.target.value)}
-              step="0.001"
+              step="0.0001"
               min="0.0001"
               style={styles.formInput}
             />
