@@ -383,7 +383,268 @@ export const styles = {
     color: "#ffaa44",
     margin: 0,
     fontSize: "14px"
-  }
+  },
+  
+  // My Bots page styles
+  myBotsContainer: {
+    maxWidth: '420px',
+    margin: '0 auto',
+    background: '#f5f5f5',
+    minHeight: '100vh',
+    position: 'relative' as const,
+    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif"
+  } as CSSProperties,
+
+  myBotsHeader: {
+    background: 'linear-gradient(135deg, #00d9ff 0%, #a78bfa 100%)',
+    padding: '32px 20px 20px',
+    color: 'white',
+    position: 'relative' as const,
+    overflow: 'hidden',
+    borderRadius: '24px 24px 0 0',
+    marginTop: '16px'
+  } as CSSProperties,
+
+  myBotsLogo: {
+    width: '80px',
+    height: '80px',
+    background: '#1e3a8a',
+    borderRadius: '20px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '40px',
+    fontWeight: '900',
+    color: 'white',
+    margin: '0 auto 16px',
+    border: '3px solid #3b82f6',
+    boxShadow: '0 8px 20px rgba(0, 0, 0, 0.3)'
+  } as CSSProperties,
+
+  myBotsTitle: {
+    fontSize: '28px',
+    fontWeight: '800',
+    marginBottom: '8px',
+    letterSpacing: '-0.5px',
+    textAlign: 'center' as const
+  } as CSSProperties,
+
+  myBotsSubtitle: {
+    fontSize: '16px',
+    fontWeight: '500',
+    opacity: '0.9',
+    textAlign: 'center' as const
+  } as CSSProperties,
+
+  myBotsUserInfo: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: '20px'
+  } as CSSProperties,
+
+  myBotsUsername: {
+    fontSize: '14px',
+    fontWeight: '600',
+    color: 'white'
+  } as CSSProperties,
+
+  myBotsBalance: {
+    fontSize: '12px',
+    fontWeight: '500',
+    color: '#ffffff'
+  } as CSSProperties,
+
+  myBotsBalanceAmount: {
+    fontWeight: '700',
+    fontSize: '14px'
+  } as CSSProperties,
+
+  myBotsFilters: {
+    padding: '20px 16px',
+    background: 'white',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    borderBottom: '1px solid rgba(0, 0, 0, 0.05)'
+  } as CSSProperties,
+
+  myBotsSearchContainer: {
+    position: 'relative' as const,
+    marginBottom: '16px'
+  } as CSSProperties,
+
+  myBotsSearchInput: {
+    width: '100%',
+    paddingLeft: '40px',
+    paddingRight: '16px',
+    paddingTop: '12px',
+    paddingBottom: '12px',
+    fontSize: '15px',
+    border: '1px solid #f2f2f7',
+    borderRadius: '16px',
+    background: '#f9f9f9',
+    fontFamily: "'Inter', sans-serif",
+    outline: 'none'
+  } as CSSProperties,
+
+  myBotsSearchIcon: {
+    position: 'absolute' as const,
+    left: '12px',
+    top: '50%',
+    transform: 'translateY(-50%)',
+    width: '16px',
+    height: '16px',
+    color: '#8e8e93'
+  } as CSSProperties,
+
+  myBotsSelectContainer: {
+    display: 'flex',
+    gap: '12px'
+  } as CSSProperties,
+
+  myBotsSelect: {
+    flex: 1,
+    padding: '12px',
+    border: '1px solid #f2f2f7',
+    borderRadius: '16px',
+    background: '#f9f9f9',
+    fontSize: '14px',
+    fontFamily: "'Inter', sans-serif",
+    fontWeight: '500',
+    outline: 'none'
+  } as CSSProperties,
+
+  myBotsList: {
+    padding: '20px 16px 120px'
+  } as CSSProperties,
+
+  myBotCard: {
+    background: 'white',
+    borderRadius: '20px',
+    marginBottom: '16px',
+    overflow: 'hidden',
+    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
+    border: '1px solid rgba(0, 0, 0, 0.05)',
+    padding: '20px',
+    cursor: 'pointer'
+  } as CSSProperties,
+
+  myBotCardContent: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    gap: '16px'
+  } as CSSProperties,
+
+  myBotInfo: {
+    flex: 1
+  } as CSSProperties,
+
+  myBotHeader: {
+    fontSize: '15px',
+    fontWeight: '700',
+    color: '#1c1c1e',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '10px',
+    marginBottom: '12px',
+    paddingBottom: '12px',
+    borderBottom: '1px solid #f2f2f7'
+  } as CSSProperties,
+
+  myBotTokenInfo: {
+    display: 'flex',
+    alignItems: 'baseline',
+    gap: '5px'
+  } as CSSProperties,
+
+  myBotId: {
+    fontSize: '11px',
+    color: '#8e8e93',
+    fontWeight: '500'
+  } as CSSProperties,
+
+  myBotStatus: {
+    fontSize: '11px',
+    fontWeight: '500'
+  } as CSSProperties,
+
+  myBotDetails: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '3px',
+    fontSize: '11px'
+  } as CSSProperties,
+
+  myBotDetailRow: {
+    display: 'flex',
+    gap: '8px'
+  } as CSSProperties,
+
+  myBotDetailLabel: {
+    color: '#8e8e93',
+    width: '65px'
+  } as CSSProperties,
+
+  myBotDetailValue: {
+    fontWeight: '600',
+    color: '#1c1c1e'
+  } as CSSProperties,
+
+  myBotHoldings: {
+    fontWeight: '600',
+    color: '#1c1c1e'
+  } as CSSProperties,
+
+  myBotValues: {
+    textAlign: 'right' as const,
+    display: 'flex',
+    flexDirection: 'column' as const,
+    justifyContent: 'center'
+  } as CSSProperties,
+
+  myBotValue: {
+    fontSize: '18px',
+    fontWeight: '600',
+    color: '#1c1c1e',
+    marginBottom: '2px'
+  } as CSSProperties,
+
+  myBotProfit: {
+    fontSize: '16px',
+    fontWeight: '500'
+  } as CSSProperties,
+
+  myBotsBottomNav: {
+    position: 'fixed' as const,
+    bottom: '0',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    width: '420px',
+    maxWidth: '100vw',
+    background: 'white',
+    borderTop: '1px solid #f2f2f7',
+    display: 'flex',
+    zIndex: 5,
+    boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.08)',
+    borderRadius: '20px 20px 0 0'
+  } as CSSProperties,
+
+  myBotsNavItem: {
+    flex: 1,
+    padding: '16px 8px',
+    textAlign: 'center' as const,
+    cursor: 'pointer',
+    fontSize: '12px',
+    fontWeight: '600'
+  } as CSSProperties,
+
+  myBotsNavItemActive: {
+    color: '#3b82f6'
+  } as CSSProperties,
+
+  myBotsNavItemInactive: {
+    color: '#8e8e93'
+  } as CSSProperties
 } as const
 
 // Utility functions
@@ -404,4 +665,11 @@ export const getRankColor = (tailwindColor: string) => {
     case 'bg-yellow-600': return '#d2691e'
     default: return colors.text.secondary
   }
+}
+
+// Helper function to get profit color
+export const getProfitColor = (profit: number) => {
+  if (profit > 0) return '#34c759'
+  if (profit < 0) return '#ff3b30'
+  return '#8e8e93'
 }

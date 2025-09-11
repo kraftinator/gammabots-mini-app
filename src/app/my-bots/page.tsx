@@ -1,25 +1,44 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import BottomNavigation from '@/components/BottomNavigation'
+import { useEffect, useState, useMemo } from 'react'
+import { useRouter } from 'next/navigation'
+import { Search } from 'lucide-react'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
-import { styles, colors } from '@/styles/common'
+import { styles, colors, getProfitColor } from '@/styles/common'
 
 interface Bot {
   bot_id: string
   token_symbol: string
   strategy_id: string
+  tokens?: number
+  eth?: number
+  init?: number
+  value?: number
+  profit_percent?: number
+  profit_eth?: number
+  cycles?: number
+  trades?: number
+  errors?: number
+  last_action?: string
+  is_active?: boolean
+  moving_average?: number
   // Add other fields as we discover them
 }
 
 export default function MyBotsPage() {
+  const router = useRouter()
   const { authLoading, authError, authenticate } = useQuickAuth()
   const [isReady, setIsReady] = useState(false)
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
-  const [username, setUsername] = useState<string>('guest')
+  const [username, setUsername] = useState<string>('kraft')
   const [bots, setBots] = useState<Bot[]>([])
   const [botsLoading, setBotsLoading] = useState(false)
   const [botsError, setBotsError] = useState<string | null>(null)
+  
+  // Filter and search states
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState('profit')
+  const [filterBy, setFilterBy] = useState('all')
 
   useEffect(() => {
     async function initializePage() {
@@ -96,209 +115,272 @@ export default function MyBotsPage() {
     }
 
     initializePage()
-  }, [])
+  }, [authenticate])
+
+  const filteredAndSortedBots = useMemo(() => {
+    let filtered = bots.filter(bot => {
+      const matchesSearch = bot.token_symbol?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           bot.bot_id?.toString().includes(searchQuery)
+      const matchesFilter = filterBy === 'all' || 
+                           (filterBy === 'active' && bot.is_active) ||
+                           (filterBy === 'inactive' && !bot.is_active) ||
+                           (filterBy === 'profitable' && Number(bot.profit_percent || 0) > 0) ||
+                           (filterBy === 'losses' && Number(bot.profit_percent || 0) < 0)
+      return matchesSearch && matchesFilter
+    })
+
+    return filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'profit':
+          return Number(b.profit_percent || 0) - Number(a.profit_percent || 0)
+        case 'value':
+          return Number(b.value || 0) - Number(a.value || 0)
+        case 'recent':
+          // For now, sort by bot_id as a proxy for recent
+          return parseInt(b.bot_id) - parseInt(a.bot_id)
+        case 'id':
+          return parseInt(b.bot_id) - parseInt(a.bot_id)
+        default:
+          return 0
+      }
+    })
+  }, [bots, searchQuery, sortBy, filterBy])
 
   if (!isReady) {
     return (
-      <div style={{
-        ...styles.loadingContainer,
-        backgroundColor: colors.black
-      }}>
+      <div style={styles.loadingContainerLight}>
         <p style={{ color: colors.white }}>Loading...</p>
       </div>
     )
   }
+
   return (
-    <div style={{
-      minHeight: '100vh',
-      backgroundColor: colors.black,
-      color: colors.white,
-      ...styles.contentPadding
-    }}>
+    <div style={styles.myBotsContainer}>
       {/* Header */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        marginBottom: '30px'
-      }}>
-        <div>
-          <h1 style={styles.heading1}>
-            My Bots
-          </h1>
-          <p style={{
-            margin: 0,
-            color: colors.text.secondary,
-            fontSize: '14px'
-          }}>
-            {isMiniApp ? `@${username}` : 'Web Browser Mode'}
-          </p>
+      <div style={styles.myBotsHeader}>
+        <div style={{ position: 'relative', zIndex: 2 }}>
+          <div style={styles.myBotsLogo}>
+            Γ
+          </div>
+          <div style={styles.myBotsTitle}>
+            MY BOTS
+          </div>
+          <div style={styles.myBotsSubtitle}>
+            Manage Your Trading Bots
+          </div>
+        </div>
+        <div style={styles.myBotsUserInfo}>
+          <div style={styles.myBotsUsername}>
+            Welcome, @{username}
+          </div>
+          <div style={styles.myBotsBalance}>
+            Balance: <span style={styles.myBotsBalanceAmount}>2200 GAMMA</span>
+          </div>
         </div>
       </div>
 
-      {/* Auth Status */}
-      {authLoading && (
-        <div style={{
-          backgroundColor: colors.background.dark,
-          borderRadius: '12px',
-          padding: '24px',
-          marginBottom: '20px',
-          textAlign: 'center'
-        }}>
-          <p style={{ color: colors.text.secondary, margin: 0 }}>
-            Authenticating...
-          </p>
-        </div>
-      )}
-
+      {/* Auth Error */}
       {authError && (
-        <div style={{
-          backgroundColor: '#332211',
-          borderRadius: '12px',
-          padding: '24px',
-          marginBottom: '20px',
-          border: '1px solid #664433'
-        }}>
-          <h3 style={{
-            fontSize: '16px',
-            fontWeight: 'bold',
-            margin: '0 0 8px 0',
-            color: colors.warning
-          }}>
+        <div style={styles.errorCard}>
+          <h3 style={styles.errorTitle}>
             Authentication Error
           </h3>
-          <p style={{
-            color: colors.warning,
-            margin: 0,
-            fontSize: '14px'
-          }}>
+          <p style={styles.errorText}>
             {authError}
           </p>
         </div>
       )}
 
-      {/* Bots Content */}
-      {!authLoading && !authError && (
-        <>
-          {/* Main Content */}
-          <div style={styles.darkCard}>
-            <h2 style={styles.heading2}>
-              Your Trading Bots
-            </h2>
-            <p style={{
-              ...styles.textSecondary,
-              margin: '0',
-              lineHeight: '1.5'
+      {/* Search and Filters */}
+      <div style={styles.myBotsFilters}>
+        <div style={styles.myBotsSearchContainer}>
+          <Search style={styles.myBotsSearchIcon} />
+          <input
+            type="text"
+            placeholder="Search token or bot ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={styles.myBotsSearchInput}
+          />
+        </div>
+
+        <div style={styles.myBotsSelectContainer}>
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value)}
+            style={styles.myBotsSelect}
+          >
+            <option value="profit">Sort by Profit</option>
+            <option value="value">Sort by Value</option>
+            <option value="recent">Sort by Recent</option>
+            <option value="id">Sort by Bot ID</option>
+          </select>
+          
+          <select
+            value={filterBy}
+            onChange={(e) => setFilterBy(e.target.value)}
+            style={styles.myBotsSelect}
+          >
+            <option value="all">All Bots</option>
+            <option value="active">Active Only</option>
+            <option value="inactive">Inactive Only</option>
+            <option value="profitable">Profitable</option>
+            <option value="losses">Losses</option>
+          </select>
+        </div>
+      </div>
+
+      {/* Loading State */}
+      {botsLoading && (
+        <div style={{ padding: '20px', textAlign: 'center' }}>
+          <p>Loading bots...</p>
+        </div>
+      )}
+
+      {/* Error State */}
+      {botsError && (
+        <div style={styles.errorCard}>
+          <h3 style={styles.errorTitle}>Error Loading Bots</h3>
+          <p style={styles.errorText}>{botsError}</p>
+        </div>
+      )}
+
+      {/* Bots List */}
+      {!botsLoading && !botsError && (
+        <div style={styles.myBotsList}>
+          {filteredAndSortedBots.length === 0 ? (
+            <div style={{
+              textAlign: 'center',
+              padding: '40px 20px',
+              color: colors.text.secondary
             }}>
-              Manage your automated trading bots and monitor their performance.
-            </p>
-          </div>
-
-          {/* Bots List */}
-          <div style={styles.darkCard}>
-            <h3 style={{
-              fontSize: '16px',
-              fontWeight: 'bold',
-              margin: '0 0 16px 0',
-              color: colors.white
-            }}>
-              Active Bots
-            </h3>
-
-            {botsLoading && (
-              <div style={{
-                color: colors.text.secondary,
-                textAlign: 'center',
-                padding: '20px'
-              }}>
-                <p>Loading bots...</p>
-              </div>
-            )}
-
-            {botsError && (
-              <div style={{
-                backgroundColor: '#331111',
-                borderRadius: '8px',
-                padding: '16px',
-                border: '1px solid #664444'
-              }}>
-                <p style={{
-                  color: colors.error,
-                  margin: 0,
-                  fontSize: '14px'
-                }}>
-                  Error loading bots: {botsError}
-                </p>
-              </div>
-            )}
-
-            {!botsLoading && !botsError && (
-              <>
-                {bots.length === 0 ? (
-                  <div style={{
-                    color: colors.text.secondary,
-                    textAlign: 'center',
-                    padding: '20px'
-                  }}>
-                    <p>No bots configured yet.</p>
-                    <p style={{ fontSize: '14px', marginTop: '8px' }}>
-                      Create your first trading bot to get started!
-                    </p>
-                  </div>
-                ) : (
-                  <div>
-                    {bots.map((bot) => (
-                      <div key={bot.bot_id} style={styles.darkCardSmall}>
-                        <div style={{
-                          display: 'flex',
-                          justifyContent: 'space-between',
-                          alignItems: 'center',
-                          marginBottom: '8px'
-                        }}>
-                          <h4 style={{
-                            fontSize: '16px',
-                            fontWeight: 'bold',
-                            margin: 0,
-                            color: colors.white
-                          }}>
-                            {bot.token_symbol} Bot
-                          </h4>
-                          <span style={{
-                            padding: '4px 8px',
-                            backgroundColor: '#00ff0020',
-                            color: colors.success,
-                            borderRadius: '4px',
-                            fontSize: '12px'
-                          }}>
-                            active
-                          </span>
-                        </div>
-                        <p style={{
-                          color: colors.text.secondary,
-                          margin: '0 0 8px 0',
-                          fontSize: '14px'
-                        }}>
-                          Strategy: {bot.strategy_id}
-                        </p>
-                        <p style={{
-                          color: colors.text.tertiary,
-                          margin: 0,
-                          fontSize: '12px'
-                        }}>
-                          Token: {bot.token_symbol}
-                        </p>
+              <p>No bots found</p>
+              {searchQuery && <p>Try adjusting your search or filters</p>}
+            </div>
+          ) : (
+            filteredAndSortedBots.map((bot) => (
+              <div key={bot.bot_id} style={styles.myBotCard}>
+                <div style={styles.myBotCardContent}>
+                  <div style={styles.myBotInfo}>
+                    <div style={styles.myBotHeader}>
+                      <span style={styles.myBotTokenInfo}>
+                        <span>{bot.token_symbol || 'Unknown'}</span>
+                        <span style={styles.myBotId}>#{bot.bot_id}</span>
+                      </span>
+                      <span style={{
+                        ...styles.myBotStatus,
+                        color: bot.is_active ? colors.success : colors.text.secondary
+                      }}>
+                        {bot.is_active ? 'Active' : 'Inactive'}
+                      </span>
+                    </div>
+                    
+                    <div style={styles.myBotDetails}>
+                      <div style={styles.myBotDetailRow}>
+                        <span style={styles.myBotDetailLabel}>Strategy:</span>
+                        <span style={styles.myBotDetailValue}>{bot.strategy_id || 'N/A'}</span>
                       </div>
-                    ))}
+                      <div style={styles.myBotDetailRow}>
+                        <span style={styles.myBotDetailLabel}>MA:</span>
+                        <span style={styles.myBotDetailValue}>{bot.moving_average || '20'}</span>
+                      </div>
+                      <div style={styles.myBotDetailRow}>
+                        <span style={styles.myBotDetailLabel}>Holdings:</span>
+                        <div style={styles.myBotHoldings}>
+                          {(() => {
+                            const tokensNum = bot.tokens ? Number(bot.tokens) : 0;
+                            const ethNum = bot.eth ? Number(bot.eth) : 0;
+                            
+                            if (tokensNum > 0 && ethNum > 0) {
+                              return (
+                                <>
+                                  <div>{Math.floor(tokensNum).toLocaleString()} {bot.token_symbol}</div>
+                                  <div>{ethNum.toFixed(4)} ETH</div>
+                                </>
+                              );
+                            } else if (tokensNum > 0) {
+                              return `${Math.floor(tokensNum).toLocaleString()} ${bot.token_symbol}`;
+                            } else if (ethNum > 0) {
+                              return `${ethNum.toFixed(4)} ETH`;
+                            } else {
+                              return '0';
+                            }
+                          })()}
+                        </div>
+                      </div>
+                      <div style={styles.myBotDetailRow}>
+                        <span style={styles.myBotDetailLabel}>Cycles:</span>
+                        <span style={styles.myBotDetailValue}>{bot.cycles || 0}</span>
+                      </div>
+                      <div style={styles.myBotDetailRow}>
+                        <span style={styles.myBotDetailLabel}>Trades:</span>
+                        <span style={styles.myBotDetailValue}>{bot.trades || 0}</span>
+                      </div>
+                      <div style={styles.myBotDetailRow}>
+                        <span style={styles.myBotDetailLabel}>Init Value:</span>
+                        <span style={styles.myBotDetailValue}>{bot.init ? Number(bot.init).toFixed(4) : '0.0000'} ETH</span>
+                      </div>
+                      <div style={styles.myBotDetailRow}>
+                        <span style={styles.myBotDetailLabel}>Last Action:</span>
+                        <span style={styles.myBotDetailValue}>{bot.last_action || 'N/A'}</span>
+                      </div>
+                    </div>
                   </div>
-                )}
-              </>
-            )}
-          </div>
-        </>
+                  
+                  <div style={styles.myBotValues}>
+                    <div style={styles.myBotValue}>
+                      ETH {bot.value ? Number(bot.value).toFixed(4) : '0.0000'}
+                    </div>
+                    <div style={{
+                      ...styles.myBotProfit,
+                      color: getProfitColor(Number(bot.profit_percent) || 0)
+                    }}>
+                      {bot.profit_percent && Number(bot.profit_percent) > 0 ? '+' : ''}{Number(bot.profit_percent || 0).toFixed(2)}%
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ))
+          )}
+        </div>
       )}
 
       {/* Bottom Navigation */}
-      <BottomNavigation activeTab="my-bots" />
+      <div style={styles.myBotsBottomNav}>
+        <div 
+          style={{
+            ...styles.myBotsNavItem,
+            ...styles.myBotsNavItemInactive
+          }}
+          onClick={() => router.push('/')}
+        >
+          HOME
+        </div>
+        <div style={{
+          ...styles.myBotsNavItem,
+          ...styles.myBotsNavItemActive
+        }}>
+          MY BOTS
+        </div>
+        <div 
+          style={{
+            ...styles.myBotsNavItem,
+            ...styles.myBotsNavItemInactive
+          }}
+          onClick={() => router.push('/leaderboard')}
+        >
+          LEADERBOARD
+        </div>
+        <div 
+          style={{
+            ...styles.myBotsNavItem,
+            ...styles.myBotsNavItemInactive
+          }}
+          onClick={() => router.push('/strategies')}
+        >
+          STRATEGIES
+        </div>
+      </div>
     </div>
   )
 }
