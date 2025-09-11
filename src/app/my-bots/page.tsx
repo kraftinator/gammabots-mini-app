@@ -118,7 +118,7 @@ export default function MyBotsPage() {
   }, [authenticate])
 
   const filteredAndSortedBots = useMemo(() => {
-    let filtered = bots.filter(bot => {
+    const filtered = bots.filter(bot => {
       const matchesSearch = bot.token_symbol?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            bot.bot_id?.toString().includes(searchQuery)
       const matchesFilter = filterBy === 'all' || 
