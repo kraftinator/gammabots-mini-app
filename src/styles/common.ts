@@ -612,38 +612,6 @@ export const styles = {
   myBotProfit: {
     fontSize: '16px',
     fontWeight: '500'
-  } as CSSProperties,
-
-  myBotsBottomNav: {
-    position: 'fixed' as const,
-    bottom: '0',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    width: '420px',
-    maxWidth: '100vw',
-    background: 'white',
-    borderTop: '1px solid #f2f2f7',
-    display: 'flex',
-    zIndex: 5,
-    boxShadow: '0 -2px 12px rgba(0, 0, 0, 0.08)',
-    borderRadius: '20px 20px 0 0'
-  } as CSSProperties,
-
-  myBotsNavItem: {
-    flex: 1,
-    padding: '16px 8px',
-    textAlign: 'center' as const,
-    cursor: 'pointer',
-    fontSize: '12px',
-    fontWeight: '600'
-  } as CSSProperties,
-
-  myBotsNavItemActive: {
-    color: '#3b82f6'
-  } as CSSProperties,
-
-  myBotsNavItemInactive: {
-    color: '#8e8e93'
   } as CSSProperties
 } as const
 

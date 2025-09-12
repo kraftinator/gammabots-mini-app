@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors, getProfitColor } from '@/styles/common'
+import BottomNavigation from '@/components/BottomNavigation'
 
 interface Bot {
   bot_id: string
@@ -345,42 +346,7 @@ export default function MyBotsPage() {
         </div>
       )}
 
-      {/* Bottom Navigation */}
-      <div style={styles.myBotsBottomNav}>
-        <div 
-          style={{
-            ...styles.myBotsNavItem,
-            ...styles.myBotsNavItemInactive
-          }}
-          onClick={() => router.push('/')}
-        >
-          HOME
-        </div>
-        <div style={{
-          ...styles.myBotsNavItem,
-          ...styles.myBotsNavItemActive
-        }}>
-          MY BOTS
-        </div>
-        <div 
-          style={{
-            ...styles.myBotsNavItem,
-            ...styles.myBotsNavItemInactive
-          }}
-          onClick={() => router.push('/leaderboard')}
-        >
-          LEADERBOARD
-        </div>
-        <div 
-          style={{
-            ...styles.myBotsNavItem,
-            ...styles.myBotsNavItemInactive
-          }}
-          onClick={() => router.push('/strategies')}
-        >
-          STRATEGIES
-        </div>
-      </div>
+      <BottomNavigation activeTab="my-bots" />
     </div>
   )
 }
