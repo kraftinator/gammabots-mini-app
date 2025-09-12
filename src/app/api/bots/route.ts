@@ -4,11 +4,16 @@ import { withAuth, callExternalAPI } from '@/lib/apiAuth'
 export const GET = withAuth(async (request: NextRequest, auth) => {
   console.log('Bots API called with authenticated token:', auth.token.slice(0, 20), '...')
 
-  // Construct the URL
-  const url = `${auth.apiUrl}/bots`
+  // Extract query parameters
+  const { searchParams } = new URL(request.url)
+  const status = searchParams.get('status') || 'active'
+
+  // Construct the URL with status parameter
+  const url = new URL(`${auth.apiUrl}/bots`)
+  url.searchParams.append('status', status)
   
   try {
-    const response = await callExternalAPI(url, auth)
+    const response = await callExternalAPI(url.toString(), auth)
 
     if (!response.ok) {
       console.error('Gammabots API error:', response.status, response.statusText)

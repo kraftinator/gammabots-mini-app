@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
@@ -39,7 +39,44 @@ export default function MyBotsPage() {
   // Filter and search states
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('profit')
-  const [filterBy, setFilterBy] = useState('all')
+  const [status, setStatus] = useState<'active' | 'retired'>('active')
+
+  // Fetch bots function
+  const fetchBots = useCallback(async (token: string, botStatus: 'active' | 'retired' = 'active') => {
+    try {
+      setBotsLoading(true)
+      setBotsError(null)
+      setBots([]) // Clear existing bots when fetching new status
+
+      const url = new URL('/api/bots', window.location.origin)
+      url.searchParams.append('status', botStatus)
+
+      const response = await fetch(url.toString(), {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+
+      if (!response.ok) {
+        throw new Error(`API call failed: ${response.status} ${response.statusText}`)
+      }
+
+      const data = await response.json()
+      console.log('Raw API response:', data)
+      
+      const botsArray = Array.isArray(data) ? data : data.bots || []
+      console.log('Processed bots array:', botsArray)
+      setBots(botsArray)
+      
+    } catch (error: unknown) {
+      console.error('Failed to fetch bots:', error)
+      setBotsError(error instanceof Error ? error.message : 'Failed to fetch bots')
+    } finally {
+      setBotsLoading(false)
+    }
+  }, [setBots, setBotsLoading, setBotsError])
 
   useEffect(() => {
     async function initializePage() {
@@ -71,7 +108,7 @@ export default function MyBotsPage() {
           // Now perform Quick Auth and fetch bots
           const token = await authenticate()
           if (token) {
-            await fetchBots(token)
+            await fetchBots(token, status)
           }
         } else {
           console.log('Not running in Mini App environment')
@@ -83,51 +120,28 @@ export default function MyBotsPage() {
       }
     }
 
-    async function fetchBots(token: string) {
-      try {
-        setBotsLoading(true)
-        setBotsError(null)
-
-        const response = await fetch('/api/bots', {
-          method: 'GET',
-          headers: {
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json'
-          }
-        })
-
-        if (!response.ok) {
-          throw new Error(`API call failed: ${response.status} ${response.statusText}`)
-        }
-
-        const data = await response.json()
-        console.log('Raw API response:', data)
-        
-        const botsArray = Array.isArray(data) ? data : data.bots || []
-        console.log('Processed bots array:', botsArray)
-        setBots(botsArray)
-        
-      } catch (error: unknown) {
-        console.error('Failed to fetch bots:', error)
-        setBotsError(error instanceof Error ? error.message : 'Failed to fetch bots')
-      } finally {
-        setBotsLoading(false)
-      }
-    }
-
     initializePage()
-  }, [authenticate])
+  }, [authenticate, fetchBots])
+
+  // Handle status change and fetch new bots
+  const handleStatusChange = useCallback(async (newStatus: 'active' | 'retired') => {
+    setStatus(newStatus)
+    
+    try {
+      const token = await authenticate()
+      if (token) {
+        await fetchBots(token, newStatus)
+      }
+    } catch (error) {
+      console.error('Error fetching bots for status change:', error)
+    }
+  }, [authenticate, fetchBots])
 
   const filteredAndSortedBots = useMemo(() => {
     const filtered = bots.filter(bot => {
       const matchesSearch = bot.token_symbol?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            bot.bot_id?.toString().includes(searchQuery)
-      const matchesFilter = filterBy === 'all' || 
-                           (filterBy === 'active' && bot.is_active) ||
-                           (filterBy === 'inactive' && !bot.is_active) ||
-                           (filterBy === 'profitable' && Number(bot.profit_percent || 0) > 0) ||
-                           (filterBy === 'losses' && Number(bot.profit_percent || 0) < 0)
-      return matchesSearch && matchesFilter
+      return matchesSearch
     })
 
     return filtered.sort((a, b) => {
@@ -145,7 +159,7 @@ export default function MyBotsPage() {
           return 0
       }
     })
-  }, [bots, searchQuery, sortBy, filterBy])
+  }, [bots, searchQuery, sortBy])
 
   if (!isReady) {
     return (
@@ -218,15 +232,12 @@ export default function MyBotsPage() {
           </select>
           
           <select
-            value={filterBy}
-            onChange={(e) => setFilterBy(e.target.value)}
+            value={status}
+            onChange={(e) => handleStatusChange(e.target.value as 'active' | 'retired')}
             style={styles.myBotsSelect}
           >
-            <option value="all">All Bots</option>
-            <option value="active">Active Only</option>
-            <option value="inactive">Inactive Only</option>
-            <option value="profitable">Profitable</option>
-            <option value="losses">Losses</option>
+            <option value="active">Active</option>
+            <option value="retired">Retired</option>
           </select>
         </div>
       </div>
