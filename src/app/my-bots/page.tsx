@@ -38,7 +38,7 @@ export default function MyBotsPage() {
   
   // Filter and search states
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState('profit')
+  const [sortBy, setSortBy] = useState('recent')
   const [status, setStatus] = useState<'active' | 'retired'>('active')
 
   // Fetch bots function
@@ -172,25 +172,16 @@ export default function MyBotsPage() {
   return (
     <div style={styles.myBotsContainer}>
       {/* Header */}
-      <div style={styles.myBotsHeader}>
-        <div style={{ position: 'relative', zIndex: 2 }}>
-          <div style={styles.myBotsLogo}>
-            Γ
-          </div>
-          <div style={styles.myBotsTitle}>
-            MY BOTS
-          </div>
-          <div style={styles.myBotsSubtitle}>
-            Manage Your Trading Bots
-          </div>
-        </div>
-        <div style={styles.myBotsUserInfo}>
-          <div style={styles.myBotsUsername}>
-            Welcome, @{username}
-          </div>
-          <div style={styles.myBotsBalance}>
-            Balance: <span style={styles.myBotsBalanceAmount}>2200 GAMMA</span>
-          </div>
+      <div style={{
+        ...styles.formHeader,
+        padding: '20px 20px 20px 20px',
+        marginBottom: '0',
+        backgroundColor: 'white'
+      }}>
+        <div>
+          <h1 style={styles.formTitle}>
+            My Bots
+          </h1>
         </div>
       </div>
 
@@ -225,9 +216,9 @@ export default function MyBotsPage() {
             onChange={(e) => setSortBy(e.target.value)}
             style={styles.myBotsSelect}
           >
+            <option value="recent">Sort by Recent</option>
             <option value="profit">Sort by Profit</option>
             <option value="value">Sort by Value</option>
-            <option value="recent">Sort by Recent</option>
             <option value="id">Sort by Bot ID</option>
           </select>
           
