@@ -152,6 +152,8 @@ export default function MyBotsPage() {
         case 'recent':
           // For now, sort by bot_id as a proxy for recent
           return parseInt(b.bot_id) - parseInt(a.bot_id)
+        case 'strategy':
+          return parseInt(a.strategy_id) - parseInt(b.strategy_id)
         case 'id':
           return parseInt(b.bot_id) - parseInt(a.bot_id)
         default:
@@ -218,6 +220,7 @@ export default function MyBotsPage() {
             <option value="recent">Sort by Recent</option>
             <option value="profit">Sort by Profit</option>
             <option value="value">Sort by Value</option>
+            <option value="strategy">Sort by Strategy</option>
             <option value="id">Sort by Bot ID</option>
           </select>
           
