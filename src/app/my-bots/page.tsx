@@ -221,7 +221,7 @@ export default function MyBotsPage() {
             <option value="profit">Sort by Profit</option>
             <option value="value">Sort by Value</option>
             <option value="strategy">Sort by Strategy</option>
-            <option value="id">Sort by Bot ID</option>
+            <option value="id">Sort by ID</option>
           </select>
           
           <select
