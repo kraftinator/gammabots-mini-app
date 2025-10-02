@@ -10,6 +10,26 @@ export default function CreateStrategyPage() {
   const router = useRouter()
   const { authLoading, authError, authenticate, clearAuthError } = useQuickAuth()
   const [token, setToken] = useState<string | null>(null)
+  const [isReady, setIsReady] = useState(false)
+  const [strategyData, setStrategyData] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function initializePage() {
+      try {
+        const { sdk } = await import('@farcaster/miniapp-sdk')
+        
+        await sdk.actions.ready()
+        console.log('Create Strategy page is ready!')
+      } catch (error) {
+        console.error('Error initializing page:', error)
+        setIsReady(true)
+      }
+    }
+
+    initializePage()
+  }, [])
 
   useEffect(() => {
     const initAuth = async () => {
@@ -22,18 +42,57 @@ export default function CreateStrategyPage() {
     initAuth()
   }, [authenticate])
 
-  useEffect(() => {
-    const initSdk = async () => {
-      try {
-        const { sdk } = await import('@farcaster/miniapp-sdk')
-        await sdk.actions.ready()
-      } catch (error) {
-        console.error('Failed to initialize SDK:', error)
-      }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    
+    if (!strategyData.trim()) {
+      setSubmitError('Strategy is required')
+      return
     }
 
-    initSdk()
-  }, [])
+    if (strategyData.length > 5000) {
+      setSubmitError('Strategy must be 5000 characters or less')
+      return
+    }
+
+    if (!token) {
+      setSubmitError('Authentication required')
+      return
+    }
+
+    setIsSubmitting(true)
+    setSubmitError(null)
+
+    try {
+      const response = await fetch('/api/strategies/validate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          strategy: strategyData
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.message || 'Failed to validate strategy')
+      }
+
+      const result = await response.json()
+      console.log('Strategy validated successfully:', result)
+      
+      // Redirect to strategies page
+      router.push('/strategies')
+
+    } catch (error) {
+      console.error('Error creating strategy:', error)
+      setSubmitError(error instanceof Error ? error.message : 'Failed to create strategy')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
 
   if (authLoading) {
     return (
@@ -82,40 +141,67 @@ export default function CreateStrategyPage() {
     <div style={styles.formContainer}>
       {/* Header */}
       <div style={styles.formHeader}>
-        <h1 style={styles.formTitle}>Create Strategy</h1>
-        <p style={styles.formSubtitle}>Set up your new trading strategy</p>
-      </div>
-
-      {/* Form Content - Placeholder for now */}
-      <div style={styles.formCard}>
-        <div style={{
-          textAlign: 'center',
-          padding: '40px 20px',
-          color: '#8e8e93'
-        }}>
-          <h3 style={{ 
-            fontSize: '18px', 
-            fontWeight: '600', 
-            color: '#1c1c1e',
-            marginBottom: '12px' 
-          }}>
-            Coming Soon
-          </h3>
-          <p style={{ fontSize: '14px', lineHeight: '1.5' }}>
-            Strategy creation functionality will be available soon.
+        <div>
+          <h1 style={styles.formTitle}>
+            Create Strategy
+          </h1>
+          <p style={styles.formSubtitle}>
+            Set up your new trading strategy
           </p>
-          <button
-            onClick={() => router.push('/strategies')}
-            style={{
-              ...styles.submitButton,
-              marginTop: '24px',
-              backgroundColor: '#8e8e93'
-            }}
-          >
-            Back to Strategies
-          </button>
         </div>
       </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit}>
+        <div style={styles.formCard}>
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>
+              Strategy
+            </label>
+            <textarea
+              value={strategyData}
+              onChange={(e) => setStrategyData(e.target.value)}
+              placeholder='{"c":"bcn==0 && crt>60","a":["deact force"]},{"c":"bcn==0 && cpr>ppr","a":["buy init"]},{"c":"bcn>0 && cpr>ibp*1.2 && cma<lma","a":["sell all","deact"]}'
+              style={{
+                ...styles.formInput,
+                minHeight: '200px',
+                resize: 'vertical' as const,
+                fontFamily: 'monospace',
+                fontSize: '14px'
+              }}
+              required
+            />
+            <div style={{
+              fontSize: '12px',
+              color: strategyData.length > 5000 ? '#ff3b30' : '#8e8e93',
+              marginTop: '4px'
+            }}>
+              {strategyData.length} / 5000 characters maximum
+            </div>
+          </div>
+
+          {submitError && (
+            <div style={{
+              ...styles.errorCard,
+              margin: '16px 0'
+            }}>
+              <div style={styles.errorText}>{submitError}</div>
+            </div>
+          )}
+
+          <button
+            type="submit"
+            disabled={isSubmitting || strategyData.length > 5000}
+            style={{
+              ...styles.submitButton,
+              opacity: isSubmitting || strategyData.length > 5000 ? 0.6 : 1,
+              cursor: isSubmitting || strategyData.length > 5000 ? 'not-allowed' : 'pointer'
+            }}
+          >
+            {isSubmitting ? 'Creating Strategy...' : 'Create Strategy'}
+          </button>
+        </div>
+      </form>
 
       <BottomNavigation activeTab="strategies" />
     </div>
