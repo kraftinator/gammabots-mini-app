@@ -64,6 +64,7 @@ export default function CreateStrategyPage() {
     setSubmitError(null)
 
     try {
+      // First, validate the strategy
       const response = await fetch('/api/strategies/validate', {
         method: 'POST',
         headers: {
@@ -82,6 +83,55 @@ export default function CreateStrategyPage() {
 
       const result = await response.json()
       console.log('Strategy validated successfully:', result)
+
+      // If strategy is valid, mint the NFT
+      if (result.valid) {
+        try {
+          const { sdk } = await import('@farcaster/miniapp-sdk')
+          const { encodeMintStrategy, STRATEGY_NFT_CONTRACT } = await import('@/contracts')
+
+          // Check if we're in Mini App environment
+          const inMiniApp = await sdk.isInMiniApp()
+          if (!inMiniApp) {
+            console.warn('Not in Mini App environment, skipping NFT minting')
+            router.push('/strategies')
+            return
+          }
+
+          // Get the user's account
+          const accounts = await sdk.wallet.ethProvider.request({
+            method: 'eth_requestAccounts',
+          })
+          
+          if (!accounts || accounts.length === 0) {
+            throw new Error('No wallet accounts available')
+          }
+
+          // Encode the contract call data
+          //const data = encodeMintStrategy('test2')
+          const data = encodeMintStrategy(result.compressed || strategyData)
+
+          // Send the mint transaction
+          const txHash = await sdk.wallet.ethProvider.request({
+            method: 'eth_sendTransaction',
+            params: [{
+              from: accounts[0],
+              to: STRATEGY_NFT_CONTRACT,
+              data: data,
+            }]
+          })
+          
+          console.log('Strategy NFT minted successfully:', txHash)
+          
+        } catch (mintError) {
+          console.error('NFT minting failed:', mintError)
+          setSubmitError('Strategy validated but NFT minting failed. Please try again.')
+          return
+        }
+      } else {
+        setSubmitError('Strategy validation failed')
+        return
+      }
       
       // Redirect to strategies page
       router.push('/strategies')
@@ -198,7 +248,7 @@ export default function CreateStrategyPage() {
               cursor: isSubmitting || strategyData.length > 5000 ? 'not-allowed' : 'pointer'
             }}
           >
-            {isSubmitting ? 'Creating Strategy...' : 'Create Strategy'}
+            {isSubmitting ? 'Validating & Minting NFT...' : 'Create Strategy'}
           </button>
         </div>
       </form>
