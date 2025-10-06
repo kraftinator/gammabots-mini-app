@@ -123,6 +123,24 @@ export default function CreateStrategyPage() {
           
           console.log('Strategy NFT minted successfully:', txHash)
           
+          // Send transaction hash to backend to register the strategy creation
+          try {
+            await fetch('/api/strategies', {
+              method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+              },
+              body: JSON.stringify({
+                mint_tx_hash: txHash
+              })
+            })
+            console.log('Strategy creation registered with backend')
+          } catch (backendError) {
+            console.error('Failed to register strategy with backend:', backendError)
+            // Don't fail the whole process if backend call fails
+          }
+          
         } catch (mintError) {
           console.error('NFT minting failed:', mintError)
           setSubmitError('Strategy validated but NFT minting failed. Please try again.')
