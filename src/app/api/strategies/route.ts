@@ -36,6 +36,8 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
 
   try {
     const body = await request.json()
+    console.log('Request body received:', body)
+    console.log('Sending to backend:', JSON.stringify(body))
     const url = `${auth.apiUrl}/strategies`
     
     const response = await callExternalAPI(url, auth, {
