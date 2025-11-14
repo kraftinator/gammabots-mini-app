@@ -12,10 +12,12 @@ export default function CreateBotPage() {
   const [isReady, setIsReady] = useState(false)
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [formData, setFormData] = useState({
-    tokenAddress: '0x18b6f6049a0af4ed2bbe0090319174eeef89f53a',
-    ethAmount: '0.0001',
-    movingAverage: '20',
-    strategyId: '1'
+    tokenAddress: '',
+    ethAmount: '0.01',
+    movingAverage: '6',
+    strategyId: '',
+    profitShare: '50',
+    profitThreshold: '15'
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
 
@@ -44,10 +46,121 @@ export default function CreateBotPage() {
   }, [])
 
   const handleInputChange = (field: string, value: string) => {
+    // For ethAmount, limit to 4 decimal places
+    if (field === 'ethAmount') {
+      const parts = value.split('.')
+      if (parts[1] && parts[1].length > 4) {
+        value = parts[0] + '.' + parts[1].substring(0, 4)
+      }
+    }
+
     setFormData(prev => ({
       ...prev,
       [field]: value
     }))
+  }
+
+  const handleEthAmountBlur = () => {
+    const numValue = parseFloat(formData.ethAmount)
+    if (formData.ethAmount !== '' && !isNaN(numValue) && numValue < 0.0001) {
+      setFormData(prev => ({
+        ...prev,
+        ethAmount: '0.0001'
+      }))
+    }
+  }
+
+  const handlePercentageBlur = (field: 'profitShare' | 'profitThreshold', defaultValue: string) => {
+    const value = formData[field]
+
+    // If empty, set to default
+    if (value === '' || value === undefined) {
+      setFormData(prev => ({
+        ...prev,
+        [field]: defaultValue
+      }))
+      return
+    }
+
+    const numValue = parseFloat(value)
+    if (!isNaN(numValue)) {
+      // Truncate to whole number
+      let correctedValue = Math.floor(numValue)
+      if (correctedValue < 0) correctedValue = 0
+      if (correctedValue > 100) correctedValue = 100
+
+      setFormData(prev => ({
+        ...prev,
+        [field]: correctedValue.toString()
+      }))
+    } else {
+      // If not a valid number, set to default
+      setFormData(prev => ({
+        ...prev,
+        [field]: defaultValue
+      }))
+    }
+  }
+
+  const handleStrategyBlur = () => {
+    const value = formData.strategyId
+
+    // If empty, set to default
+    if (value === '' || value === undefined) {
+      setFormData(prev => ({
+        ...prev,
+        strategyId: '1'
+      }))
+      return
+    }
+
+    const numValue = parseFloat(value)
+    if (!isNaN(numValue)) {
+      // Truncate to whole number, minimum 1
+      let correctedValue = Math.floor(numValue)
+      if (correctedValue < 1) correctedValue = 1
+
+      setFormData(prev => ({
+        ...prev,
+        strategyId: correctedValue.toString()
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        strategyId: '1'
+      }))
+    }
+  }
+
+  const handleMovingAverageBlur = () => {
+    const value = formData.movingAverage
+
+    // If empty, set to default
+    if (value === '' || value === undefined) {
+      setFormData(prev => ({
+        ...prev,
+        movingAverage: '6'
+      }))
+      return
+    }
+
+    const numValue = parseFloat(value)
+    if (!isNaN(numValue)) {
+      // Truncate to whole number, range 1-60
+      let correctedValue = Math.floor(numValue)
+      if (correctedValue < 1) correctedValue = 1
+      if (correctedValue > 60) correctedValue = 60
+
+      setFormData(prev => ({
+        ...prev,
+        movingAverage: correctedValue.toString()
+      }))
+    } else {
+      setFormData(prev => ({
+        ...prev,
+        movingAverage: '6'
+      }))
+    }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -216,19 +329,20 @@ export default function CreateBotPage() {
               color: colors.text.secondary,
               fontSize: '14px'
             }}>
-              Enter the contract address of the token
+              The Base contract address of the token
             </p>
           </div>
 
           {/* ETH Amount */}
           <div style={styles.formGroup}>
             <label style={styles.formLabel}>
-              ETH Amount
+              Starting ETH Amount
             </label>
             <input
               type="number"
               value={formData.ethAmount}
               onChange={(e) => handleInputChange('ethAmount', e.target.value)}
+              onBlur={handleEthAmountBlur}
               step="0.0001"
               min="0.0001"
               style={styles.formInput}
@@ -238,50 +352,106 @@ export default function CreateBotPage() {
               color: colors.text.secondary,
               fontSize: '14px'
             }}>
-              Amount of ETH to use per trade
+              Amount of ETH to fund the bot
             </p>
           </div>
 
-          {/* Moving Average */}
-          <div style={styles.formGroup}>
-            <label style={styles.formLabel}>
-              Moving Average
-            </label>
-            <input
-              type="number"
-              value={formData.movingAverage}
-              onChange={(e) => handleInputChange('movingAverage', e.target.value)}
-              min="1"
-              style={styles.formInput}
-            />
-            <p style={{
-              margin: '4px 0 0 0',
-              color: colors.text.secondary,
-              fontSize: '14px'
-            }}>
-              Moving average period
-            </p>
+          {/* Strategy and Moving Average */}
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <div style={{ ...styles.formGroup, flex: 1 }}>
+              <label style={styles.formLabel}>
+                Strategy
+              </label>
+              <style>{`
+                input[type=number].no-spinner::-webkit-outer-spin-button,
+                input[type=number].no-spinner::-webkit-inner-spin-button {
+                  -webkit-appearance: none;
+                  margin: 0;
+                }
+                input[type=number].no-spinner {
+                  -moz-appearance: textfield;
+                }
+              `}</style>
+              <input
+                type="number"
+                className="no-spinner"
+                value={formData.strategyId}
+                onChange={(e) => handleInputChange('strategyId', e.target.value)}
+                onBlur={handleStrategyBlur}
+                min="1"
+                step="1"
+                style={styles.formInput}
+              />
+            </div>
+            <div style={{ ...styles.formGroup, flex: 1 }}>
+              <label style={styles.formLabel}>
+                Moving Average
+              </label>
+              <input
+                type="number"
+                value={formData.movingAverage}
+                onChange={(e) => handleInputChange('movingAverage', e.target.value)}
+                onBlur={handleMovingAverageBlur}
+                min="1"
+                max="60"
+                step="1"
+                style={styles.formInput}
+              />
+            </div>
           </div>
 
-          {/* Strategy ID */}
-          <div style={styles.formGroup}>
-            <label style={styles.formLabel}>
-              Strategy ID
-            </label>
-            <input
-              type="number"
-              value={formData.strategyId}
-              onChange={(e) => handleInputChange('strategyId', e.target.value)}
-              min="1"
-              style={styles.formInput}
-            />
-            <p style={{
-              margin: '4px 0 0 0',
-              color: colors.text.secondary,
-              fontSize: '14px'
-            }}>
-              Trading strategy identifier
-            </p>
+          {/* Profit Share and Profit Threshold */}
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <div style={{ ...styles.formGroup, flex: 1 }}>
+              <label style={styles.formLabel}>
+                Profit Share
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="number"
+                  value={formData.profitShare}
+                  onChange={(e) => handleInputChange('profitShare', e.target.value)}
+                  onBlur={() => handlePercentageBlur('profitShare', '50')}
+                  min="0"
+                  max="100"
+                  step="1"
+                  style={{ ...styles.formInput, paddingRight: '32px' }}
+                />
+                <span style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: colors.text.secondary,
+                  pointerEvents: 'none'
+                }}>%</span>
+              </div>
+            </div>
+            <div style={{ ...styles.formGroup, flex: 1 }}>
+              <label style={styles.formLabel}>
+                Profit Threshold
+              </label>
+              <div style={{ position: 'relative' }}>
+                <input
+                  type="number"
+                  value={formData.profitThreshold}
+                  onChange={(e) => handleInputChange('profitThreshold', e.target.value)}
+                  onBlur={() => handlePercentageBlur('profitThreshold', '15')}
+                  min="0"
+                  max="100"
+                  step="1"
+                  style={{ ...styles.formInput, paddingRight: '32px' }}
+                />
+                <span style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  color: colors.text.secondary,
+                  pointerEvents: 'none'
+                }}>%</span>
+              </div>
+            </div>
           </div>
 
           {/* Submit Button */}
