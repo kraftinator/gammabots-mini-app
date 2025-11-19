@@ -50,8 +50,9 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
 
     if (!response.ok) {
       console.error('Gammabots Create Bot API error:', response.status, response.statusText)
+      const errorData = await response.json().catch(() => ({ error: 'Failed to create bot' }))
       return NextResponse.json(
-        { error: 'Failed to create bot' },
+        errorData,
         { status: response.status }
       )
     }

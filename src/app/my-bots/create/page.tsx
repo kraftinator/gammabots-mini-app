@@ -20,6 +20,7 @@ export default function CreateBotPage() {
     profitThreshold: '15'
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
     async function initializePage() {
@@ -166,6 +167,7 @@ export default function CreateBotPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsSubmitting(true)
+    setSubmitError(null)
 
     try {
       const token = await authenticate()
@@ -188,10 +190,12 @@ export default function CreateBotPage() {
         })
       })
 
+      console.log('Create Bot response status:', response.status, 'ok:', response.ok)
+
       if (response.ok) {
         const responseData = await response.json()
         console.log('Create Bot API response:', responseData)
-        
+
         // Handle payment if required
         if (responseData.payment && isMiniApp) {
           try {
@@ -267,9 +271,28 @@ export default function CreateBotPage() {
         }
         
         router.push('/my-bots')
+      } else {
+        // Handle error response
+        const responseText = await response.text()
+        console.log('Raw response text:', responseText)
+        let errorData = null
+        try {
+          errorData = JSON.parse(responseText)
+          console.log('Parsed error response data:', JSON.stringify(errorData, null, 2))
+        } catch (e) {
+          console.log('Failed to parse response as JSON')
+        }
+        const errorMessage = errorData?.error || errorData?.message || `Failed to create bot (${response.status})`
+        console.log('Error message to display:', errorMessage)
+        setSubmitError(errorMessage)
+        // Scroll to top to show error
+        window.scrollTo({ top: 0, behavior: 'smooth' })
       }
     } catch (error) {
       console.error('Error creating bot:', error)
+      setSubmitError('An unexpected error occurred. Please try again.')
+      // Scroll to top to show error
+      window.scrollTo({ top: 0, behavior: 'smooth' })
     } finally {
       setIsSubmitting(false)
     }
@@ -305,6 +328,33 @@ export default function CreateBotPage() {
           </h3>
           <p style={styles.errorText}>
             {authError}
+          </p>
+        </div>
+      )}
+
+      {/* Submit Error */}
+      {submitError && (
+        <div style={{
+          backgroundColor: '#fee',
+          borderRadius: '12px',
+          padding: '24px',
+          marginBottom: '20px',
+          border: '1px solid #fcc'
+        }}>
+          <h3 style={{
+            fontSize: '16px',
+            fontWeight: 'bold',
+            margin: '0 0 8px 0',
+            color: '#c00'
+          }}>
+            Error Creating Bot
+          </h3>
+          <p style={{
+            color: '#c00',
+            margin: 0,
+            fontSize: '14px'
+          }}>
+            {submitError}
           </p>
         </div>
       )}
