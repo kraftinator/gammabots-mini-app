@@ -81,10 +81,10 @@ export default function MyBotsPage() {
     async function initializePage() {
       try {
         setIsReady(true)
-        
+
         // Try to load the SDK
         const { sdk } = await import('@farcaster/miniapp-sdk')
-        
+
         // Check if we're running in a Mini App environment
         const inMiniApp = await sdk.isInMiniApp()
         setIsMiniApp(inMiniApp)
@@ -93,7 +93,7 @@ export default function MyBotsPage() {
           // We're in a Mini App, call ready to hide splash screen
           await sdk.actions.ready()
           console.log('My Bots page is ready!')
-          
+
           // Get user context to display actual username
           try {
             const context = await sdk.context
@@ -121,6 +121,35 @@ export default function MyBotsPage() {
 
     initializePage()
   }, [authenticate, fetchBots])
+
+  // Auto-refresh when there are unfunded bots
+  useEffect(() => {
+    const hasUnfundedBots = bots.some(bot => bot.status === 'unfunded')
+
+    if (!hasUnfundedBots) {
+      return // No unfunded bots, no need to poll
+    }
+
+    console.log('Starting auto-refresh for unfunded bots...')
+
+    const intervalId = setInterval(async () => {
+      try {
+        const token = await authenticate()
+        if (token) {
+          console.log('Auto-refreshing bots data...')
+          await fetchBots(token, status)
+        }
+      } catch (error) {
+        console.error('Error during auto-refresh:', error)
+      }
+    }, 5000) // Poll every 5 seconds
+
+    // Cleanup function
+    return () => {
+      console.log('Stopping auto-refresh')
+      clearInterval(intervalId)
+    }
+  }, [bots, authenticate, fetchBots, status])
 
   // Handle status change and fetch new bots
   const handleStatusChange = useCallback(async (newStatus: 'active' | 'retired') => {
