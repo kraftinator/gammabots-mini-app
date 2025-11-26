@@ -340,21 +340,23 @@ function MetricCard({ label, value, change }: { label: string; value: string; ch
 }
 
 function TokenCard({ name, tvl, borderColor }: { name: string; tvl: string; borderColor: string }) {
+  const displayName = name.length > 15 ? `${name.slice(0, 15)}...` : name;
+
   return (
     <div style={{
       ...styles.card,
       textAlign: "center",
       border: `2px solid ${borderColor}`
     }}>
-      <div style={{ 
-        fontSize: "14px", 
-        fontWeight: "700", 
+      <div style={{
+        fontSize: "14px",
+        fontWeight: "700",
         marginBottom: "4px",
         overflow: "hidden",
         textOverflow: "ellipsis",
         whiteSpace: "nowrap",
         ...styles.textPrimary
-      }}>{name}</div>
+      }}>{displayName}</div>
       <div style={{ fontSize: "12px", fontWeight: "500", ...styles.textSecondary }}>{tvl}</div>
     </div>
   )
@@ -456,7 +458,9 @@ function ActivityItem({
         }}>
           {action} {tokenAmount && tokenSymbol ? (
             <>
-              {tokenAmount} <span style={{ fontWeight: "700" }}>{tokenSymbol}</span>
+              {tokenAmount} <span style={{ fontWeight: "700", whiteSpace: "nowrap" }}>
+                {tokenSymbol.length > 15 ? `${tokenSymbol.slice(0, 15)}...` : tokenSymbol}
+              </span>
             </>
           ) : (
             <span style={{ fontWeight: "700" }}>{amount}</span>

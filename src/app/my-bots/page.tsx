@@ -298,7 +298,12 @@ export default function MyBotsPage() {
                   <div style={styles.myBotInfo}>
                     <div style={styles.myBotHeader}>
                       <span style={styles.myBotTokenInfo}>
-                        <span>{bot.token_symbol || 'Unknown'}</span>
+                        <span style={{ whiteSpace: 'nowrap' }}>
+                          {(() => {
+                            const symbol = bot.token_symbol || 'Unknown';
+                            return symbol.length > 15 ? `${symbol.slice(0, 15)}...` : symbol;
+                          })()}
+                        </span>
                         <span style={styles.myBotId}>#{bot.bot_id}</span>
                       </span>
                       <span style={{
