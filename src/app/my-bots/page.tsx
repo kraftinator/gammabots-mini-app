@@ -330,18 +330,26 @@ export default function MyBotsPage() {
                           {(() => {
                             const tokensNum = bot.tokens ? Number(bot.tokens) : 0;
                             const ethNum = bot.eth ? Number(bot.eth) : 0;
-                            
-                            if (tokensNum > 0 && ethNum > 0) {
+
+                            // Check displayed values, not raw values
+                            const tokensDisplay = Math.floor(tokensNum);
+                            const ethDisplay = Number(ethNum.toFixed(4));
+
+                            // Truncate token symbol
+                            const symbol = bot.token_symbol || '';
+                            const truncatedSymbol = symbol.length > 15 ? `${symbol.slice(0, 15)}...` : symbol;
+
+                            if (tokensDisplay > 0 && ethDisplay > 0) {
                               return (
                                 <>
-                                  <div>{Math.floor(tokensNum).toLocaleString()} {bot.token_symbol}</div>
-                                  <div>{ethNum.toFixed(4)} ETH</div>
+                                  <div>{tokensDisplay.toLocaleString()} {truncatedSymbol}</div>
+                                  <div>{ethDisplay.toFixed(4)} ETH</div>
                                 </>
                               );
-                            } else if (tokensNum > 0) {
-                              return `${Math.floor(tokensNum).toLocaleString()} ${bot.token_symbol}`;
-                            } else if (ethNum > 0) {
-                              return `${ethNum.toFixed(4)} ETH`;
+                            } else if (tokensDisplay > 0) {
+                              return `${tokensDisplay.toLocaleString()} ${truncatedSymbol}`;
+                            } else if (ethDisplay > 0) {
+                              return `${ethDisplay.toFixed(4)} ETH`;
                             } else {
                               return '0';
                             }
