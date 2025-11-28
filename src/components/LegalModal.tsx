@@ -79,13 +79,13 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
             <div style={{ textAlign: 'center', padding: '20px 0' }}>
               <p style={{ marginBottom: '16px' }}>For support, send a DM to:</p>
               <p style={{ fontSize: '18px', fontWeight: '700', color: '#7c65c1', marginBottom: '16px' }}>@kraft</p>
-              <p style={{ fontSize: '12px', color: '#8e8e93' }}>We'll get back to you as soon as possible.</p>
+              <p style={{ fontSize: '12px', color: '#8e8e93' }}>We&apos;ll get back to you as soon as possible.</p>
             </div>
           ) : type === 'terms' ? (
             <>
               <p style={{ color: '#8e8e93', fontSize: '12px', marginTop: 0, marginBottom: '16px' }}>Last updated: November 26, 2025</p>
 
-              <p style={{ marginBottom: '12px' }}>Please read these Terms of Service ("Terms") carefully before using Gammabots ("the Service"). By signing up or using the Service, you agree to these Terms.</p>
+              <p style={{ marginBottom: '12px' }}>Please read these Terms of Service (&quot;Terms&quot;) carefully before using Gammabots (&quot;the Service&quot;). By signing up or using the Service, you agree to these Terms.</p>
 
               <div style={{ borderTop: '1px solid #e5e5e7', margin: '20px 0' }}></div>
 
@@ -107,7 +107,7 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
               <div style={{ borderTop: '1px solid #e5e5e7', margin: '20px 0' }}></div>
 
               <h3 style={{ fontSize: '16px', fontWeight: '700', marginTop: '24px', marginBottom: '12px' }}>3. Non-Custodial Wallets</h3>
-              <p style={{ marginBottom: '8px' }}>When you sign up, the Service generates a dedicated trading wallet ("Bot Wallet") for your account.</p>
+              <p style={{ marginBottom: '8px' }}>When you sign up, the Service generates a dedicated trading wallet (&quot;Bot Wallet&quot;) for your account.</p>
               <ul style={{ paddingLeft: '20px', marginTop: '8px', marginBottom: '12px', listStyleType: 'disc' }}>
                 <li>You control the wallet through your Gammabots account.</li>
                 <li>The Service does not take custody of your funds.</li>
@@ -158,13 +158,13 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
               <ul style={{ paddingLeft: '20px', marginTop: '8px', marginBottom: '12px', listStyleType: 'disc' }}>
                 <li>You authorize Gammabots to programmatically execute trades from your Bot Wallet.</li>
                 <li>You understand that bot logic is deterministic and may not behave as expected in all market conditions.</li>
-                <li>You are responsible for monitoring your bot's activity and disabling it if you no longer wish to trade.</li>
+                <li>You are responsible for monitoring your bot&apos;s activity and disabling it if you no longer wish to trade.</li>
               </ul>
 
               <div style={{ borderTop: '1px solid #e5e5e7', margin: '20px 0' }}></div>
 
               <h3 style={{ fontSize: '16px', fontWeight: '700', marginTop: '24px', marginBottom: '12px' }}>7. No Guarantees</h3>
-              <p style={{ marginBottom: '8px' }}>The Service is provided "as is" and "as available." We do not guarantee:</p>
+              <p style={{ marginBottom: '8px' }}>The Service is provided &quot;as is&quot; and &quot;as available.&quot; We do not guarantee:</p>
               <ul style={{ paddingLeft: '20px', marginTop: '8px', marginBottom: '12px', listStyleType: 'disc' }}>
                 <li>uptime</li>
                 <li>successful execution of trades</li>
@@ -244,7 +244,7 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
             <>
               <p style={{ color: '#8e8e93', fontSize: '12px', marginTop: 0, marginBottom: '16px' }}>Last updated: November 26, 2025</p>
 
-              <p style={{ marginBottom: '12px' }}>Your privacy matters. This Privacy Policy explains what information Gammabots ("we", "us", "our") collects, how we use it, and your rights regarding that data.</p>
+              <p style={{ marginBottom: '12px' }}>Your privacy matters. This Privacy Policy explains what information Gammabots (&quot;we&quot;, &quot;us&quot;, &quot;our&quot;) collects, how we use it, and your rights regarding that data.</p>
 
               <p style={{ marginBottom: '12px' }}>By using Gammabots, you agree to the practices described here.</p>
 
@@ -269,7 +269,7 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
               <p>When you sign up, we generate a dedicated trading wallet for your account.</p>
               <p style={{ marginBottom: '8px' }}>We store:</p>
               <ul style={{ paddingLeft: '20px', marginTop: '8px', marginBottom: '12px', listStyleType: 'disc' }}>
-                <li>The Bot Wallet's public address</li>
+                <li>The Bot Wallet&apos;s public address</li>
                 <li>The encrypted private key (server-side, used to perform automated trades)</li>
               </ul>
               <p>We do not sell, share, or expose this information.</p>
@@ -390,7 +390,7 @@ export default function LegalModal({ type, onClose }: LegalModalProps) {
 
               <div style={{ borderTop: '1px solid #e5e5e7', margin: '20px 0' }}></div>
 
-              <h3 style={{ fontSize: '16px', fontWeight: '700', marginTop: '24px', marginBottom: '12px' }}>7. Children's Privacy</h3>
+              <h3 style={{ fontSize: '16px', fontWeight: '700', marginTop: '24px', marginBottom: '12px' }}>7. Children&apos;s Privacy</h3>
               <p>We do not knowingly offer the Service to individuals under 18. If you believe a minor is using Gammabots, contact us for removal.</p>
 
               <div style={{ borderTop: '1px solid #e5e5e7', margin: '20px 0' }}></div>
