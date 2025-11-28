@@ -49,7 +49,7 @@ export const styles = {
   },
 
   contentPadding: {
-    padding: "20px 16px 100px"
+    padding: "20px 16px 70px"
   },
 
   // Cards

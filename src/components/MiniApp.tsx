@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNavigation from './BottomNavigation'
+import LegalModal from './LegalModal'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors, getChangeColor, getCircleColor, getRankColor } from '@/styles/common'
 
@@ -13,6 +14,7 @@ export default function MiniApp() {
   const [error, setError] = useState<string | null>(null)
   const [sdkRef, setSdkRef] = useState<typeof import('@farcaster/miniapp-sdk').sdk | null>(null)
   const [username, setUsername] = useState<string>('guest') // Default fallback for development
+  const [activeModal, setActiveModal] = useState<'terms' | 'privacy' | 'support' | null>(null)
   
   // Dashboard metrics from API
   const [dashboardData, setDashboardData] = useState({
@@ -306,6 +308,36 @@ export default function MiniApp() {
             {authLoading ? "Checking…" : `My Bots${dashboardData.user_bot_count > 0 ? ` (${dashboardData.user_bot_count})` : ""}`}
           </button>
         </div>
+
+        {/* Footer */}
+        <div style={{
+          textAlign: "center",
+          padding: "24px 20px 5px",
+          fontSize: "12px",
+          color: "#8e8e93",
+          fontWeight: "500"
+        }}>
+          <span
+            onClick={() => setActiveModal('terms')}
+            style={{ cursor: 'pointer', textDecoration: 'none' }}
+          >
+            Terms
+          </span>
+          {' · '}
+          <span
+            onClick={() => setActiveModal('privacy')}
+            style={{ cursor: 'pointer', textDecoration: 'none' }}
+          >
+            Privacy
+          </span>
+          {' · '}
+          <span
+            onClick={() => setActiveModal('support')}
+            style={{ cursor: 'pointer', textDecoration: 'none' }}
+          >
+            Support
+          </span>
+        </div>
       </div>
 
       {/* Bottom Navigation */}
@@ -322,6 +354,9 @@ export default function MiniApp() {
           <p className="text-xs text-red-700">Error: {error}</p>
         </div>
       )}
+
+      {/* Legal Modal */}
+      <LegalModal type={activeModal} onClose={() => setActiveModal(null)} />
     </div>
   )
 }
