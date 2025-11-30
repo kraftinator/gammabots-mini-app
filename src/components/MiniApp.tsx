@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNavigation from './BottomNavigation'
 import Footer from './layout/Footer'
+import SignUpModal from './modals/SignUpModal'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors, getChangeColor, getCircleColor, getRankColor } from '@/styles/common'
 
@@ -14,6 +15,7 @@ export default function MiniApp() {
   const [error, setError] = useState<string | null>(null)
   const [sdkRef, setSdkRef] = useState<typeof import('@farcaster/miniapp-sdk').sdk | null>(null)
   const [username, setUsername] = useState<string>('guest') // Default fallback for development
+  const [signUpModalOpen, setSignUpModalOpen] = useState(false)
 
   // Dashboard metrics from API
   const [dashboardData, setDashboardData] = useState({
@@ -46,6 +48,7 @@ export default function MiniApp() {
       performance: string;
     }>,
     user_bot_count: 0,
+    user_exists: true,
     last_updated: null as string | null
   })
 
@@ -293,19 +296,28 @@ export default function MiniApp() {
           gap: "12px",
           marginTop: "20px"
         }}>
-          <button 
+          <button
             style={styles.buttonPrimary}
-            onClick={() => router.push('/my-bots/create')}
+            onClick={() => dashboardData.user_exists ? router.push('/my-bots/create') : setSignUpModalOpen(true)}
           >
             Create Bot
           </button>
-          <button
-            onClick={handleMyBotsClick}
-            disabled={authLoading}
-            style={styles.buttonSecondary}
-          >
-            {authLoading ? "Checking…" : `My Bots${dashboardData.user_bot_count > 0 ? ` (${dashboardData.user_bot_count})` : ""}`}
-          </button>
+          {dashboardData.user_exists ? (
+            <button
+              onClick={handleMyBotsClick}
+              disabled={authLoading}
+              style={styles.buttonSecondary}
+            >
+              {authLoading ? "Checking…" : `My Bots${dashboardData.user_bot_count > 0 ? ` (${dashboardData.user_bot_count})` : ""}`}
+            </button>
+          ) : (
+            <button
+              onClick={() => setSignUpModalOpen(true)}
+              style={styles.buttonSecondary}
+            >
+              Sign Up
+            </button>
+          )}
         </div>
 
         {/* Footer */}
@@ -326,6 +338,9 @@ export default function MiniApp() {
           <p className="text-xs text-red-700">Error: {error}</p>
         </div>
       )}
+
+      {/* Sign Up Modal */}
+      <SignUpModal isOpen={signUpModalOpen} onClose={() => setSignUpModalOpen(false)} />
     </div>
   )
 }
