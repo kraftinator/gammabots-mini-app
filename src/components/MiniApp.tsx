@@ -16,6 +16,32 @@ export default function MiniApp() {
   const [sdkRef, setSdkRef] = useState<typeof import('@farcaster/miniapp-sdk').sdk | null>(null)
   const [username, setUsername] = useState<string>('guest') // Default fallback for development
   const [signUpModalOpen, setSignUpModalOpen] = useState(false)
+  const [signUpRedirectTo, setSignUpRedirectTo] = useState<string>('/my-bots')
+
+  // Function to fetch dashboard data with auth token
+  const fetchDashboardData = async (token: string) => {
+    try {
+      console.log('🔍 Frontend: Calling /api/dashboard with token')
+
+      const response = await fetch('/api/dashboard', {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        setDashboardData(data)
+        console.log('✅ Frontend: Dashboard data loaded successfully')
+      } else {
+        console.warn('🚨 Frontend: Failed to fetch dashboard metrics data:', response.status)
+      }
+    } catch (dashboardError) {
+      console.warn('🚨 Frontend: Error fetching dashboard data:', dashboardError)
+    }
+  }
 
   // Dashboard metrics from API
   const [dashboardData, setDashboardData] = useState({
@@ -94,38 +120,20 @@ export default function MiniApp() {
       }
     }
 
-
-    // Function to fetch dashboard data with auth token
-    async function fetchDashboardData(token: string) {
-      try {
-        console.log('🔍 Frontend: Calling /api/dashboard with token')
-        
-        const response = await fetch('/api/dashboard', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${token}`
-          }
-        })
-
-        if (response.ok) {
-          const data = await response.json()
-          setDashboardData(data)
-          console.log('✅ Frontend: Dashboard data loaded successfully')
-        } else {
-          console.warn('🚨 Frontend: Failed to fetch dashboard metrics data:', response.status)
-        }
-      } catch (dashboardError) {
-        console.warn('🚨 Frontend: Error fetching dashboard data:', dashboardError)
-      }
-    }
-
     initializeMiniApp()
   }, [])
 
   const handleMyBotsClick = async (e: React.MouseEvent) => {
     e.preventDefault()
     await navigateToMyBots()
+  }
+
+  const handleSignUpSuccess = async () => {
+    // Re-authenticate and refresh dashboard
+    const token = await authenticate()
+    if (token) {
+      await fetchDashboardData(token)
+    }
   }
 
   // Helper function to format currency values
@@ -298,7 +306,14 @@ export default function MiniApp() {
         }}>
           <button
             style={styles.buttonPrimary}
-            onClick={() => dashboardData.user_exists ? router.push('/my-bots/create') : setSignUpModalOpen(true)}
+            onClick={() => {
+              if (dashboardData.user_exists) {
+                router.push('/my-bots/create')
+              } else {
+                setSignUpRedirectTo('/my-bots/create')
+                setSignUpModalOpen(true)
+              }
+            }}
           >
             Create Bot
           </button>
@@ -308,11 +323,14 @@ export default function MiniApp() {
               disabled={authLoading}
               style={styles.buttonSecondary}
             >
-              {authLoading ? "Checking…" : `My Bots${dashboardData.user_bot_count > 0 ? ` (${dashboardData.user_bot_count})` : ""}`}
+              {authLoading ? "Checking…" : `My Bots (${dashboardData.user_bot_count})`}
             </button>
           ) : (
             <button
-              onClick={() => setSignUpModalOpen(true)}
+              onClick={() => {
+                setSignUpRedirectTo('/my-bots')
+                setSignUpModalOpen(true)
+              }}
               style={styles.buttonSecondary}
             >
               Sign Up
@@ -340,7 +358,12 @@ export default function MiniApp() {
       )}
 
       {/* Sign Up Modal */}
-      <SignUpModal isOpen={signUpModalOpen} onClose={() => setSignUpModalOpen(false)} />
+      <SignUpModal
+        isOpen={signUpModalOpen}
+        onClose={() => setSignUpModalOpen(false)}
+        onSuccess={handleSignUpSuccess}
+        redirectTo={signUpRedirectTo}
+      />
     </div>
   )
 }

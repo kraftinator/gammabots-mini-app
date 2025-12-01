@@ -1,17 +1,133 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+import { useQuickAuth } from '@/hooks/useQuickAuth'
 import TermsContent from '../content/TermsContent'
 import PrivacyContent from '../content/PrivacyContent'
 
 interface SignUpModalProps {
   isOpen: boolean
   onClose: () => void
+  onSuccess?: () => void
+  redirectTo?: string
 }
 
-export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
+export default function SignUpModal({ isOpen, onClose, onSuccess, redirectTo = '/my-bots' }: SignUpModalProps) {
+  const router = useRouter()
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [currentView, setCurrentView] = useState<'signup' | 'terms' | 'privacy'>('signup')
+  const { authenticate } = useQuickAuth()
+
+  const handleContinue = async () => {
+    try {
+      console.log('Starting sign up...')
+
+      // Get auth token first
+      const token = await authenticate()
+      if (!token) {
+        alert('Unable to authenticate. Please try again.')
+        return
+      }
+      console.log('Auth token obtained')
+
+      // Load Farcaster SDK
+      const { sdk } = await import('@farcaster/miniapp-sdk')
+      console.log('SDK loaded')
+
+      // Check if in mini app
+      const inMiniApp = await sdk.isInMiniApp()
+      console.log('In mini app:', inMiniApp)
+
+      if (!inMiniApp) {
+        alert('This feature is only available in the Farcaster Mini App')
+        return
+      }
+
+      // Get user context
+      const context = await sdk.context
+      console.log('User context:', context)
+
+      if (!context?.user) {
+        alert('Unable to get user information')
+        return
+      }
+
+      // Get wallet accounts
+      console.log('Requesting accounts...')
+      const accounts = await sdk.wallet.ethProvider.request({
+        method: 'eth_requestAccounts',
+      })
+      console.log('Accounts:', accounts)
+
+      if (!accounts || accounts.length === 0) {
+        alert('No wallet accounts available')
+        return
+      }
+
+      const walletAddress = accounts[0]
+      const timestamp = new Date().toISOString()
+      const message = `Gammabots Sign Up
+
+I confirm that I own this wallet and agree to the Gammabots Terms of Service and Privacy Policy.
+
+This signature does NOT perform an on-chain transaction and is free of gas fees.
+
+
+FID: ${context.user.fid}
+Timestamp: ${timestamp}`
+
+      // Convert message to hex
+      const messageHex = '0x' + Array.from(new TextEncoder().encode(message))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('')
+
+      console.log('Requesting signature for message:', message)
+      console.log('Message hex:', messageHex)
+
+      // Request signature
+      const signature = await sdk.wallet.ethProvider.request({
+        method: 'personal_sign',
+        params: [messageHex, walletAddress]
+      })
+
+      console.log('Signature received:', signature)
+
+      // POST to /api/users
+      const response = await fetch('/api/users', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          signature,
+          message,
+          wallet_address: walletAddress,
+          farcaster_username: context.user.username,
+          farcaster_avatar: context.user.pfpUrl,
+          fid: context.user.fid,
+          signed_at: timestamp
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        alert(errorData.error || 'Failed to create account')
+        return
+      }
+
+      // Success - close modal, refresh dashboard, and redirect
+      onClose()
+      if (onSuccess) {
+        onSuccess()
+      }
+      router.push(redirectTo)
+    } catch (error) {
+      console.error('Sign up error:', error)
+      alert('An error occurred during sign up. Please try again.')
+    }
+  }
 
   if (!isOpen) return null
 
@@ -178,6 +294,7 @@ export default function SignUpModal({ isOpen, onClose }: SignUpModalProps) {
 
             {/* Continue Button */}
             <button
+              onClick={handleContinue}
               disabled={!agreedToTerms}
               style={{
                 width: '100%',
