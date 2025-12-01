@@ -89,7 +89,7 @@ Timestamp: ${timestamp}`
       const signature = await sdk.wallet.ethProvider.request({
         method: 'personal_sign',
         params: [messageHex, walletAddress]
-      })
+      }) as `0x${string}`
 
       console.log('Signature received:', signature)
 
