@@ -65,7 +65,7 @@ export default function SignUpModal({ isOpen, onClose, onSuccess, redirectTo = '
         return
       }
 
-      const walletAddress = accounts[0]
+      const walletAddress = accounts[0] as `0x${string}`
       const timestamp = new Date().toISOString()
       const message = `Gammabots Sign Up
 
@@ -78,9 +78,9 @@ FID: ${context.user.fid}
 Timestamp: ${timestamp}`
 
       // Convert message to hex
-      const messageHex = '0x' + Array.from(new TextEncoder().encode(message))
+      const messageHex = ('0x' + Array.from(new TextEncoder().encode(message))
         .map(b => b.toString(16).padStart(2, '0'))
-        .join('')
+        .join('')) as `0x${string}`
 
       console.log('Requesting signature for message:', message)
       console.log('Message hex:', messageHex)
