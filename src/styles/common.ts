@@ -524,15 +524,15 @@ export const styles = {
     overflow: 'hidden',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)',
     border: '1px solid rgba(0, 0, 0, 0.05)',
-    padding: '20px',
+    padding: '16px',
     cursor: 'pointer'
   } as CSSProperties,
 
   myBotCardContent: {
     display: 'flex',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    gap: '16px'
+    alignItems: 'flex-start',
+    gap: '12px'
   } as CSSProperties,
 
   myBotInfo: {
@@ -545,9 +545,9 @@ export const styles = {
     color: '#1c1c1e',
     display: 'flex',
     alignItems: 'center',
-    gap: '10px',
-    marginBottom: '12px',
-    paddingBottom: '12px',
+    gap: '8px',
+    marginBottom: '8px',
+    paddingBottom: '8px',
     borderBottom: '1px solid #f2f2f7'
   } as CSSProperties,
 
@@ -571,35 +571,56 @@ export const styles = {
   myBotDetails: {
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: '3px',
-    fontSize: '11px'
+    gap: '1px',
+    fontSize: '13px'
   } as CSSProperties,
 
   myBotDetailRow: {
     display: 'flex',
-    gap: '8px'
+    alignItems: 'center',
+    gap: '8px',
+    minHeight: '20px'
   } as CSSProperties,
 
   myBotDetailLabel: {
-    color: '#8e8e93',
-    width: '65px'
+    color: '#adadad',
+    width: '80px',
+    fontSize: '13px',
+    fontWeight: '400',
+    flexShrink: 0
   } as CSSProperties,
 
   myBotDetailValue: {
     fontWeight: '600',
-    color: '#1c1c1e'
+    color: '#1c1c1e',
+    fontSize: '13px'
   } as CSSProperties,
 
   myBotHoldings: {
     fontWeight: '600',
-    color: '#1c1c1e'
+    color: '#1c1c1e',
+    fontSize: '13px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0px'
+  } as CSSProperties,
+
+  myBotStrategyPill: {
+    padding: '1px 6px',
+    backgroundColor: '#e0f7fa',
+    color: '#0097a7',
+    borderRadius: '4px',
+    fontSize: '13px',
+    fontWeight: '600',
+    lineHeight: '18px'
   } as CSSProperties,
 
   myBotValues: {
     textAlign: 'right' as const,
     display: 'flex',
     flexDirection: 'column' as const,
-    justifyContent: 'center'
+    justifyContent: 'flex-start',
+    paddingTop: '0px'
   } as CSSProperties,
 
   myBotValue: {

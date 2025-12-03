@@ -165,6 +165,19 @@ export default function MyBotsPage() {
     }
   }, [authenticate, fetchBots])
 
+  // Helper function to format token amounts
+  const formatTokenAmount = (value: number): string => {
+    if (value >= 1000000) {
+      return `${(value / 1000000).toFixed(1)}M`
+    } else if (value >= 10000) {
+      return `${(value / 1000).toFixed(0)}K`
+    } else if (value >= 1) {
+      return Math.round(value).toLocaleString()
+    } else {
+      return Number(value).toFixed(2)
+    }
+  }
+
   const filteredAndSortedBots = useMemo(() => {
     const filtered = bots.filter(bot => {
       const matchesSearch = bot.token_symbol?.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -294,34 +307,45 @@ export default function MyBotsPage() {
           ) : (
             filteredAndSortedBots.map((bot) => (
               <div key={bot.bot_id} style={styles.myBotCard}>
-                <div style={styles.myBotCardContent}>
-                  <div style={styles.myBotInfo}>
-                    <div style={styles.myBotHeader}>
-                      <span style={styles.myBotTokenInfo}>
-                        <span style={{ whiteSpace: 'nowrap' }}>
-                          {(() => {
-                            const symbol = bot.token_symbol || 'Unknown';
-                            return symbol.length > 15 ? `${symbol.slice(0, 15)}...` : symbol;
-                          })()}
-                        </span>
-                        <span style={styles.myBotId}>#{bot.bot_id}</span>
+                <div style={{
+                  ...styles.myBotCardContent,
+                  flexDirection: 'column',
+                  alignItems: 'stretch'
+                }}>
+                  {/* Header with horizontal line */}
+                  <div style={{
+                    ...styles.myBotHeader,
+                    marginBottom: '0px'
+                  }}>
+                    <span style={styles.myBotTokenInfo}>
+                      <span style={{ whiteSpace: 'nowrap' }}>
+                        {(() => {
+                          const symbol = bot.token_symbol || 'Unknown';
+                          return symbol.length > 15 ? `${symbol.slice(0, 15)}...` : symbol;
+                        })()}
                       </span>
-                      <span style={{
-                        ...styles.myBotStatus,
-                        whiteSpace: 'nowrap',
-                        color: bot.status === 'unfunded' ? colors.error : (bot.is_active ? colors.success : colors.text.secondary)
-                      }}>
-                        {bot.status === 'unfunded' ? 'Awaiting funding' : (bot.is_active ? 'Active' : 'Inactive')}
-                      </span>
-                    </div>
-                    
-                    <div style={styles.myBotDetails}>
+                      <span style={styles.myBotId}>#{bot.bot_id}</span>
+                    </span>
+                    <span style={{
+                      ...styles.myBotStatus,
+                      whiteSpace: 'nowrap',
+                      color: bot.status === 'unfunded' ? colors.error : (bot.is_active ? colors.success : colors.text.secondary)
+                    }}>
+                      {bot.status === 'unfunded' ? 'Awaiting funding' : (bot.is_active ? 'Active' : 'Inactive')}
+                    </span>
+                  </div>
+
+                  {/* Details and Values side by side */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', gap: '12px' }}>
+                    <div style={{ ...styles.myBotDetails, flex: 1 }}>
                       <div style={styles.myBotDetailRow}>
                         <span style={styles.myBotDetailLabel}>Strategy:</span>
-                        <span style={styles.myBotDetailValue}>{bot.strategy_id || 'N/A'}</span>
+                        <span style={styles.myBotStrategyPill}>
+                          #{bot.strategy_id || 'N/A'}
+                        </span>
                       </div>
                       <div style={styles.myBotDetailRow}>
-                        <span style={styles.myBotDetailLabel}>MA:</span>
+                        <span style={styles.myBotDetailLabel}>Moving Avg:</span>
                         <span style={styles.myBotDetailValue}>{bot.moving_average || '20'}</span>
                       </div>
                       <div style={styles.myBotDetailRow}>
@@ -342,12 +366,12 @@ export default function MyBotsPage() {
                             if (tokensDisplay > 0 && ethDisplay > 0) {
                               return (
                                 <>
-                                  <div>{tokensDisplay.toLocaleString()} {truncatedSymbol}</div>
+                                  <div>{formatTokenAmount(tokensDisplay)} {truncatedSymbol}</div>
                                   <div>{ethDisplay.toFixed(4)} ETH</div>
                                 </>
                               );
                             } else if (tokensDisplay > 0) {
-                              return `${tokensDisplay.toLocaleString()} ${truncatedSymbol}`;
+                              return `${formatTokenAmount(tokensDisplay)} ${truncatedSymbol}`;
                             } else if (ethDisplay > 0) {
                               return `${ethDisplay.toFixed(4)} ETH`;
                             } else {
@@ -357,33 +381,21 @@ export default function MyBotsPage() {
                         </div>
                       </div>
                       <div style={styles.myBotDetailRow}>
-                        <span style={styles.myBotDetailLabel}>Cycles:</span>
-                        <span style={styles.myBotDetailValue}>{bot.cycles || 0}</span>
-                      </div>
-                      <div style={styles.myBotDetailRow}>
-                        <span style={styles.myBotDetailLabel}>Trades:</span>
-                        <span style={styles.myBotDetailValue}>{bot.trades || 0}</span>
-                      </div>
-                      <div style={styles.myBotDetailRow}>
-                        <span style={styles.myBotDetailLabel}>Init Value:</span>
-                        <span style={styles.myBotDetailValue}>{bot.init ? Number(bot.init).toFixed(4) : '0.0000'} ETH</span>
-                      </div>
-                      <div style={styles.myBotDetailRow}>
                         <span style={styles.myBotDetailLabel}>Last Action:</span>
                         <span style={styles.myBotDetailValue}>{bot.last_action || 'N/A'}</span>
                       </div>
                     </div>
-                  </div>
-                  
-                  <div style={styles.myBotValues}>
-                    <div style={styles.myBotValue}>
-                      ETH {bot.value ? Number(bot.value).toFixed(4) : '0.0000'}
-                    </div>
-                    <div style={{
-                      ...styles.myBotProfit,
-                      color: getProfitColor(Number(bot.profit_percent) || 0)
-                    }}>
-                      {bot.profit_percent && Number(bot.profit_percent) > 0 ? '+' : ''}{Number(bot.profit_percent || 0).toFixed(2)}%
+
+                    <div style={styles.myBotValues}>
+                      <div style={styles.myBotValue}>
+                        ETH {bot.value ? Number(bot.value).toFixed(4) : '0.0000'}
+                      </div>
+                      <div style={{
+                        ...styles.myBotProfit,
+                        color: getProfitColor(Number(bot.profit_percent) || 0)
+                      }}>
+                        {bot.profit_percent && Number(bot.profit_percent) > 0 ? '+' : ''}{Number(bot.profit_percent || 0).toFixed(2)}%
+                      </div>
                     </div>
                   </div>
                 </div>
