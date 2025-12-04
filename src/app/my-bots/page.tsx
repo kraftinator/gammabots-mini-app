@@ -6,6 +6,7 @@ import { Search } from 'lucide-react'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors, getProfitColor } from '@/styles/common'
 import BottomNavigation from '@/components/BottomNavigation'
+import BotDetailModal from '@/components/modals/BotDetailModal'
 
 interface Bot {
   bot_id: string
@@ -41,6 +42,10 @@ export default function MyBotsPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('recent')
   const [status, setStatus] = useState<'active' | 'retired'>('active')
+
+  // Modal state
+  const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Fetch bots function
   const fetchBots = useCallback(async (token: string, botStatus: 'active' | 'retired' = 'active') => {
@@ -154,7 +159,7 @@ export default function MyBotsPage() {
   // Handle status change and fetch new bots
   const handleStatusChange = useCallback(async (newStatus: 'active' | 'retired') => {
     setStatus(newStatus)
-    
+
     try {
       const token = await authenticate()
       if (token) {
@@ -164,6 +169,17 @@ export default function MyBotsPage() {
       console.error('Error fetching bots for status change:', error)
     }
   }, [authenticate, fetchBots])
+
+  // Handle bot click to open modal
+  const handleBotClick = (bot: Bot) => {
+    setSelectedBot(bot)
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedBot(null)
+  }
 
   // Helper function to format token amounts
   const formatTokenAmount = (value: number): string => {
@@ -306,7 +322,11 @@ export default function MyBotsPage() {
             </div>
           ) : (
             filteredAndSortedBots.map((bot) => (
-              <div key={bot.bot_id} style={styles.myBotCard}>
+              <div
+                key={bot.bot_id}
+                style={styles.myBotCard}
+                onClick={() => handleBotClick(bot)}
+              >
                 <div style={{
                   ...styles.myBotCardContent,
                   flexDirection: 'column',
@@ -406,6 +426,12 @@ export default function MyBotsPage() {
       )}
 
       <BottomNavigation activeTab="my-bots" />
+
+      <BotDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        bot={selectedBot}
+      />
     </div>
   )
 }
