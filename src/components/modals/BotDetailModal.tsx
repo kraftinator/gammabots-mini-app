@@ -1,7 +1,9 @@
 'use client'
 
-import { Activity, ChevronDown, RefreshCw, Code, Copy, Edit3, ArrowDownToLine } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { Activity, ChevronDown, ChevronUp, RefreshCw, Code, Copy, Edit3, ArrowDownToLine, Loader2 } from 'lucide-react'
 import { colors, getProfitColor } from '@/styles/common'
+import { useQuickAuth } from '@/hooks/useQuickAuth'
 
 interface Bot {
   bot_id: string
@@ -28,8 +30,47 @@ interface BotDetailModalProps {
   bot: Bot | null
 }
 
+// Metrics categories configuration
+const metricsCategories = [
+  {
+    title: 'Position & Trades',
+    keys: ['tokenAmt', 'buyCount', 'sellCount', 'movingAvg', 'lastSellPrice']
+  },
+  {
+    title: 'Price Snapshot & Extremes',
+    keys: ['currentPrice', 'prevPrice', 'rollingHigh', 'creationPrice', 'highSinceCreate', 'lowSinceCreate', 'highInitBuy', 'lowInitBuy', 'highLastTrade', 'lowLastTrade', 'priceDiv']
+  },
+  {
+    title: 'Moving Averages',
+    keys: ['cma', 'lma', 'tma', 'prevCMA', 'prevLMA', 'lowCMASinceCreate', 'highCMASinceInit', 'lowCMASinceInit', 'highCMASinceTrade', 'lowCMASinceTrade']
+  },
+  {
+    title: 'Volatility & Momentum',
+    keys: ['mom', 'vst', 'vlt', 'ssd', 'lsd']
+  },
+  {
+    title: 'Profitability',
+    keys: ['profitLastCycle', 'profitSecondCycle', 'botProfit']
+  },
+  {
+    title: 'Timing',
+    keys: ['minSinceTrade', 'minSinceBuy', 'minSinceCreate']
+  }
+]
+
 export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalProps) {
-  if (!isOpen || !bot) return null
+  const { authenticate } = useQuickAuth()
+  const [isMetricsExpanded, setIsMetricsExpanded] = useState(false)
+  const [metricsData, setMetricsData] = useState<Record<string, any> | null>(null)
+  const [metricsLoading, setMetricsLoading] = useState(false)
+  const [metricsError, setMetricsError] = useState<string | null>(null)
+
+  // Reset metrics state when bot changes
+  useEffect(() => {
+    setIsMetricsExpanded(false)
+    setMetricsData(null)
+    setMetricsError(null)
+  }, [bot?.bot_id])
 
   // Helper function to format token amounts
   const formatTokenAmount = (value: number): string => {
@@ -44,23 +85,144 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
     }
   }
 
+  // Helper function to format tokenAmt
+  const formatTokenAmt = (value: number): string => {
+    if (value >= 1000) {
+      // Show with no decimals
+      return Math.floor(value).toLocaleString()
+    } else if (value >= 1) {
+      // Show 2-4 decimals
+      const rounded = Math.round(value * 10000) / 10000
+      return rounded.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })
+    } else {
+      // Show up to 6 decimals, trim trailing zeros
+      const fixed = value.toFixed(6)
+      return parseFloat(fixed).toString()
+    }
+  }
+
+  // Helper function to format metric values
+  const formatMetricValue = (value: any, key?: string): string => {
+    if (value === null || value === undefined) return '--'
+    if (typeof value === 'number') {
+      if (isNaN(value)) return '--'
+      // Format tokenAmt specially
+      if (key === 'tokenAmt') {
+        return formatTokenAmt(value)
+      }
+      // Limit botProfit to 4 decimals
+      if (key === 'botProfit') {
+        return value.toFixed(4)
+      }
+      // Check if it's a price-like value (has many decimals)
+      const str = value.toString()
+      if (str.includes('.') && str.split('.')[1].length > 8) {
+        return value.toFixed(8)
+      }
+      return str
+    }
+    if (typeof value === 'string') {
+      // Check if it's a numeric string with many decimals
+      const num = parseFloat(value)
+      // Format tokenAmt specially
+      if (key === 'tokenAmt' && !isNaN(num)) {
+        return formatTokenAmt(num)
+      }
+      // Limit botProfit to 4 decimals
+      if (key === 'botProfit' && !isNaN(num)) {
+        return num.toFixed(4)
+      }
+      if (!isNaN(num) && value.includes('.') && value.split('.')[1].length > 8) {
+        return num.toFixed(8)
+      }
+      // Check if it's a timestamp
+      const date = new Date(value)
+      if (!isNaN(date.getTime()) && value.includes('-')) {
+        // Format as: YYYY-MM-DD HH:mm:ss UTC
+        const year = date.getUTCFullYear()
+        const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+        const day = String(date.getUTCDate()).padStart(2, '0')
+        const hours = String(date.getUTCHours()).padStart(2, '0')
+        const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+        const seconds = String(date.getUTCSeconds()).padStart(2, '0')
+        return `${year}-${month}-${day} ${hours}:${minutes}:${seconds} UTC`
+      }
+    }
+    return String(value)
+  }
+
+  // Fetch metrics when expanded
+  useEffect(() => {
+    const fetchMetrics = async () => {
+      // Only fetch if expanded, not already loaded, and not currently loading
+      if (!isMetricsExpanded || metricsData || metricsLoading || !bot) return
+
+      try {
+        setMetricsLoading(true)
+        setMetricsError(null)
+
+        const token = await authenticate()
+        if (!token) {
+          setMetricsError('Cannot load metrics at this time.')
+          return
+        }
+
+        const response = await fetch(`/api/bots/${bot.bot_id}/metrics`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          setMetricsError('Cannot load metrics at this time.')
+          return
+        }
+
+        const data = await response.json()
+        // Extract just the metrics object from the response
+        setMetricsData(data.metrics || data)
+      } catch (error) {
+        console.error('Error fetching metrics:', error)
+        setMetricsError('Cannot load metrics at this time.')
+      } finally {
+        setMetricsLoading(false)
+      }
+    }
+
+    fetchMetrics()
+  }, [isMetricsExpanded, metricsData, metricsLoading, authenticate, bot])
+
+  // Don't render if modal is closed or bot is null
+  if (!isOpen || !bot) return null
+
   return (
-    <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
-        backgroundColor: 'rgba(0, 0, 0, 0.5)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        zIndex: 1000,
-        padding: '20px'
-      }}
-      onClick={onClose}
-    >
+    <>
+      <style>{`
+        @keyframes spin {
+          from {
+            transform: rotate(0deg);
+          }
+          to {
+            transform: rotate(360deg);
+          }
+        }
+      `}</style>
+      <div
+        style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          zIndex: 1000,
+          padding: '20px'
+        }}
+        onClick={onClose}
+      >
       <div
         style={{
           backgroundColor: 'white',
@@ -247,22 +409,92 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
 
         {/* Expandable Sections */}
         <div style={{ padding: '0 24px 20px' }}>
-          <div style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-            backgroundColor: '#f9fafb',
-            borderRadius: '12px',
-            cursor: 'pointer',
-            marginBottom: '10px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Activity style={{ width: '16px', height: '16px', color: '#0891b2' }} />
-              <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>View Metrics</span>
+          <div>
+            <div
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                marginBottom: isMetricsExpanded ? '0' : '10px'
+              }}
+              onClick={() => setIsMetricsExpanded(!isMetricsExpanded)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Activity style={{ width: '16px', height: '16px', color: '#0891b2' }} />
+                <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>View Metrics</span>
+              </div>
+              {isMetricsExpanded ? (
+                <ChevronUp style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+              ) : (
+                <ChevronDown style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+              )}
             </div>
-            <ChevronDown style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+
+            {isMetricsExpanded && (
+              <div style={{
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                marginTop: '8px',
+                marginBottom: '10px'
+              }}>
+                {metricsLoading && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 0' }}>
+                    <Loader2 style={{ width: '20px', height: '20px', color: '#0891b2', animation: 'spin 1s linear infinite' }} />
+                  </div>
+                )}
+
+                {metricsError && (
+                  <div style={{ color: '#6b7280', fontSize: '13px', padding: '10px 0', textAlign: 'center' }}>
+                    {metricsError}
+                  </div>
+                )}
+
+                {!metricsLoading && !metricsError && metricsData && (
+                  <>
+                    {metricsCategories.map((category, categoryIndex) => {
+                      // Filter to only show keys that exist in the data
+                      const availableKeys = category.keys.filter(key => key in metricsData)
+                      if (availableKeys.length === 0) return null
+
+                      return (
+                        <div key={category.title}>
+                          {/* Section Header */}
+                          <div style={{
+                            color: '#14b8a6',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            paddingTop: categoryIndex === 0 ? '4px' : '16px',
+                            paddingBottom: '8px',
+                            borderBottom: '1px solid #e5e7eb',
+                            marginBottom: '4px'
+                          }}>
+                            {category.title}
+                          </div>
+
+                          {/* Section Items */}
+                          {availableKeys.map(key => (
+                            <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0' }}>
+                              <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: '400' }}>{key}</span>
+                              <span style={{ color: '#0891b2', fontSize: '13px', fontFamily: 'monospace', fontWeight: '500' }}>
+                                {formatMetricValue(metricsData[key], key)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    })}
+                  </>
+                )}
+              </div>
+            )}
           </div>
 
           <div style={{
@@ -354,5 +586,6 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
         </div>
       </div>
     </div>
+    </>
   )
 }
