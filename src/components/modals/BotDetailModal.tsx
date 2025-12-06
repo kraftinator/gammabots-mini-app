@@ -37,7 +37,7 @@ const metricsCategories = [
     keys: ['tokenAmt', 'buyCount', 'sellCount', 'movingAvg', 'lastSellPrice']
   },
   {
-    title: 'Price Snapshot & Extremes',
+    title: 'Prices',
     keys: ['currentPrice', 'prevPrice', 'rollingHigh', 'creationPrice', 'highSinceCreate', 'lowSinceCreate', 'highInitBuy', 'lowInitBuy', 'highLastTrade', 'lowLastTrade', 'priceDiv']
   },
   {
@@ -110,14 +110,14 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
       if (key === 'tokenAmt') {
         return formatTokenAmt(value)
       }
-      // Limit botProfit to 4 decimals
-      if (key === 'botProfit') {
+      // Limit profit fields to 4 decimals
+      if (key === 'botProfit' || key === 'profitLastCycle' || key === 'profitSecondCycle') {
         return value.toFixed(4)
       }
       // Check if it's a price-like value (has many decimals)
       const str = value.toString()
-      if (str.includes('.') && str.split('.')[1].length > 8) {
-        return value.toFixed(8)
+      if (str.includes('.') && str.split('.')[1].length > 10) {
+        return value.toFixed(10)
       }
       return str
     }
@@ -128,12 +128,12 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
       if (key === 'tokenAmt' && !isNaN(num)) {
         return formatTokenAmt(num)
       }
-      // Limit botProfit to 4 decimals
-      if (key === 'botProfit' && !isNaN(num)) {
+      // Limit profit fields to 4 decimals
+      if ((key === 'botProfit' || key === 'profitLastCycle' || key === 'profitSecondCycle') && !isNaN(num)) {
         return num.toFixed(4)
       }
-      if (!isNaN(num) && value.includes('.') && value.split('.')[1].length > 8) {
-        return num.toFixed(8)
+      if (!isNaN(num) && value.includes('.') && value.split('.')[1].length > 10) {
+        return num.toFixed(10)
       }
       // Check if it's a timestamp
       const date = new Date(value)
