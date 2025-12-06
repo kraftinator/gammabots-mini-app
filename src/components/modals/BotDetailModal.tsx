@@ -58,6 +58,18 @@ const metricsCategories = [
   }
 ]
 
+interface Trade {
+  id: number
+  side: string
+  amount_in: string
+  amount_out: string
+  price: string
+  tx_hash: string
+  status: string
+  executed_at: string
+  cycle: number | null
+}
+
 export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalProps) {
   const { authenticate } = useQuickAuth()
   const [isMetricsExpanded, setIsMetricsExpanded] = useState(false)
@@ -65,12 +77,35 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
   const [metricsLoading, setMetricsLoading] = useState(false)
   const [metricsError, setMetricsError] = useState<string | null>(null)
 
-  // Reset metrics state when bot changes
+  const [isTradesExpanded, setIsTradesExpanded] = useState(false)
+  const [tradesData, setTradesData] = useState<Trade[] | null>(null)
+  const [tradesLoading, setTradesLoading] = useState(false)
+  const [tradesError, setTradesError] = useState<string | null>(null)
+
+  // Reset state when bot changes
   useEffect(() => {
     setIsMetricsExpanded(false)
     setMetricsData(null)
     setMetricsError(null)
+    setIsTradesExpanded(false)
+    setTradesData(null)
+    setTradesError(null)
   }, [bot?.bot_id])
+
+  // Lock body scroll and hide scrollbar when modal is open
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+      document.documentElement.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+      document.documentElement.style.overflow = ''
+    }
+  }, [isOpen])
 
   // Helper function to format token amounts
   const formatTokenAmount = (value: number): string => {
@@ -192,6 +227,63 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
     fetchMetrics()
   }, [isMetricsExpanded, metricsData, metricsLoading, authenticate, bot])
 
+  // Fetch trades when expanded
+  useEffect(() => {
+    const fetchTrades = async () => {
+      if (!isTradesExpanded || tradesData || tradesLoading || !bot) return
+
+      try {
+        setTradesLoading(true)
+        setTradesError(null)
+
+        const token = await authenticate()
+        if (!token) {
+          setTradesError('Cannot load trades at this time.')
+          return
+        }
+
+        const response = await fetch(`/api/bots/${bot.bot_id}/trades`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          setTradesError('Cannot load trades at this time.')
+          return
+        }
+
+        const data = await response.json()
+        setTradesData(data.trades || [])
+      } catch (error) {
+        console.error('Error fetching trades:', error)
+        setTradesError('Cannot load trades at this time.')
+      } finally {
+        setTradesLoading(false)
+      }
+    }
+
+    fetchTrades()
+  }, [isTradesExpanded, tradesData, tradesLoading, authenticate, bot])
+
+  // Format trade timestamp
+  const formatTradeTime = (timestamp: string): string => {
+    const date = new Date(timestamp)
+    const year = date.getUTCFullYear()
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(date.getUTCDate()).padStart(2, '0')
+    const hours = String(date.getUTCHours()).padStart(2, '0')
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+    return `${year}-${month}-${day} ${hours}:${minutes}`
+  }
+
+  // Format ETH value for trades
+  const formatTradeEth = (value: string): string => {
+    const num = parseFloat(value)
+    if (isNaN(num)) return '0.000000'
+    return num.toFixed(6)
+  }
+
   // Don't render if modal is closed or bot is null
   if (!isOpen || !bot) return null
 
@@ -206,6 +298,13 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
             transform: rotate(360deg);
           }
         }
+        .modal-content {
+          scrollbar-width: none;
+          -ms-overflow-style: none;
+        }
+        .modal-content::-webkit-scrollbar {
+          display: none;
+        }
       `}</style>
       <div
         style={{
@@ -219,11 +318,12 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
           alignItems: 'center',
           justifyContent: 'center',
           zIndex: 1000,
-          padding: '20px'
+          padding: '10px'
         }}
         onClick={onClose}
       >
       <div
+        className="modal-content"
         style={{
           backgroundColor: 'white',
           borderRadius: '20px',
@@ -237,7 +337,7 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
       >
         {/* Header */}
         <div style={{
-          padding: '24px 24px 10px',
+          padding: '16px 16px 10px',
           borderBottom: '1px solid #f2f2f7',
           position: 'relative'
         }}>
@@ -285,7 +385,7 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
 
         {/* Current Value Section */}
         <div style={{
-          padding: '20px 24px 0px'
+          padding: '20px 16px 0px'
         }}>
           <div style={{
             fontSize: '12px',
@@ -314,7 +414,7 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
         </div>
 
         {/* Details Section */}
-        <div style={{ padding: '20px 24px' }}>
+        <div style={{ padding: '20px 16px' }}>
           <div style={{
             backgroundColor: '#f9fafb',
             borderRadius: '12px',
@@ -408,15 +508,15 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
         </div>
 
         {/* Expandable Sections */}
-        <div style={{ padding: '0 24px 20px' }}>
+        <div style={{ padding: '0 0 20px' }}>
           <div>
             <div
               style={{
-                width: '100%',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
                 padding: '12px 16px',
+                margin: '0 16px',
                 backgroundColor: '#f9fafb',
                 borderRadius: '12px',
                 cursor: 'pointer',
@@ -440,8 +540,7 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
                 backgroundColor: '#f9fafb',
                 borderRadius: '12px',
                 padding: '12px 16px',
-                marginTop: '8px',
-                marginBottom: '10px'
+                margin: '8px 16px 10px'
               }}>
                 {metricsLoading && (
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 0' }}>
@@ -497,32 +596,117 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
             )}
           </div>
 
-          <div style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-            backgroundColor: '#f9fafb',
-            borderRadius: '12px',
-            cursor: 'pointer',
-            marginBottom: '10px'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <RefreshCw style={{ width: '16px', height: '16px', color: '#10b981' }} />
-              <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>
-                View Cycles {bot.cycles ? `(${bot.cycles})` : ''}
-              </span>
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                margin: '0 16px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                marginBottom: isTradesExpanded ? '0' : '10px'
+              }}
+              onClick={() => setIsTradesExpanded(!isTradesExpanded)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <RefreshCw style={{ width: '16px', height: '16px', color: '#10b981' }} />
+                <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>
+                  View Trades {bot.trades ? `(${bot.trades})` : ''}
+                </span>
+              </div>
+              {isTradesExpanded ? (
+                <ChevronUp style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+              ) : (
+                <ChevronDown style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+              )}
             </div>
-            <ChevronDown style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+
+            {isTradesExpanded && (
+              <div style={{
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                margin: '8px 16px 10px',
+                overflow: 'hidden'
+              }}>
+                {tradesLoading && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 0' }}>
+                    <Loader2 style={{ width: '20px', height: '20px', color: '#0891b2', animation: 'spin 1s linear infinite' }} />
+                  </div>
+                )}
+
+                {tradesError && (
+                  <div style={{ color: '#6b7280', fontSize: '13px', padding: '20px', textAlign: 'center' }}>
+                    {tradesError}
+                  </div>
+                )}
+
+                {!tradesLoading && !tradesError && tradesData && tradesData.length === 0 && (
+                  <div style={{ color: '#6b7280', fontSize: '13px', padding: '20px', textAlign: 'center' }}>
+                    No trades yet
+                  </div>
+                )}
+
+                {!tradesLoading && !tradesError && tradesData && tradesData.length > 0 && (
+                  <div style={{
+                    borderTop: '1px solid #f0f0f0',
+                  }}>
+                    {tradesData.map((trade, index) => (
+                      <div
+                        key={trade.id}
+                        style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '14px 12px',
+                          borderBottom: index < tradesData.length - 1 ? '1px solid #f5f5f5' : 'none',
+                          cursor: 'pointer',
+                          transition: 'background-color 0.15s ease',
+                        }}
+                        onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#fafafa'}
+                        onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span style={{
+                            fontSize: '13px',
+                            fontWeight: '700',
+                            color: trade.side.toLowerCase() === 'buy' ? '#14b8a6' : '#f97316',
+                            width: '36px',
+                          }}>
+                            {trade.side.toUpperCase()}
+                          </span>
+                          <span style={{
+                            fontSize: '13px',
+                            color: '#888',
+                            fontFamily: 'ui-monospace, monospace',
+                          }}>
+                            {formatTradeTime(trade.executed_at)}
+                          </span>
+                        </div>
+                        <span style={{
+                          fontSize: '14px',
+                          fontWeight: '500',
+                          color: '#555',
+                          fontFamily: 'ui-monospace, monospace',
+                        }}>
+                          {trade.side.toLowerCase() === 'buy' ? '−' : '+'}{formatTradeEth(trade.side.toLowerCase() === 'buy' ? trade.amount_in : trade.amount_out)} ETH
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
 
           <div style={{
-            width: '100%',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
             padding: '12px 16px',
+            margin: '0 16px',
             backgroundColor: '#f9fafb',
             borderRadius: '12px',
             cursor: 'pointer'
@@ -536,7 +720,7 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
         </div>
 
         {/* Action Buttons */}
-        <div style={{ padding: '0 24px 24px' }}>
+        <div style={{ padding: '0 16px 16px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '10px' }}>
             <button style={{
               display: 'flex',
