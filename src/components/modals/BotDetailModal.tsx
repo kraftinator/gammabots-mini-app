@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Code, Copy, Edit3, ArrowDownToLine, Loader2 } from 'lucide-react'
+import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Code, Copy, Edit3, ArrowDownToLine, Loader2, GitBranch } from 'lucide-react'
 import { colors, getProfitColor } from '@/styles/common'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 
@@ -72,6 +72,20 @@ interface Trade {
   step: number | null
 }
 
+interface StrategyStep {
+  c: string
+  a: string[]
+}
+
+interface StrategyData {
+  id: string
+  strategy_id: string
+  owner_address: string
+  compressed_strategy: string
+  user_friendly_strategy: string
+  created_at: string
+}
+
 export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalProps) {
   const { authenticate } = useQuickAuth()
   const [isMetricsExpanded, setIsMetricsExpanded] = useState(false)
@@ -85,6 +99,11 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
   const [tradesError, setTradesError] = useState<string | null>(null)
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null)
 
+  const [isStrategyExpanded, setIsStrategyExpanded] = useState(false)
+  const [strategyData, setStrategyData] = useState<StrategyData | null>(null)
+  const [strategyLoading, setStrategyLoading] = useState(false)
+  const [strategyError, setStrategyError] = useState<string | null>(null)
+
   // Reset state when bot changes
   useEffect(() => {
     setIsMetricsExpanded(false)
@@ -94,6 +113,9 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
     setTradesData(null)
     setTradesError(null)
     setSelectedTrade(null)
+    setIsStrategyExpanded(false)
+    setStrategyData(null)
+    setStrategyError(null)
   }, [bot?.bot_id])
 
   // Lock body scroll and hide scrollbar when modal is open
@@ -269,6 +291,45 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
 
     fetchTrades()
   }, [isTradesExpanded, tradesData, tradesLoading, authenticate, bot])
+
+  // Fetch strategy when expanded
+  useEffect(() => {
+    const fetchStrategy = async () => {
+      if (!isStrategyExpanded || strategyData || strategyLoading || !bot) return
+
+      try {
+        setStrategyLoading(true)
+        setStrategyError(null)
+
+        const token = await authenticate()
+        if (!token) {
+          setStrategyError('Cannot load strategy at this time.')
+          return
+        }
+
+        const response = await fetch(`/api/strategies/${bot.strategy_id}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          setStrategyError('Cannot load strategy at this time.')
+          return
+        }
+
+        const data = await response.json()
+        setStrategyData(data)
+      } catch (error) {
+        console.error('Error fetching strategy:', error)
+        setStrategyError('Cannot load strategy at this time.')
+      } finally {
+        setStrategyLoading(false)
+      }
+    }
+
+    fetchStrategy()
+  }, [isStrategyExpanded, strategyData, strategyLoading, authenticate, bot])
 
   // Format trade timestamp
   const formatTradeTime = (timestamp: string): string => {
@@ -741,21 +802,156 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
             )}
           </div>
 
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            padding: '12px 16px',
-            margin: '0 16px',
-            backgroundColor: '#f9fafb',
-            borderRadius: '12px',
-            cursor: 'pointer'
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <Code style={{ width: '16px', height: '16px', color: '#8b5cf6' }} />
-              <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Show Strategy JSON</span>
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                margin: '0 16px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                marginBottom: isStrategyExpanded ? '0' : '10px'
+              }}
+              onClick={() => setIsStrategyExpanded(!isStrategyExpanded)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <GitBranch style={{ width: '16px', height: '16px', color: '#8b5cf6' }} />
+                <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Show Strategy</span>
+              </div>
+              {isStrategyExpanded ? (
+                <ChevronUp style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+              ) : (
+                <ChevronDown style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+              )}
             </div>
-            <ChevronDown style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+
+            {isStrategyExpanded && (
+              <div style={{
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                margin: '8px 16px 10px',
+                overflow: 'hidden'
+              }}>
+                {strategyLoading && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 0' }}>
+                    <Loader2 style={{ width: '20px', height: '20px', color: '#0891b2', animation: 'spin 1s linear infinite' }} />
+                  </div>
+                )}
+
+                {strategyError && (
+                  <div style={{ color: '#6b7280', fontSize: '13px', padding: '20px', textAlign: 'center' }}>
+                    {strategyError}
+                  </div>
+                )}
+
+                {!strategyLoading && !strategyError && strategyData && (
+                  <div style={{
+                    borderTop: '1px solid #f0f0f0',
+                  }}>
+                    {/* Steps Table */}
+                    {(() => {
+                      try {
+                        const steps: StrategyStep[] = JSON.parse(strategyData.user_friendly_strategy)
+                        return steps.map((step, index) => (
+                          <div
+                            key={index}
+                            style={{
+                              display: 'flex',
+                              borderBottom: '1px solid #f0f0f0',
+                            }}
+                          >
+                            <div style={{
+                              width: '40px',
+                              padding: '12px',
+                              fontSize: '14px',
+                              fontWeight: '600',
+                              color: '#8b5cf6',
+                              borderRight: '1px solid #f0f0f0',
+                              display: 'flex',
+                              alignItems: 'flex-start',
+                              justifyContent: 'center',
+                            }}>
+                              {index + 1}
+                            </div>
+                            <div style={{
+                              flex: 1,
+                              padding: '12px',
+                              fontSize: '13px',
+                              fontFamily: 'ui-monospace, monospace',
+                              color: '#555',
+                              lineHeight: '1.6',
+                            }}>
+                              <div>
+                                <span>c: </span>
+                                {step.c.split('&&').map((part, i) => (
+                                  <span key={i}>
+                                    {i > 0 && <><br />&nbsp;&nbsp;&nbsp;{'&& '}</>}
+                                    {part.trim()}
+                                  </span>
+                                ))}
+                              </div>
+                              <div>a: {step.a.join(', ')}</div>
+                            </div>
+                          </div>
+                        ))
+                      } catch {
+                        return <div style={{ padding: '12px', color: '#6b7280', fontSize: '13px' }}>Unable to parse strategy</div>
+                      }
+                    })()}
+
+                    {/* Owner */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px 16px',
+                    }}>
+                      <span style={{
+                        fontSize: '13px',
+                        color: '#888',
+                      }}>
+                        Owner
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <a
+                          href={`https://basescan.org/address/${strategyData.owner_address}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: '13px',
+                            fontFamily: 'ui-monospace, monospace',
+                            color: '#14b8a6',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          {strategyData.owner_address.slice(0, 6)}...{strategyData.owner_address.slice(-4)}
+                        </a>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(strategyData.owner_address)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
 
