@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Activity, ChevronDown, ChevronUp, RefreshCw, Code, Copy, Edit3, ArrowDownToLine, Loader2 } from 'lucide-react'
+import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Code, Copy, Edit3, ArrowDownToLine, Loader2 } from 'lucide-react'
 import { colors, getProfitColor } from '@/styles/common'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 
@@ -68,6 +68,8 @@ interface Trade {
   status: string
   executed_at: string
   cycle: number | null
+  strategy: number | null
+  step: number | null
 }
 
 export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalProps) {
@@ -81,6 +83,7 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
   const [tradesData, setTradesData] = useState<Trade[] | null>(null)
   const [tradesLoading, setTradesLoading] = useState(false)
   const [tradesError, setTradesError] = useState<string | null>(null)
+  const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null)
 
   // Reset state when bot changes
   useEffect(() => {
@@ -90,6 +93,7 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
     setIsTradesExpanded(false)
     setTradesData(null)
     setTradesError(null)
+    setSelectedTrade(null)
   }, [bot?.bot_id])
 
   // Lock body scroll and hide scrollbar when modal is open
@@ -284,6 +288,33 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
     return num.toFixed(6)
   }
 
+  // Format trade detail timestamp (with seconds)
+  const formatTradeDetailTime = (timestamp: string): string => {
+    const date = new Date(timestamp)
+    const year = date.getUTCFullYear()
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(date.getUTCDate()).padStart(2, '0')
+    const hours = String(date.getUTCHours()).padStart(2, '0')
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+    const seconds = String(date.getUTCSeconds()).padStart(2, '0')
+    return `${year}-${month}-${day} ${hours}:${minutes}:${seconds}`
+  }
+
+  // Format token amount for trade details (same rules as tokenAmt)
+  const formatTradeTokenAmount = (value: string): string => {
+    const num = parseFloat(value)
+    if (isNaN(num)) return '0'
+    if (num >= 1000) {
+      return Math.floor(num).toLocaleString()
+    } else if (num >= 1) {
+      const rounded = Math.round(num * 10000) / 10000
+      return rounded.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })
+    } else {
+      const fixed = num.toFixed(6)
+      return parseFloat(fixed).toString()
+    }
+  }
+
   // Don't render if modal is closed or bot is null
   if (!isOpen || !bot) return null
 
@@ -297,6 +328,14 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
           to {
             transform: rotate(360deg);
           }
+        }
+        @keyframes fadeIn {
+          from { opacity: 0; }
+          to { opacity: 1; }
+        }
+        @keyframes slideUp {
+          from { transform: translateY(100%); }
+          to { transform: translateY(0); }
         }
         .modal-content {
           scrollbar-width: none;
@@ -612,7 +651,7 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
               onClick={() => setIsTradesExpanded(!isTradesExpanded)}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <RefreshCw style={{ width: '16px', height: '16px', color: '#10b981' }} />
+                <ArrowLeftRight style={{ width: '16px', height: '16px', color: '#10b981' }} />
                 <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>
                   View Trades {bot.trades ? `(${bot.trades})` : ''}
                 </span>
@@ -656,6 +695,7 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
                     {tradesData.map((trade, index) => (
                       <div
                         key={trade.id}
+                        onClick={() => setSelectedTrade(trade)}
                         style={{
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -768,6 +808,125 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
             <span style={{ color: '#dc2626', fontSize: '14px', fontWeight: '500' }}>Liquidate &amp; Deactivate</span>
           </button>
         </div>
+
+        {/* Trade Details Drawer */}
+        {selectedTrade && (
+          <div
+            onClick={() => setSelectedTrade(null)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'flex-end',
+              animation: 'fadeIn 0.2s ease',
+              zIndex: 1001,
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '100%',
+                backgroundColor: '#fff',
+                borderTopLeftRadius: '20px',
+                borderTopRightRadius: '20px',
+                padding: '0 20px 32px 20px',
+                animation: 'slideUp 0.25s ease',
+              }}
+            >
+              {/* Drag handle */}
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
+                <div style={{ width: '36px', height: '4px', backgroundColor: '#ddd', borderRadius: '2px' }} />
+              </div>
+
+              {/* Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <span style={{ fontSize: '18px', fontWeight: '700', color: selectedTrade.side.toLowerCase() === 'buy' ? '#14b8a6' : '#f97316' }}>
+                    {selectedTrade.side.toUpperCase()}
+                  </span>
+                  <span style={{ fontSize: '14px', color: '#888' }}>Trade Details</span>
+                </div>
+                <button
+                  onClick={() => setSelectedTrade(null)}
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: '#f5f5f5',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Content */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px', color: '#888' }}>Timestamp</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#333', fontFamily: 'ui-monospace, monospace' }}>
+                    {formatTradeDetailTime(selectedTrade.executed_at)}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px', color: '#888' }}>Price</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#14b8a6', fontFamily: 'ui-monospace, monospace' }}>
+                    {parseFloat(selectedTrade.price).toFixed(12)}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px', color: '#888' }}>Token In</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#333', fontFamily: 'ui-monospace, monospace' }}>
+                    {selectedTrade.side.toLowerCase() === 'buy'
+                      ? `${formatTradeEth(selectedTrade.amount_in)} ETH`
+                      : `${formatTradeTokenAmount(selectedTrade.amount_in)} ${bot.token_symbol}`}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px', color: '#888' }}>Token Out</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#333', fontFamily: 'ui-monospace, monospace' }}>
+                    {selectedTrade.side.toLowerCase() === 'buy'
+                      ? `${formatTradeTokenAmount(selectedTrade.amount_out)} ${bot.token_symbol}`
+                      : `${formatTradeEth(selectedTrade.amount_out)} ETH`}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px', color: '#888' }}>Strategy</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                    {selectedTrade.strategy ?? '--'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px', color: '#888' }}>Strategy Step</span>
+                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                    {selectedTrade.step ?? '--'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <span style={{ fontSize: '14px', color: '#888' }}>Tx Hash</span>
+                  <a
+                    href={`https://basescan.org/tx/${selectedTrade.tx_hash}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ fontSize: '14px', fontWeight: '500', color: '#14b8a6', fontFamily: 'ui-monospace, monospace', textDecoration: 'none' }}
+                  >
+                    {selectedTrade.tx_hash.slice(0, 6)}...{selectedTrade.tx_hash.slice(-4)}
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
     </>
