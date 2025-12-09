@@ -28,6 +28,7 @@ interface BotDetailModalProps {
   isOpen: boolean
   onClose: () => void
   bot: Bot | null
+  onBotUpdated?: (updatedBot: Bot) => void
 }
 
 // Metrics categories configuration
@@ -86,7 +87,7 @@ interface StrategyData {
   created_at: string
 }
 
-export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalProps) {
+export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: BotDetailModalProps) {
   const { authenticate } = useQuickAuth()
   const [isMetricsExpanded, setIsMetricsExpanded] = useState(false)
   const [metricsData, setMetricsData] = useState<Record<string, any> | null>(null)
@@ -104,6 +105,12 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
   const [strategyLoading, setStrategyLoading] = useState(false)
   const [strategyError, setStrategyError] = useState<string | null>(null)
 
+  const [isEditOpen, setIsEditOpen] = useState(false)
+  const [editStrategyId, setEditStrategyId] = useState('')
+  const [editMovingAvg, setEditMovingAvg] = useState('')
+  const [editLoading, setEditLoading] = useState(false)
+  const [editError, setEditError] = useState<string | null>(null)
+
   // Reset state when bot changes
   useEffect(() => {
     setIsMetricsExpanded(false)
@@ -116,6 +123,8 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
     setIsStrategyExpanded(false)
     setStrategyData(null)
     setStrategyError(null)
+    setIsEditOpen(false)
+    setEditError(null)
   }, [bot?.bot_id])
 
   // Lock body scroll and hide scrollbar when modal is open
@@ -373,6 +382,102 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
     } else {
       const fixed = num.toFixed(6)
       return parseFloat(fixed).toString()
+    }
+  }
+
+  // Open edit drawer with current bot values
+  const handleOpenEdit = () => {
+    setEditStrategyId(bot?.strategy_id || '')
+    setEditMovingAvg(bot?.moving_average?.toString() || '1')
+    setEditError(null)
+    setIsEditOpen(true)
+  }
+
+  // Validation for strategy ID
+  const handleStrategyBlur = () => {
+    if (editStrategyId === '' || editStrategyId === undefined) {
+      setEditStrategyId('1')
+      return
+    }
+    const numValue = parseFloat(editStrategyId)
+    if (!isNaN(numValue)) {
+      let correctedValue = Math.floor(numValue)
+      if (correctedValue < 1) correctedValue = 1
+      setEditStrategyId(correctedValue.toString())
+    } else {
+      setEditStrategyId('1')
+    }
+  }
+
+  // Validation for moving average
+  const handleMovingAvgBlur = () => {
+    if (editMovingAvg === '' || editMovingAvg === undefined) {
+      setEditMovingAvg('1')
+      return
+    }
+    const numValue = parseFloat(editMovingAvg)
+    if (!isNaN(numValue)) {
+      let correctedValue = Math.floor(numValue)
+      if (correctedValue < 1) correctedValue = 1
+      if (correctedValue > 60) correctedValue = 60
+      setEditMovingAvg(correctedValue.toString())
+    } else {
+      setEditMovingAvg('1')
+    }
+  }
+
+  // Submit edit
+  const handleEditSubmit = async () => {
+    if (!bot) return
+
+    setEditLoading(true)
+    setEditError(null)
+
+    try {
+      const token = await authenticate()
+      if (!token) {
+        setEditError('Authentication failed')
+        setEditLoading(false)
+        return
+      }
+
+      const response = await fetch(`/api/bots/${bot.bot_id}`, {
+        method: 'PATCH',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          strategy_id: parseInt(editStrategyId),
+          moving_average: parseInt(editMovingAvg)
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to update bot' }))
+        setEditError(errorData.error || errorData.message || 'Failed to update bot')
+        setEditLoading(false)
+        return
+      }
+
+      const data = await response.json()
+      const updatedBot = data.bot || data
+
+      // Clear cached data so it gets re-fetched with new bot settings
+      setMetricsData(null)
+      setTradesData(null)
+      setStrategyData(null)
+
+      setIsEditOpen(false)
+
+      if (onBotUpdated) {
+        onBotUpdated(updatedBot)
+      }
+    } catch (error) {
+      console.error('Error updating bot:', error)
+      setEditError('An unexpected error occurred')
+    } finally {
+      setEditLoading(false)
     }
   }
 
@@ -972,17 +1077,20 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
               <Copy style={{ width: '16px', height: '16px', color: '#1c1c1e' }} />
               <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Copy</span>
             </button>
-            <button style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '6px',
-              padding: '12px 16px',
-              backgroundColor: '#f3f4f6',
-              borderRadius: '12px',
-              cursor: 'pointer',
-              border: 'none'
-            }}>
+            <button
+              onClick={handleOpenEdit}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '12px 16px',
+                backgroundColor: '#f3f4f6',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                border: 'none'
+              }}
+            >
               <Edit3 style={{ width: '16px', height: '16px', color: '#1c1c1e' }} />
               <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Edit</span>
             </button>
@@ -1119,6 +1227,169 @@ export default function BotDetailModal({ isOpen, onClose, bot }: BotDetailModalP
                     {selectedTrade.tx_hash.slice(0, 6)}...{selectedTrade.tx_hash.slice(-4)}
                   </a>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Edit Bot Drawer */}
+        {isEditOpen && (
+          <div
+            onClick={() => setIsEditOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'flex-end',
+              animation: 'fadeIn 0.2s ease',
+              zIndex: 1001,
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '100%',
+                backgroundColor: '#fff',
+                borderTopLeftRadius: '20px',
+                borderTopRightRadius: '20px',
+                padding: '0 20px 32px 20px',
+                animation: 'slideUp 0.25s ease',
+              }}
+            >
+              {/* Drag handle */}
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
+                <div style={{ width: '36px', height: '4px', backgroundColor: '#ddd', borderRadius: '2px' }} />
+              </div>
+
+              {/* Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                  <Edit3 style={{ width: '18px', height: '18px', color: '#1c1c1e' }} />
+                  <span style={{ fontSize: '18px', fontWeight: '700', color: '#1c1c1e' }}>Edit Bot</span>
+                </div>
+                <button
+                  onClick={() => setIsEditOpen(false)}
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: '#f5f5f5',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              {/* Form */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                {/* Inputs Row */}
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  {/* Strategy ID */}
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '13px', color: '#888', marginBottom: '8px' }}>
+                      Strategy ID
+                    </label>
+                    <input
+                      type="number"
+                      value={editStrategyId}
+                      onChange={(e) => setEditStrategyId(e.target.value)}
+                      onBlur={handleStrategyBlur}
+                      min="1"
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '12px',
+                        backgroundColor: '#f9fafb',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+
+                  {/* Moving Avg */}
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: 'block', fontSize: '13px', color: '#888', marginBottom: '8px' }}>
+                      Moving Avg (min)
+                    </label>
+                    <input
+                      type="number"
+                      value={editMovingAvg}
+                      onChange={(e) => setEditMovingAvg(e.target.value)}
+                      onBlur={handleMovingAvgBlur}
+                      min="1"
+                      max="60"
+                      style={{
+                        width: '100%',
+                        padding: '12px 16px',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        border: '1px solid #e5e7eb',
+                        borderRadius: '12px',
+                        backgroundColor: '#f9fafb',
+                        outline: 'none',
+                        boxSizing: 'border-box',
+                      }}
+                    />
+                  </div>
+                </div>
+
+                {/* Error Message */}
+                {editError && (
+                  <div style={{
+                    padding: '12px 16px',
+                    backgroundColor: '#fef2f2',
+                    border: '1px solid #fecaca',
+                    borderRadius: '12px',
+                    color: '#dc2626',
+                    fontSize: '14px',
+                  }}>
+                    {editError}
+                  </div>
+                )}
+
+                {/* Save Button */}
+                <button
+                  onClick={handleEditSubmit}
+                  disabled={editLoading}
+                  style={{
+                    width: '100%',
+                    padding: '14px 16px',
+                    fontSize: '16px',
+                    fontWeight: '600',
+                    color: '#fff',
+                    backgroundColor: editLoading ? '#9ca3af' : '#14b8a6',
+                    border: 'none',
+                    borderRadius: '12px',
+                    cursor: editLoading ? 'not-allowed' : 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                  }}
+                >
+                  {editLoading ? (
+                    <>
+                      <Loader2 style={{ width: '18px', height: '18px', animation: 'spin 1s linear infinite' }} />
+                      Saving...
+                    </>
+                  ) : (
+                    'Save Changes'
+                  )}
+                </button>
               </div>
             </div>
           </div>

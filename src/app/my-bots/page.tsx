@@ -181,6 +181,14 @@ export default function MyBotsPage() {
     setSelectedBot(null)
   }
 
+  // Handle bot updated from modal
+  const handleBotUpdated = (updatedBot: Bot) => {
+    // Update the bot in the list
+    setBots(prevBots => prevBots.map(b => b.bot_id === updatedBot.bot_id ? updatedBot : b))
+    // Update the selected bot so modal shows new data
+    setSelectedBot(updatedBot)
+  }
+
   // Helper function to format token amounts
   const formatTokenAmount = (value: number): string => {
     if (value >= 1000000) {
@@ -431,6 +439,7 @@ export default function MyBotsPage() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         bot={selectedBot}
+        onBotUpdated={handleBotUpdated}
       />
     </div>
   )
