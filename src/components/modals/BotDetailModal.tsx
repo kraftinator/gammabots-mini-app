@@ -1,13 +1,14 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Code, Copy, Edit3, ArrowDownToLine, Loader2, GitBranch } from 'lucide-react'
+import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Code, Edit3, ArrowDownToLine, Loader2, GitBranch } from 'lucide-react'
 import { colors, getProfitColor } from '@/styles/common'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 
 interface Bot {
   bot_id: string
   token_symbol: string
+  token_address?: string
   strategy_id: string
   status?: string
   tokens?: number
@@ -22,6 +23,8 @@ interface Bot {
   last_action?: string
   is_active?: boolean
   moving_average?: number
+  profit_share?: number
+  profit_threshold?: number
 }
 
 interface BotDetailModalProps {
@@ -1062,8 +1065,10 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
 
         {/* Action Buttons */}
         <div style={{ padding: '0 16px 16px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', marginBottom: '10px' }}>
-            <button style={{
+          <button
+            onClick={handleOpenEdit}
+            style={{
+              width: '100%',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -1072,29 +1077,13 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
               backgroundColor: '#f3f4f6',
               borderRadius: '12px',
               cursor: 'pointer',
-              border: 'none'
-            }}>
-              <Copy style={{ width: '16px', height: '16px', color: '#1c1c1e' }} />
-              <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Copy</span>
-            </button>
-            <button
-              onClick={handleOpenEdit}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '6px',
-                padding: '12px 16px',
-                backgroundColor: '#f3f4f6',
-                borderRadius: '12px',
-                cursor: 'pointer',
-                border: 'none'
-              }}
-            >
-              <Edit3 style={{ width: '16px', height: '16px', color: '#1c1c1e' }} />
-              <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Edit</span>
-            </button>
-          </div>
+              border: 'none',
+              marginBottom: '10px'
+            }}
+          >
+            <Edit3 style={{ width: '16px', height: '16px', color: '#1c1c1e' }} />
+            <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Edit</span>
+          </button>
           <button style={{
             width: '100%',
             display: 'flex',

@@ -11,6 +11,7 @@ import BotDetailModal from '@/components/modals/BotDetailModal'
 interface Bot {
   bot_id: string
   token_symbol: string
+  token_address?: string
   strategy_id: string
   status?: string
   tokens?: number
@@ -25,7 +26,8 @@ interface Bot {
   last_action?: string
   is_active?: boolean
   moving_average?: number
-  // Add other fields as we discover them
+  profit_share?: number
+  profit_threshold?: number
 }
 
 export default function MyBotsPage() {
@@ -189,6 +191,20 @@ export default function MyBotsPage() {
     setSelectedBot(updatedBot)
   }
 
+  // Clone bot - navigate to create page with pre-filled values
+  const handleClone = (bot: Bot, e: React.MouseEvent) => {
+    e.stopPropagation() // Prevent opening the modal
+
+    const params = new URLSearchParams()
+    if (bot.token_address) params.set('token_address', bot.token_address)
+    if (bot.strategy_id) params.set('strategy_id', bot.strategy_id)
+    if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
+    if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
+    if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
+
+    router.push(`/my-bots/create?${params.toString()}`)
+  }
+
   // Helper function to format token amounts
   const formatTokenAmount = (value: number): string => {
     if (value >= 1000000) {
@@ -343,7 +359,9 @@ export default function MyBotsPage() {
                   {/* Header with horizontal line */}
                   <div style={{
                     ...styles.myBotHeader,
-                    marginBottom: '0px'
+                    marginBottom: '0px',
+                    justifyContent: 'space-between',
+                    alignItems: 'center'
                   }}>
                     <span style={styles.myBotTokenInfo}>
                       <span style={{ whiteSpace: 'nowrap' }}>
@@ -353,14 +371,36 @@ export default function MyBotsPage() {
                         })()}
                       </span>
                       <span style={styles.myBotId}>#{bot.bot_id}</span>
+                      <span style={{
+                        ...styles.myBotStatus,
+                        whiteSpace: 'nowrap',
+                        color: bot.status === 'unfunded' ? colors.error : (bot.is_active ? colors.success : colors.text.secondary)
+                      }}>
+                        {bot.status === 'unfunded' ? 'Awaiting funding' : (bot.is_active ? 'Active' : 'Inactive')}
+                      </span>
                     </span>
-                    <span style={{
-                      ...styles.myBotStatus,
-                      whiteSpace: 'nowrap',
-                      color: bot.status === 'unfunded' ? colors.error : (bot.is_active ? colors.success : colors.text.secondary)
-                    }}>
-                      {bot.status === 'unfunded' ? 'Awaiting funding' : (bot.is_active ? 'Active' : 'Inactive')}
-                    </span>
+                    <button
+                      onClick={(e) => handleClone(bot, e)}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '5px',
+                        background: '#f5f5f5',
+                        border: '1px solid #e5e5e5',
+                        fontSize: '11px',
+                        color: '#666',
+                        fontWeight: '500',
+                        cursor: 'pointer',
+                        padding: '3px 10px',
+                        borderRadius: '14px',
+                      }}
+                    >
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+                        <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                        <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                      </svg>
+                      Clone
+                    </button>
                   </div>
 
                   {/* Details and Values side by side */}

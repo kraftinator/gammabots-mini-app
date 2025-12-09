@@ -1,32 +1,57 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import BottomNavigation from '@/components/BottomNavigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors } from '@/styles/common'
 
 export default function CreateBotPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { authLoading, authError, authenticate } = useQuickAuth()
   const [isReady, setIsReady] = useState(false)
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
-  const [formData, setFormData] = useState({
-    tokenAddress: '',
-    ethAmount: '0.01',
-    movingAverage: '6',
-    strategyId: '',
-    profitShare: '50',
-    profitThreshold: '15'
+  const [formData, setFormData] = useState(() => {
+    // Initialize with defaults, will be updated from query params in useEffect
+    return {
+      tokenAddress: '',
+      ethAmount: '',
+      movingAverage: '6',
+      strategyId: '',
+      profitShare: '50',
+      profitThreshold: '15'
+    }
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
+
+  // Pre-populate form from query params (for cloning)
+  useEffect(() => {
+    const tokenAddress = searchParams.get('token_address')
+    const strategyId = searchParams.get('strategy_id')
+    const movingAvg = searchParams.get('moving_avg')
+    const profitShare = searchParams.get('profit_share')
+    const profitThreshold = searchParams.get('profit_threshold')
+
+    if (tokenAddress || strategyId || movingAvg || profitShare || profitThreshold) {
+      setFormData(prev => ({
+        ...prev,
+        tokenAddress: tokenAddress || prev.tokenAddress,
+        strategyId: strategyId || prev.strategyId,
+        movingAverage: movingAvg || prev.movingAverage,
+        profitShare: profitShare || prev.profitShare,
+        profitThreshold: profitThreshold || prev.profitThreshold,
+        // ETH amount stays empty for clones
+      }))
+    }
+  }, [searchParams])
 
   useEffect(() => {
     async function initializePage() {
       try {
         setIsReady(true)
-        
+
         const { sdk } = await import('@farcaster/miniapp-sdk')
         const inMiniApp = await sdk.isInMiniApp()
         setIsMiniApp(inMiniApp)
@@ -308,6 +333,29 @@ export default function CreateBotPage() {
 
   return (
     <div style={styles.formContainer}>
+      {/* Back Link */}
+      <button
+        onClick={() => router.push('/my-bots')}
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '4px',
+          background: 'none',
+          border: 'none',
+          padding: '0',
+          marginBottom: '16px',
+          cursor: 'pointer',
+          color: colors.primary,
+          fontSize: '14px',
+          fontWeight: '500',
+        }}
+      >
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M15 18l-6-6 6-6" />
+        </svg>
+        My Bots
+      </button>
+
       {/* Header */}
       <div style={styles.formHeader}>
         <div>
@@ -450,67 +498,13 @@ export default function CreateBotPage() {
             </div>
           </div>
 
-          {/* Profit Share and Profit Threshold */}
-          <div style={{ display: 'flex', gap: '16px' }}>
-            <div style={{ ...styles.formGroup, flex: 1 }}>
-              <label style={styles.formLabel}>
-                Profit Share
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="number"
-                  value={formData.profitShare}
-                  onChange={(e) => handleInputChange('profitShare', e.target.value)}
-                  onBlur={() => handlePercentageBlur('profitShare', '50')}
-                  min="0"
-                  max="100"
-                  step="1"
-                  style={{ ...styles.formInput, paddingRight: '32px' }}
-                />
-                <span style={{
-                  position: 'absolute',
-                  right: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: colors.text.secondary,
-                  pointerEvents: 'none'
-                }}>%</span>
-              </div>
-            </div>
-            <div style={{ ...styles.formGroup, flex: 1 }}>
-              <label style={styles.formLabel}>
-                Profit Threshold
-              </label>
-              <div style={{ position: 'relative' }}>
-                <input
-                  type="number"
-                  value={formData.profitThreshold}
-                  onChange={(e) => handleInputChange('profitThreshold', e.target.value)}
-                  onBlur={() => handlePercentageBlur('profitThreshold', '15')}
-                  min="0"
-                  max="100"
-                  step="1"
-                  style={{ ...styles.formInput, paddingRight: '32px' }}
-                />
-                <span style={{
-                  position: 'absolute',
-                  right: '12px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: colors.text.secondary,
-                  pointerEvents: 'none'
-                }}>%</span>
-              </div>
-            </div>
-          </div>
-
           {/* Submit Button */}
           <button
             type="submit"
             disabled={isSubmitting}
             style={isSubmitting ? styles.submitButtonDisabled : styles.submitButton}
           >
-            {isSubmitting ? 'Creating Bot...' : 'Create Trading Bot'}
+            {isSubmitting ? 'Creating Bot...' : 'Create Bot'}
           </button>
         </form>
       )}
