@@ -1,17 +1,15 @@
 'use client'
 
 import Link from 'next/link'
-import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { Home, Bot, Trophy, GitBranch, Settings } from 'lucide-react'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors } from '@/styles/common'
 
 interface BottomNavigationProps {
-  activeTab: 'home' | 'my-bots' | 'leaderboard' | 'strategies'
+  activeTab: 'home' | 'my-bots' | 'leaderboard' | 'strategies' | 'settings'
 }
 
 export default function BottomNavigation({ activeTab }: BottomNavigationProps) {
-  const router = useRouter()
   const { authLoading, navigateToMyBots } = useQuickAuth()
 
   // Handle My Bots navigation with Quick Auth
@@ -21,56 +19,82 @@ export default function BottomNavigation({ activeTab }: BottomNavigationProps) {
   }
   return (
     <div style={styles.bottomNav}>
-      <NavItem 
-        label="HOME" 
-        active={activeTab === 'home'} 
-        href="/" 
+      <NavItem
+        label="Home"
+        icon={Home}
+        active={activeTab === 'home'}
+        href="/"
       />
-      <NavItem 
-        label="MY BOTS" 
-        active={activeTab === 'my-bots'} 
+      <NavItem
+        label="My Bots"
+        icon={Bot}
+        active={activeTab === 'my-bots'}
         href="/my-bots"
         onClick={activeTab !== 'my-bots' ? handleMyBotsClick : undefined}
         loading={authLoading}
       />
-      <NavItem 
-        label="LEADERBOARD" 
-        active={activeTab === 'leaderboard'} 
-        href="/leaderboard" 
+      <NavItem
+        label="Leaderboard"
+        icon={Trophy}
+        active={activeTab === 'leaderboard'}
+        href="/leaderboard"
       />
-      <NavItem 
-        label="STRATEGIES" 
-        active={activeTab === 'strategies'} 
-        href="/strategies" 
+      <NavItem
+        label="Strategies"
+        icon={GitBranch}
+        active={activeTab === 'strategies'}
+        href="/strategies"
+      />
+      <NavItem
+        label="Settings"
+        icon={Settings}
+        active={activeTab === 'settings'}
+        href="/settings"
       />
     </div>
   )
 }
 
-function NavItem({ 
-  label, 
-  active = false, 
-  href, 
-  onClick, 
-  loading = false 
-}: { 
-  label: string; 
-  active?: boolean; 
-  href?: string; 
+function NavItem({
+  label,
+  icon: Icon,
+  active = false,
+  href,
+  onClick,
+  loading = false
+}: {
+  label: string;
+  icon: React.ComponentType<{ size?: number; color?: string }>;
+  active?: boolean;
+  href?: string;
   onClick?: (e: React.MouseEvent) => void;
   loading?: boolean;
 }) {
-  const style = {
-    ...styles.navItem,
-    color: active ? colors.secondary : colors.text.secondary
+  const color = active ? colors.secondary : '#c7c7cc'
+
+  const style: React.CSSProperties = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '4px',
+    flex: 1,
+    padding: '8px 0',
+    textDecoration: 'none',
+    cursor: active ? 'default' : 'pointer',
+    color
   }
 
   const content = (
     <>
-      {loading ? "..." : label}
-      {active && (
-        <div style={styles.navIndicator}></div>
-      )}
+      <Icon size={30} color={color} />
+      <div style={{
+        width: 20,
+        height: 3,
+        backgroundColor: active ? colors.secondary : 'transparent',
+        borderRadius: 2,
+        marginTop: 4
+      }} />
     </>
   )
 

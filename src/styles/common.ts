@@ -141,7 +141,8 @@ export const styles = {
     display: "flex",
     zIndex: 5,
     boxShadow: "0 -2px 12px rgba(0, 0, 0, 0.08)",
-    borderRadius: "20px 20px 0 0"
+    borderRadius: "20px 20px 0 0",
+    paddingBottom: 5
   },
 
   navItem: {
