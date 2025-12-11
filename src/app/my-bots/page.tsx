@@ -7,6 +7,7 @@ import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors, getProfitColor } from '@/styles/common'
 import BottomNavigation from '@/components/BottomNavigation'
 import BotDetailModal from '@/components/modals/BotDetailModal'
+import { formatDistanceToNow } from 'date-fns'
 
 interface Bot {
   bot_id: string
@@ -241,8 +242,10 @@ export default function MyBotsPage() {
         case 'value':
           return Number(b.value || 0) - Number(a.value || 0)
         case 'recent':
-          // For now, sort by bot_id as a proxy for recent
-          return parseInt(b.bot_id) - parseInt(a.bot_id)
+          // Sort by last_action timestamp (most recent first)
+          const aTime = a.last_action ? new Date(a.last_action).getTime() : 0
+          const bTime = b.last_action ? new Date(b.last_action).getTime() : 0
+          return bTime - aTime
         case 'strategy':
           return parseInt(a.strategy_id) - parseInt(b.strategy_id)
         case 'id':
@@ -462,7 +465,7 @@ export default function MyBotsPage() {
                       )}
                       <div style={styles.myBotDetailRow}>
                         <span style={styles.myBotDetailLabel}>Last Action:</span>
-                        <span style={styles.myBotDetailValue}>{bot.last_action || 'N/A'}</span>
+                        <span style={styles.myBotDetailValue}>{bot.last_action ? formatDistanceToNow(new Date(bot.last_action), { addSuffix: true }) : 'N/A'}</span>
                       </div>
                       {(bot.status === 'completed' || bot.status === 'stopped') && (
                       <div style={styles.myBotDetailRow}>

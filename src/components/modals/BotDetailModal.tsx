@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power } from 'lucide-react'
+import { formatDistanceToNow } from 'date-fns'
 import { colors, getProfitColor } from '@/styles/common'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 
@@ -724,7 +725,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
               fontWeight: '600',
               color: '#1c1c1e'
             }}>
-              ETH {(bot.status === 'stopped' || bot.status === 'funding_failed') ? (bot.init ? parseFloat(Number(bot.init).toFixed(6)).toString() : '0') : (bot.value ? parseFloat(Number(bot.value).toFixed(6)) : '0')}
+              ETH {bot.status === 'funding_failed' ? (bot.init ? parseFloat(Number(bot.init).toFixed(6)).toString() : '0') : (bot.value ? parseFloat(Number(bot.value).toFixed(6)) : '0')}
             </span>
             {bot.status !== 'stopped' && bot.status !== 'funding_failed' && Number(bot.trades) > 0 && (
             <span style={{
@@ -820,7 +821,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
               <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Last Action</span>
               <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                {bot.last_action || 'N/A'}
+                {bot.last_action ? formatDistanceToNow(new Date(bot.last_action), { addSuffix: true }) : 'N/A'}
               </span>
             </div>
 
