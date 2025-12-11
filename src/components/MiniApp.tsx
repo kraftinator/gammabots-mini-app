@@ -271,7 +271,7 @@ export default function MiniApp() {
                 tokenSymbol={activity.token_symbol}
                 avatarUrl={activity.farcaster_avatar_url}
                 profit={activity.performance_pct !== null && activity.performance_pct !== undefined ? `${activity.performance_pct > 0 ? '+' : ''}${Number(activity.performance_pct).toFixed(1)}%` : undefined}
-                isProfit={activity.performance_pct !== null && activity.performance_pct !== undefined ? activity.performance_pct > 0 : undefined}
+                profitPct={activity.performance_pct !== null && activity.performance_pct !== undefined ? activity.performance_pct : undefined}
               />
             ))}
           </ActivityCard>
@@ -424,19 +424,19 @@ function ActivityItem({
   strategy, 
   time, 
   creator, 
-  profit, 
-  isProfit,
+  profit,
+  profitPct,
   tokenAmount,
   tokenSymbol,
   avatarUrl
-}: { 
-  action: string; 
-  amount: string; 
-  strategy: string; 
-  time: string; 
-  creator: string; 
-  profit?: string; 
-  isProfit?: boolean;
+}: {
+  action: string;
+  amount: string;
+  strategy: string;
+  time: string;
+  creator: string;
+  profit?: string;
+  profitPct?: number;
   tokenAmount?: string;
   tokenSymbol?: string;
   avatarUrl?: string;
@@ -496,12 +496,13 @@ function ActivityItem({
           fontSize: "15px",
           fontWeight: "400",
           marginBottom: "4px",
+          whiteSpace: "nowrap",
           ...styles.textPrimary
         }}>
-          {action} {tokenAmount && tokenSymbol ? (
+          <span style={{ fontWeight: "700" }}>{action}</span> {tokenAmount && tokenSymbol ? (
             <>
-              {tokenAmount} <span style={{ fontWeight: "700", whiteSpace: "nowrap" }}>
-                {tokenSymbol.length > 15 ? `${tokenSymbol.slice(0, 15)}...` : tokenSymbol}
+              <span style={{ fontWeight: "700" }}>{tokenAmount}</span> <span style={{ fontWeight: "500", color: "#8e8e93" }}>
+                {tokenSymbol.length > 12 ? `${tokenSymbol.slice(0, 12)}...` : tokenSymbol}
               </span>
             </>
           ) : (
@@ -521,7 +522,7 @@ function ActivityItem({
         <div style={{
           fontSize: "15px",
           fontWeight: "700",
-          color: isProfit ? "#34c759" : "#ff3b30"
+          color: profitPct !== undefined ? (profitPct >= 2 ? "#34c759" : (profitPct <= -2 ? "#ff3b30" : "#8e8e93")) : "#8e8e93"
         }}>
           {profit}
         </div>

@@ -670,7 +670,10 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
               fontWeight: '700',
               color: '#1c1c1e'
             }}>
-              {bot.token_symbol}
+              {(() => {
+                const symbol = bot.token_symbol || 'Unknown';
+                return symbol.length > 15 ? `${symbol.slice(0, 15)}...` : symbol;
+              })()}
             </span>
             <span style={{
               fontSize: '11px',
@@ -774,7 +777,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             </div>
 
             {/* Holdings */}
-            {bot.status !== 'stopped' && bot.status !== 'funding_failed' && (
+            {bot.status !== 'stopped' && bot.status !== 'funding_failed' && bot.status !== 'completed' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
               <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Holdings</span>
               <div style={{ textAlign: 'right' }}>
@@ -782,27 +785,40 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
                   const tokensNum = bot.tokens ? Number(bot.tokens) : 0
                   const ethNum = bot.eth ? Number(bot.eth) : 0
 
+                  // Buy mode: only show ETH
+                  if (bot.trade_mode === 'buy') {
+                    return (
+                      <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
+                        {parseFloat(ethNum.toFixed(6))} <span style={{ color: '#8e8e93', fontWeight: '500' }}>ETH</span>
+                      </span>
+                    )
+                  }
+
+                  // Sell mode: show tokens and/or ETH
+                  const symbol = bot.token_symbol || 'Unknown'
+                  const displaySymbol = symbol.length > 8 ? 'tokens' : symbol
+
                   if (tokensNum > 0 && ethNum > 0) {
                     return (
                       <>
                         <div style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                          {formatTokenAmount(tokensNum)} {bot.token_symbol}
+                          {formatTokenAmount(tokensNum)} <span style={{ color: '#8e8e93', fontWeight: '500' }}>{displaySymbol}</span>
                         </div>
                         <div style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                          {parseFloat(ethNum.toFixed(6))} ETH
+                          {parseFloat(ethNum.toFixed(6))} <span style={{ color: '#8e8e93', fontWeight: '500' }}>ETH</span>
                         </div>
                       </>
                     )
                   } else if (tokensNum > 0) {
                     return (
                       <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                        {formatTokenAmount(tokensNum)} {bot.token_symbol}
+                        {formatTokenAmount(tokensNum)} <span style={{ color: '#8e8e93', fontWeight: '500' }}>{displaySymbol}</span>
                       </span>
                     )
                   } else if (ethNum > 0) {
                     return (
                       <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                        {parseFloat(ethNum.toFixed(6))} ETH
+                        {parseFloat(ethNum.toFixed(6))} <span style={{ color: '#8e8e93', fontWeight: '500' }}>ETH</span>
                       </span>
                     )
                   } else {

@@ -441,21 +441,21 @@ export default function MyBotsPage() {
                             const tokensDisplay = Math.floor(tokensNum);
                             const ethDisplay = Number(ethNum.toFixed(6));
 
-                            // Truncate token symbol
+                            // Use "tokens" if symbol is too long
                             const symbol = bot.token_symbol || '';
-                            const truncatedSymbol = symbol.length > 15 ? `${symbol.slice(0, 15)}...` : symbol;
+                            const displaySymbol = symbol.length > 8 ? 'tokens' : symbol;
 
                             if (tokensDisplay > 0 && ethDisplay > 0) {
                               return (
                                 <>
-                                  <div>{formatTokenAmount(tokensDisplay)} {truncatedSymbol}</div>
-                                  <div>{parseFloat(ethDisplay.toFixed(6))} ETH</div>
+                                  <div>{formatTokenAmount(tokensDisplay)} <span style={{ color: '#8e8e93', fontWeight: '500' }}>{displaySymbol}</span></div>
+                                  <div>{parseFloat(ethDisplay.toFixed(6))} <span style={{ color: '#8e8e93', fontWeight: '500' }}>ETH</span></div>
                                 </>
                               );
                             } else if (tokensDisplay > 0) {
-                              return `${formatTokenAmount(tokensDisplay)} ${truncatedSymbol}`;
+                              return <span>{formatTokenAmount(tokensDisplay)} <span style={{ color: '#8e8e93', fontWeight: '500' }}>{displaySymbol}</span></span>;
                             } else if (ethDisplay > 0) {
-                              return `${parseFloat(ethDisplay.toFixed(6))} ETH`;
+                              return <span>{parseFloat(ethDisplay.toFixed(6))} <span style={{ color: '#8e8e93', fontWeight: '500' }}>ETH</span></span>;
                             } else {
                               return '0';
                             }
