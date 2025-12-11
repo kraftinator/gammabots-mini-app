@@ -1,7 +1,8 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Code, Edit3, ArrowDownToLine, Loader2, GitBranch } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Code, Edit3, Banknote, Loader2, GitBranch, Power } from 'lucide-react'
 import { colors, getProfitColor } from '@/styles/common'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 
@@ -25,6 +26,7 @@ interface Bot {
   moving_average?: number
   profit_share?: number
   profit_threshold?: number
+  trade_mode?: 'buy' | 'sell'
 }
 
 interface BotDetailModalProps {
@@ -91,6 +93,7 @@ interface StrategyData {
 }
 
 export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: BotDetailModalProps) {
+  const router = useRouter()
   const { authenticate } = useQuickAuth()
   const [isMetricsExpanded, setIsMetricsExpanded] = useState(false)
   const [metricsData, setMetricsData] = useState<Record<string, any> | null>(null)
@@ -114,6 +117,14 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
   const [editLoading, setEditLoading] = useState(false)
   const [editError, setEditError] = useState<string | null>(null)
 
+  const [isLiquidateOpen, setIsLiquidateOpen] = useState(false)
+  const [liquidateLoading, setLiquidateLoading] = useState(false)
+  const [liquidateError, setLiquidateError] = useState<string | null>(null)
+
+  const [isDeactivateOpen, setIsDeactivateOpen] = useState(false)
+  const [deactivateLoading, setDeactivateLoading] = useState(false)
+  const [deactivateError, setDeactivateError] = useState<string | null>(null)
+
   // Reset state when bot changes
   useEffect(() => {
     setIsMetricsExpanded(false)
@@ -128,6 +139,10 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
     setStrategyError(null)
     setIsEditOpen(false)
     setEditError(null)
+    setIsLiquidateOpen(false)
+    setLiquidateError(null)
+    setIsDeactivateOpen(false)
+    setDeactivateError(null)
   }, [bot?.bot_id])
 
   // Lock body scroll and hide scrollbar when modal is open
@@ -484,6 +499,107 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
     }
   }
 
+  // Handle liquidate confirmation
+  const handleLiquidate = async () => {
+    if (!bot) return
+
+    setLiquidateLoading(true)
+    setLiquidateError(null)
+
+    try {
+      const token = await authenticate()
+      if (!token) {
+        setLiquidateError('Authentication failed')
+        setLiquidateLoading(false)
+        return
+      }
+
+      const response = await fetch(`/api/bots/${bot.bot_id}/liquidate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to liquidate bot' }))
+        setLiquidateError(errorData.error || errorData.message || 'Failed to liquidate bot')
+        setLiquidateLoading(false)
+        return
+      }
+
+      const data = await response.json()
+
+      // Update bot status in parent
+      if (onBotUpdated) {
+        onBotUpdated({
+          ...bot,
+          status: data.status
+        })
+      }
+
+      // Close modal and drawer
+      setIsLiquidateOpen(false)
+      onClose()
+    } catch (error) {
+      console.error('Error liquidating bot:', error)
+      setLiquidateError('An unexpected error occurred')
+    } finally {
+      setLiquidateLoading(false)
+    }
+  }
+
+  // Handle deactivate confirmation
+  const handleDeactivate = async () => {
+    if (!bot) return
+
+    setDeactivateLoading(true)
+    setDeactivateError(null)
+
+    try {
+      const token = await authenticate()
+      if (!token) {
+        setDeactivateError('Authentication failed')
+        setDeactivateLoading(false)
+        return
+      }
+
+      const response = await fetch(`/api/bots/${bot.bot_id}/deactivate`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ error: 'Failed to deactivate bot' }))
+        setDeactivateError(errorData.error || errorData.message || 'Failed to deactivate bot')
+        setDeactivateLoading(false)
+        return
+      }
+
+      const data = await response.json()
+
+      // Update bot status in parent
+      if (onBotUpdated) {
+        onBotUpdated({
+          ...bot,
+          is_active: data.is_active,
+          status: data.status
+        })
+      }
+
+      // Close modal and drawer
+      setIsDeactivateOpen(false)
+      onClose()
+    } catch (error) {
+      console.error('Error deactivating bot:', error)
+      setDeactivateError('An unexpected error occurred')
+    } finally {
+      setDeactivateLoading(false)
+    }
+  }
+
   // Don't render if modal is closed or bot is null
   if (!isOpen || !bot) return null
 
@@ -567,9 +683,10 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             <span style={{
               fontSize: '12px',
               fontWeight: '500',
-              color: bot.status === 'unfunded' ? colors.error : (bot.is_active ? colors.success : colors.text.secondary)
+              color: bot.status === 'unfunded' ? colors.error : (bot.status === 'liquidating' ? '#f59e0b' : (bot.status === 'completed' ? '#5f9ea0' : (bot.status === 'stopped' ? '#555' : (bot.status === 'funding_failed' ? '#E35B5B' : (bot.is_active ? colors.success : colors.text.secondary))))),
+              fontStyle: bot.status === 'liquidating' ? 'italic' : 'normal'
             }}>
-              {bot.status === 'unfunded' ? 'Awaiting funding' : (bot.is_active ? 'Active' : 'Inactive')}
+              {bot.status === 'unfunded' ? 'Awaiting funding' : (bot.status === 'liquidating' ? 'Liquidating...' : (bot.status === 'completed' ? 'Completed' : (bot.status === 'stopped' ? 'Stopped' : (bot.status === 'funding_failed' ? 'Funding failed' : (bot.is_active ? 'Active' : 'Inactive')))))}
             </span>
           </div>
           <button
@@ -601,7 +718,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             marginBottom: '4px',
             fontWeight: '400'
           }}>
-            Current Value
+            {(bot.status === 'stopped' || bot.status === 'completed') ? 'Final Value' : (bot.status === 'funding_failed' ? 'Attempted Amount' : 'Current Value')}
           </div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <span style={{
@@ -609,15 +726,17 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
               fontWeight: '600',
               color: '#1c1c1e'
             }}>
-              ETH {bot.value ? Number(bot.value).toFixed(4) : '0.0000'}
+              ETH {(bot.status === 'stopped' || bot.status === 'funding_failed') ? (bot.init ? parseFloat(Number(bot.init).toFixed(6)).toString() : '0') : (bot.value ? parseFloat(Number(bot.value).toFixed(6)) : '0')}
             </span>
+            {bot.status !== 'stopped' && bot.status !== 'funding_failed' && Number(bot.trades) > 0 && (
             <span style={{
               fontSize: '16px',
               fontWeight: '500',
               color: getProfitColor(Number(bot.profit_percent) || 0)
             }}>
-              {bot.profit_percent && Number(bot.profit_percent) > 0 ? '+' : ''}{Number(bot.profit_percent || 0).toFixed(2)}%
+              {Number(bot.profit_percent) > 0 ? '+' : ''}{Number(bot.profit_percent || 0).toFixed(2)}%
             </span>
+            )}
           </div>
         </div>
 
@@ -656,6 +775,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             </div>
 
             {/* Holdings */}
+            {bot.status !== 'stopped' && bot.status !== 'funding_failed' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
               <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Holdings</span>
               <div style={{ textAlign: 'right' }}>
@@ -670,7 +790,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
                           {formatTokenAmount(tokensNum)} {bot.token_symbol}
                         </div>
                         <div style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                          {ethNum.toFixed(4)} ETH
+                          {parseFloat(ethNum.toFixed(6))} ETH
                         </div>
                       </>
                     )
@@ -683,7 +803,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
                   } else if (ethNum > 0) {
                     return (
                       <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                        {ethNum.toFixed(4)} ETH
+                        {parseFloat(ethNum.toFixed(6))} ETH
                       </span>
                     )
                   } else {
@@ -696,6 +816,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
                 })()}
               </div>
             </div>
+            )}
 
             {/* Last Action */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
@@ -706,17 +827,20 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             </div>
 
             {/* Init Value */}
+            {bot.status !== 'funding_failed' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
               <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Initial Value</span>
               <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                {bot.init ? `${Number(bot.init).toFixed(4)} ETH` : '0.0000 ETH'}
+                {bot.init ? `${parseFloat(Number(bot.init).toFixed(6))} ETH` : '0 ETH'}
               </span>
             </div>
+            )}
           </div>
         </div>
 
         {/* Expandable Sections */}
         <div style={{ padding: '0 0 20px' }}>
+          {bot.status === 'active' && (
           <div>
             <div
               style={{
@@ -803,6 +927,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
               </div>
             )}
           </div>
+          )}
 
           <div>
             <div
@@ -822,7 +947,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <ArrowLeftRight style={{ width: '16px', height: '16px', color: '#10b981' }} />
                 <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>
-                  View Trades {bot.trades ? `(${bot.trades})` : ''}
+                  View Trades ({bot.trades ?? 0})
                 </span>
               </div>
               {isTradesExpanded ? (
@@ -853,7 +978,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
 
                 {!tradesLoading && !tradesError && tradesData && tradesData.length === 0 && (
                   <div style={{ color: '#6b7280', fontSize: '13px', padding: '20px', textAlign: 'center' }}>
-                    No trades yet
+                    No trades
                   </div>
                 )}
 
@@ -1064,6 +1189,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
         </div>
 
         {/* Action Buttons */}
+        {bot.status === 'active' && (
         <div style={{ padding: '0 16px 16px' }}>
           <button
             onClick={handleOpenEdit}
@@ -1084,23 +1210,49 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             <Edit3 style={{ width: '16px', height: '16px', color: '#1c1c1e' }} />
             <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Edit</span>
           </button>
-          <button style={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: '6px',
-            padding: '12px 16px',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
-            borderRadius: '12px',
-            cursor: 'pointer',
-            marginTop: '12px'
-          }}>
-            <ArrowDownToLine style={{ width: '16px', height: '16px', color: '#dc2626' }} />
-            <span style={{ color: '#dc2626', fontSize: '14px', fontWeight: '500' }}>Liquidate &amp; Deactivate</span>
-          </button>
+          {bot.trade_mode === 'buy' ? (
+            <button
+              onClick={() => setIsDeactivateOpen(true)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '12px 16px',
+                backgroundColor: '#e4e6e9',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                border: 'none',
+                marginBottom: '10px'
+              }}
+            >
+              <Power style={{ width: '16px', height: '16px', color: '#1c1c1e' }} />
+              <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Deactivate</span>
+            </button>
+          ) : (
+            <button
+              onClick={() => setIsLiquidateOpen(true)}
+              style={{
+                width: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: '6px',
+                padding: '12px 16px',
+                backgroundColor: '#fef2f2',
+                border: '1px solid #fecaca',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                marginTop: '12px'
+              }}
+            >
+              <Banknote style={{ width: '16px', height: '16px', color: '#dc2626' }} />
+              <span style={{ color: '#dc2626', fontSize: '14px', fontWeight: '500' }}>Liquidate</span>
+            </button>
+          )}
         </div>
+        )}
 
         {/* Trade Details Drawer */}
         {selectedTrade && (
@@ -1378,6 +1530,228 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
                   ) : (
                     'Save Changes'
                   )}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Liquidate Confirmation Drawer */}
+        {isLiquidateOpen && (
+          <div
+            onClick={() => !liquidateLoading && setIsLiquidateOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'flex-end',
+              animation: 'fadeIn 0.2s ease',
+              zIndex: 1001,
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '100%',
+                backgroundColor: '#fff',
+                borderTopLeftRadius: '20px',
+                borderTopRightRadius: '20px',
+                padding: '0 20px 32px 20px',
+                animation: 'slideUp 0.25s ease',
+              }}
+            >
+              {/* Drag handle */}
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
+                <div style={{ width: '36px', height: '4px', backgroundColor: '#ddd', borderRadius: '2px' }} />
+              </div>
+
+              {/* Content */}
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <div style={{
+                  fontSize: '18px',
+                  fontWeight: '700',
+                  color: '#1a1a1a',
+                  marginBottom: '12px',
+                }}>
+                  Liquidate & Deactivate {bot.token_symbol} #{bot.bot_id}?
+                </div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#666',
+                  lineHeight: '1.5',
+                }}>
+                  This will sell all current holdings back to ETH and deactivate this bot. This cannot be undone.
+                </div>
+              </div>
+
+              {/* Error Message */}
+              {liquidateError && (
+                <div style={{
+                  padding: '12px 16px',
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '12px',
+                  color: '#dc2626',
+                  fontSize: '14px',
+                  marginBottom: '16px',
+                  textAlign: 'center',
+                }}>
+                  {liquidateError}
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => setIsLiquidateOpen(false)}
+                  disabled={liquidateLoading}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    color: '#333',
+                    backgroundColor: '#f0f0f0',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: liquidateLoading ? 'not-allowed' : 'pointer',
+                    opacity: liquidateLoading ? 0.5 : 1,
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleLiquidate}
+                  disabled={liquidateLoading}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    color: '#fff',
+                    backgroundColor: '#ef4444',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: liquidateLoading ? 'not-allowed' : 'pointer',
+                    opacity: liquidateLoading ? 0.7 : 1,
+                  }}
+                >
+                  {liquidateLoading ? 'Liquidating...' : 'Confirm'}
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Deactivate Confirmation Drawer */}
+        {isDeactivateOpen && (
+          <div
+            onClick={() => !deactivateLoading && setIsDeactivateOpen(false)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'flex-end',
+              animation: 'fadeIn 0.2s ease',
+              zIndex: 1001,
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '100%',
+                backgroundColor: '#fff',
+                borderTopLeftRadius: '20px',
+                borderTopRightRadius: '20px',
+                padding: '0 20px 32px 20px',
+                animation: 'slideUp 0.25s ease',
+              }}
+            >
+              {/* Drag handle */}
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
+                <div style={{ width: '36px', height: '4px', backgroundColor: '#ddd', borderRadius: '2px' }} />
+              </div>
+
+              {/* Content */}
+              <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+                <div style={{
+                  fontSize: '18px',
+                  fontWeight: '700',
+                  color: '#1a1a1a',
+                  marginBottom: '12px',
+                }}>
+                  Deactivate {bot.token_symbol} #{bot.bot_id}?
+                </div>
+                <div style={{
+                  fontSize: '14px',
+                  color: '#666',
+                  lineHeight: '1.5',
+                }}>
+                  This will deactivate this bot.
+                </div>
+              </div>
+
+              {/* Error Message */}
+              {deactivateError && (
+                <div style={{
+                  padding: '12px 16px',
+                  backgroundColor: '#fef2f2',
+                  border: '1px solid #fecaca',
+                  borderRadius: '12px',
+                  color: '#dc2626',
+                  fontSize: '14px',
+                  marginBottom: '16px',
+                  textAlign: 'center',
+                }}>
+                  {deactivateError}
+                </div>
+              )}
+
+              {/* Buttons */}
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <button
+                  onClick={() => setIsDeactivateOpen(false)}
+                  disabled={deactivateLoading}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    color: '#333',
+                    backgroundColor: '#f0f0f0',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: deactivateLoading ? 'not-allowed' : 'pointer',
+                    opacity: deactivateLoading ? 0.5 : 1,
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={handleDeactivate}
+                  disabled={deactivateLoading}
+                  style={{
+                    flex: 1,
+                    padding: '14px',
+                    fontSize: '15px',
+                    fontWeight: '600',
+                    color: '#fff',
+                    backgroundColor: '#ef4444',
+                    border: 'none',
+                    borderRadius: '10px',
+                    cursor: deactivateLoading ? 'not-allowed' : 'pointer',
+                    opacity: deactivateLoading ? 0.7 : 1,
+                  }}
+                >
+                  {deactivateLoading ? 'Deactivating...' : 'Confirm'}
                 </button>
               </div>
             </div>

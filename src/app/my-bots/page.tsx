@@ -28,6 +28,7 @@ interface Bot {
   moving_average?: number
   profit_share?: number
   profit_threshold?: number
+  trade_mode?: 'buy' | 'sell'
 }
 
 export default function MyBotsPage() {
@@ -43,14 +44,14 @@ export default function MyBotsPage() {
   // Filter and search states
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('recent')
-  const [status, setStatus] = useState<'active' | 'retired'>('active')
+  const [status, setStatus] = useState<'active' | 'inactive'>('active')
 
   // Modal state
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
   // Fetch bots function
-  const fetchBots = useCallback(async (token: string, botStatus: 'active' | 'retired' = 'active') => {
+  const fetchBots = useCallback(async (token: string, botStatus: 'active' | 'inactive' = 'active') => {
     try {
       setBotsLoading(true)
       setBotsError(null)
@@ -129,15 +130,16 @@ export default function MyBotsPage() {
     initializePage()
   }, [authenticate, fetchBots])
 
-  // Auto-refresh when there are unfunded bots
+  // Auto-refresh when there are unfunded or liquidating bots
   useEffect(() => {
     const hasUnfundedBots = bots.some(bot => bot.status === 'unfunded')
+    const hasLiquidatingBots = bots.some(bot => bot.status === 'liquidating')
 
-    if (!hasUnfundedBots) {
-      return // No unfunded bots, no need to poll
+    if (!hasUnfundedBots && !hasLiquidatingBots) {
+      return // No transitional bots, no need to poll
     }
 
-    console.log('Starting auto-refresh for unfunded bots...')
+    console.log('Starting auto-refresh for transitional bots...')
 
     const intervalId = setInterval(async () => {
       try {
@@ -159,7 +161,7 @@ export default function MyBotsPage() {
   }, [bots, authenticate, fetchBots, status])
 
   // Handle status change and fetch new bots
-  const handleStatusChange = useCallback(async (newStatus: 'active' | 'retired') => {
+  const handleStatusChange = useCallback(async (newStatus: 'active' | 'inactive') => {
     setStatus(newStatus)
 
     try {
@@ -226,6 +228,13 @@ export default function MyBotsPage() {
     })
 
     return filtered.sort((a, b) => {
+      // Liquidating bots always sort to top
+      const aLiquidating = a.status === 'liquidating' ? 1 : 0
+      const bLiquidating = b.status === 'liquidating' ? 1 : 0
+      if (aLiquidating !== bLiquidating) {
+        return bLiquidating - aLiquidating
+      }
+
       switch (sortBy) {
         case 'profit':
           return Number(b.profit_percent || 0) - Number(a.profit_percent || 0)
@@ -308,11 +317,11 @@ export default function MyBotsPage() {
           
           <select
             value={status}
-            onChange={(e) => handleStatusChange(e.target.value as 'active' | 'retired')}
+            onChange={(e) => handleStatusChange(e.target.value as 'active' | 'inactive')}
             style={styles.myBotsSelect}
           >
             <option value="active">Active</option>
-            <option value="retired">Retired</option>
+            <option value="inactive">Inactive</option>
           </select>
         </div>
       </div>
@@ -374,9 +383,10 @@ export default function MyBotsPage() {
                       <span style={{
                         ...styles.myBotStatus,
                         whiteSpace: 'nowrap',
-                        color: bot.status === 'unfunded' ? colors.error : (bot.is_active ? colors.success : colors.text.secondary)
+                        color: bot.status === 'unfunded' ? colors.error : (bot.status === 'liquidating' ? '#f59e0b' : (bot.status === 'completed' ? '#5f9ea0' : (bot.status === 'stopped' ? '#555' : (bot.status === 'funding_failed' ? '#E35B5B' : (bot.is_active ? colors.success : colors.text.secondary))))),
+                        fontStyle: bot.status === 'liquidating' ? 'italic' : 'normal'
                       }}>
-                        {bot.status === 'unfunded' ? 'Awaiting funding' : (bot.is_active ? 'Active' : 'Inactive')}
+                        {bot.status === 'unfunded' ? 'Awaiting funding' : (bot.status === 'liquidating' ? 'Liquidating...' : (bot.status === 'completed' ? 'Completed' : (bot.status === 'stopped' ? 'Stopped' : (bot.status === 'funding_failed' ? 'Funding failed' : (bot.is_active ? 'Active' : 'Inactive')))))}
                       </span>
                     </span>
                     <button
@@ -416,6 +426,7 @@ export default function MyBotsPage() {
                         <span style={styles.myBotDetailLabel}>Moving Avg:</span>
                         <span style={styles.myBotDetailValue}>{bot.moving_average || '20'}</span>
                       </div>
+                      {bot.status === 'active' && (
                       <div style={styles.myBotDetailRow}>
                         <span style={styles.myBotDetailLabel}>Holdings:</span>
                         <div style={styles.myBotHoldings}>
@@ -425,7 +436,7 @@ export default function MyBotsPage() {
 
                             // Check displayed values, not raw values
                             const tokensDisplay = Math.floor(tokensNum);
-                            const ethDisplay = Number(ethNum.toFixed(4));
+                            const ethDisplay = Number(ethNum.toFixed(6));
 
                             // Truncate token symbol
                             const symbol = bot.token_symbol || '';
@@ -435,29 +446,49 @@ export default function MyBotsPage() {
                               return (
                                 <>
                                   <div>{formatTokenAmount(tokensDisplay)} {truncatedSymbol}</div>
-                                  <div>{ethDisplay.toFixed(4)} ETH</div>
+                                  <div>{parseFloat(ethDisplay.toFixed(6))} ETH</div>
                                 </>
                               );
                             } else if (tokensDisplay > 0) {
                               return `${formatTokenAmount(tokensDisplay)} ${truncatedSymbol}`;
                             } else if (ethDisplay > 0) {
-                              return `${ethDisplay.toFixed(4)} ETH`;
+                              return `${parseFloat(ethDisplay.toFixed(6))} ETH`;
                             } else {
                               return '0';
                             }
                           })()}
                         </div>
                       </div>
+                      )}
                       <div style={styles.myBotDetailRow}>
                         <span style={styles.myBotDetailLabel}>Last Action:</span>
                         <span style={styles.myBotDetailValue}>{bot.last_action || 'N/A'}</span>
                       </div>
+                      {(bot.status === 'completed' || bot.status === 'stopped') && (
+                      <div style={styles.myBotDetailRow}>
+                        <span style={styles.myBotDetailLabel}>Final Value:</span>
+                        <span style={styles.myBotDetailValue}>{bot.value ? `${parseFloat(Number(bot.value).toFixed(6))} ETH` : '0 ETH'}</span>
+                      </div>
+                      )}
                     </div>
 
+                    {bot.status === 'active' && (
                     <div style={styles.myBotValues}>
                       <div style={styles.myBotValue}>
-                        ETH {bot.value ? Number(bot.value).toFixed(4) : '0.0000'}
+                        ETH {bot.value ? parseFloat(Number(bot.value).toFixed(6)) : '0'}
                       </div>
+                      {(Number(bot.trades) > 0) && (
+                      <div style={{
+                        ...styles.myBotProfit,
+                        color: getProfitColor(Number(bot.profit_percent) || 0)
+                      }}>
+                        {Number(bot.profit_percent) > 0 ? '+' : ''}{Number(bot.profit_percent || 0).toFixed(2)}%
+                      </div>
+                      )}
+                    </div>
+                    )}
+                    {bot.status === 'completed' && (
+                    <div style={styles.myBotValues}>
                       <div style={{
                         ...styles.myBotProfit,
                         color: getProfitColor(Number(bot.profit_percent) || 0)
@@ -465,6 +496,7 @@ export default function MyBotsPage() {
                         {bot.profit_percent && Number(bot.profit_percent) > 0 ? '+' : ''}{Number(bot.profit_percent || 0).toFixed(2)}%
                       </div>
                     </div>
+                    )}
                   </div>
                 </div>
               </div>

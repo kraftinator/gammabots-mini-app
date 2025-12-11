@@ -624,14 +624,14 @@ export const styles = {
   } as CSSProperties,
 
   myBotValue: {
-    fontSize: '18px',
-    fontWeight: '600',
+    fontSize: '14px',
+    fontWeight: '500',
     color: '#1c1c1e',
     marginBottom: '2px'
   } as CSSProperties,
 
   myBotProfit: {
-    fontSize: '16px',
+    fontSize: '14px',
     fontWeight: '500'
   } as CSSProperties
 } as const
@@ -658,7 +658,7 @@ export const getRankColor = (tailwindColor: string) => {
 
 // Helper function to get profit color
 export const getProfitColor = (profit: number) => {
-  if (profit > 0) return '#34c759'
-  if (profit < 0) return '#ff3b30'
+  if (profit >= 2) return '#34c759'
+  if (profit <= -2) return '#ff3b30'
   return '#8e8e93'
 }
