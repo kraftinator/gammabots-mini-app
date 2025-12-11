@@ -1,8 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
-import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Code, Edit3, Banknote, Loader2, GitBranch, Power } from 'lucide-react'
+import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power } from 'lucide-react'
 import { colors, getProfitColor } from '@/styles/common'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 
@@ -93,10 +92,9 @@ interface StrategyData {
 }
 
 export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: BotDetailModalProps) {
-  const router = useRouter()
   const { authenticate } = useQuickAuth()
   const [isMetricsExpanded, setIsMetricsExpanded] = useState(false)
-  const [metricsData, setMetricsData] = useState<Record<string, any> | null>(null)
+  const [metricsData, setMetricsData] = useState<Record<string, string | number | boolean> | null>(null)
   const [metricsLoading, setMetricsLoading] = useState(false)
   const [metricsError, setMetricsError] = useState<string | null>(null)
 
@@ -190,7 +188,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
   }
 
   // Helper function to format metric values
-  const formatMetricValue = (value: any, key?: string): string => {
+  const formatMetricValue = (value: string | number | boolean, key?: string): string => {
     if (value === null || value === undefined) return '--'
     if (typeof value === 'number') {
       if (isNaN(value)) return '--'

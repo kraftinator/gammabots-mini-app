@@ -1,15 +1,15 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import BottomNavigation from '@/components/BottomNavigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors } from '@/styles/common'
 
-export default function CreateBotPage() {
+function CreateBotContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const { authLoading, authError, authenticate } = useQuickAuth()
+  const { authError, authenticate } = useQuickAuth()
   const [isReady, setIsReady] = useState(false)
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [formData, setFormData] = useState(() => {
@@ -62,8 +62,8 @@ export default function CreateBotPage() {
         } else {
           console.log('Not running in Mini App environment')
         }
-      } catch (error) {
-        console.error('Error initializing page:', error)
+      } catch (err) {
+        console.error('Error initializing page:', err)
         setIsReady(true)
       }
     }
@@ -92,38 +92,6 @@ export default function CreateBotPage() {
       setFormData(prev => ({
         ...prev,
         ethAmount: '0.0001'
-      }))
-    }
-  }
-
-  const handlePercentageBlur = (field: 'profitShare' | 'profitThreshold', defaultValue: string) => {
-    const value = formData[field]
-
-    // If empty, set to default
-    if (value === '' || value === undefined) {
-      setFormData(prev => ({
-        ...prev,
-        [field]: defaultValue
-      }))
-      return
-    }
-
-    const numValue = parseFloat(value)
-    if (!isNaN(numValue)) {
-      // Truncate to whole number
-      let correctedValue = Math.floor(numValue)
-      if (correctedValue < 0) correctedValue = 0
-      if (correctedValue > 100) correctedValue = 100
-
-      setFormData(prev => ({
-        ...prev,
-        [field]: correctedValue.toString()
-      }))
-    } else {
-      // If not a valid number, set to default
-      setFormData(prev => ({
-        ...prev,
-        [field]: defaultValue
       }))
     }
   }
@@ -313,8 +281,8 @@ export default function CreateBotPage() {
         // Scroll to top to show error
         window.scrollTo({ top: 0, behavior: 'smooth' })
       }
-    } catch (error) {
-      console.error('Error creating bot:', error)
+    } catch (err) {
+      console.error('Error creating bot:', err)
       setSubmitError('An unexpected error occurred. Please try again.')
       // Scroll to top to show error
       window.scrollTo({ top: 0, behavior: 'smooth' })
@@ -512,5 +480,13 @@ export default function CreateBotPage() {
       {/* Bottom Navigation */}
       <BottomNavigation activeTab="my-bots" />
     </div>
+  )
+}
+
+export default function CreateBotPage() {
+  return (
+    <Suspense fallback={<div style={styles.loadingContainerLight}><p style={{ color: colors.white }}>Loading...</p></div>}>
+      <CreateBotContent />
+    </Suspense>
   )
 }
