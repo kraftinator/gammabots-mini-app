@@ -48,7 +48,7 @@ export default function LeaderboardPage() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState('all')
-  const [timePeriod, setTimePeriod] = useState('all-time')
+  const [timePeriod, setTimePeriod] = useState('all_time')
 
   useEffect(() => {
     const initSdk = async () => {
@@ -68,7 +68,7 @@ export default function LeaderboardPage() {
         setLoading(true)
         setError(null)
 
-        const response = await fetch('/api/leaderboard')
+        const response = await fetch(`/api/leaderboard?timeframe=${timePeriod}`)
 
         if (!response.ok) {
           throw new Error('Failed to fetch leaderboard')
@@ -86,7 +86,7 @@ export default function LeaderboardPage() {
     }
 
     fetchLeaderboard()
-  }, [])
+  }, [timePeriod])
 
   // Client-side search filtering
   const filteredBots = useMemo(() => {
@@ -192,8 +192,8 @@ export default function LeaderboardPage() {
             }}
           >
             <option value="all">All Bots</option>
-            <option value="strategy">By Strategy</option>
-            <option value="token">By Token</option>
+            <option value="strategy" disabled>By Strategy</option>
+            <option value="token" disabled>By Token</option>
           </select>
           <select
             value={timePeriod}
@@ -211,9 +211,9 @@ export default function LeaderboardPage() {
               outline: 'none',
             }}
           >
-            <option value="all-time">All-time</option>
-            <option value="7-days">Last 7 days</option>
-            <option value="30-days">Last 30 days</option>
+            <option value="all_time">All-time</option>
+            <option value="7d">Last 7 days</option>
+            <option value="30d">Last 30 days</option>
           </select>
         </div>
       </div>

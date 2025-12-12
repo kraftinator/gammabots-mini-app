@@ -15,7 +15,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const url = `${apiUrl}/leaderboard/bots`
+    const { searchParams } = new URL(request.url)
+    const timeframe = searchParams.get('timeframe') || 'all_time'
+    const url = `${apiUrl}/leaderboard/bots?timeframe=${timeframe}`
 
     const response = await fetch(url, {
       method: 'GET',
