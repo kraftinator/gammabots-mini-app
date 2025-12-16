@@ -303,7 +303,7 @@ function CreateBotContent() {
     <div style={styles.formContainer}>
       {/* Back Link */}
       <button
-        onClick={() => router.push('/my-bots')}
+        onClick={() => router.push(searchParams.get('from') === 'strategies' ? '/strategies' : '/my-bots')}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -321,7 +321,7 @@ function CreateBotContent() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M15 18l-6-6 6-6" />
         </svg>
-        My Bots
+        {searchParams.get('from') === 'strategies' ? 'Strategies' : 'My Bots'}
       </button>
 
       {/* Header */}

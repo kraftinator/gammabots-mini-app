@@ -86,6 +86,7 @@ interface StrategyStep {
 interface StrategyData {
   id: string
   strategy_id: string
+  creator_address: string
   owner_address: string
   compressed_strategy: string
   user_friendly_strategy: string
@@ -1150,12 +1151,59 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
                       }
                     })()}
 
+                    {/* Creator */}
+                    <div style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '12px 16px 4px 16px',
+                    }}>
+                      <span style={{
+                        fontSize: '13px',
+                        color: '#888',
+                      }}>
+                        Creator
+                      </span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <a
+                          href={`https://basescan.org/address/${strategyData.creator_address}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            fontSize: '13px',
+                            fontFamily: 'ui-monospace, monospace',
+                            color: '#14b8a6',
+                            textDecoration: 'none',
+                          }}
+                        >
+                          {strategyData.creator_address.slice(0, 6)}...{strategyData.creator_address.slice(-4)}
+                        </a>
+                        <button
+                          onClick={() => navigator.clipboard.writeText(strategyData.creator_address)}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '4px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                          }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                          </svg>
+                        </button>
+                      </div>
+                    </div>
+
                     {/* Owner */}
                     <div style={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
-                      padding: '12px 16px',
+                      padding: '4px 16px 12px 16px',
                     }}>
                       <span style={{
                         fontSize: '13px',

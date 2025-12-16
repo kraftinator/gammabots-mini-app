@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { getProfitColor } from '@/styles/common'
 import BottomNavigation from '@/components/BottomNavigation'
+import StrategyDetailModal from '@/components/modals/StrategyDetailModal'
 import { formatDistanceToNow } from 'date-fns'
 
 interface Strategy {
@@ -25,6 +26,7 @@ export default function StrategiesPage() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('performance')
+  const [selectedStrategyId, setSelectedStrategyId] = useState<string | null>(null)
 
   useEffect(() => {
     const initSdk = async () => {
@@ -116,7 +118,7 @@ export default function StrategiesPage() {
       return
     }
 
-    router.push(`/my-bots/create?strategy_id=${strategy.strategy_id}`)
+    router.push(`/my-bots/create?strategy_id=${strategy.strategy_id}&from=strategies`)
   }
 
   // Format created date
@@ -272,11 +274,13 @@ export default function StrategiesPage() {
             {filteredAndSortedStrategies.map((strategy, index) => (
               <div
                 key={`${strategy.strategy_id}-${strategy.creator_address}-${index}`}
+                onClick={() => setSelectedStrategyId(strategy.strategy_id)}
                 style={{
                   backgroundColor: '#fff',
                   borderRadius: '12px',
                   padding: '16px',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                  cursor: 'pointer',
                 }}
               >
                 {/* Header Row */}
@@ -372,6 +376,12 @@ export default function StrategiesPage() {
       </div>
 
       <BottomNavigation activeTab="strategies" />
+
+      <StrategyDetailModal
+        isOpen={selectedStrategyId !== null}
+        onClose={() => setSelectedStrategyId(null)}
+        strategyId={selectedStrategyId}
+      />
     </div>
   )
 }
