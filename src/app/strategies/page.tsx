@@ -1,120 +1,374 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
+import { getProfitColor } from '@/styles/common'
 import BottomNavigation from '@/components/BottomNavigation'
-import { styles } from '@/styles/common'
+import { formatDistanceToNow } from 'date-fns'
+
+interface Strategy {
+  strategy_id: string
+  creator_address: string
+  creator_handle?: string
+  created_at: string
+  bots_count: number
+  performance_pct?: number
+}
 
 export default function StrategiesPage() {
   const router = useRouter()
-  const { authLoading, authError, authenticate, clearAuthError } = useQuickAuth()
-  const [token, setToken] = useState<string | null>(null)
+  const { authenticate } = useQuickAuth()
+  const [strategies, setStrategies] = useState<Strategy[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    const initAuth = async () => {
-      const authToken = await authenticate()
-      if (authToken) {
-        setToken(authToken)
-      }
-    }
-
-    initAuth()
-  }, [authenticate])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [sortBy, setSortBy] = useState('performance')
 
   useEffect(() => {
     const initSdk = async () => {
       try {
         const { sdk } = await import('@farcaster/miniapp-sdk')
         await sdk.actions.ready()
-      } catch (error) {
-        console.error('Failed to initialize SDK:', error)
+      } catch (err) {
+        console.error('Failed to initialize SDK:', err)
       }
     }
-
     initSdk()
   }, [])
 
-  const handleCreateStrategy = () => {
+  useEffect(() => {
+    const fetchStrategies = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+
+        const response = await fetch('/api/strategies')
+
+        if (!response.ok) {
+          throw new Error('Failed to fetch strategies')
+        }
+
+        const data = await response.json()
+        console.log('Strategies API response:', data)
+        setStrategies(Array.isArray(data) ? data : data.strategies || [])
+      } catch (err) {
+        console.error('Error fetching strategies:', err)
+        setError('Failed to load strategies')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchStrategies()
+  }, [])
+
+  // Client-side search filtering and sorting
+  const filteredAndSortedStrategies = useMemo(() => {
+    let filtered = strategies
+
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = strategies.filter(strategy =>
+        strategy.strategy_id?.toLowerCase().includes(query) ||
+        strategy.creator_handle?.toLowerCase().includes(query)
+      )
+    }
+
+    // Sort
+    return [...filtered].sort((a, b) => {
+      switch (sortBy) {
+        case 'id':
+          return parseInt(a.strategy_id) - parseInt(b.strategy_id)
+        case 'bots':
+          return (Number(b.bots_count) || 0) - (Number(a.bots_count) || 0)
+        case 'performance':
+          return (Number(b.performance_pct) || 0) - (Number(a.performance_pct) || 0)
+        case 'newest':
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+        case 'oldest':
+          return new Date(a.created_at).getTime() - new Date(b.created_at).getTime()
+        case 'creator':
+          return (a.creator_handle || '').localeCompare(b.creator_handle || '')
+        default:
+          return 0
+      }
+    })
+  }, [strategies, searchQuery, sortBy])
+
+  // Handle Create Strategy - requires auth
+  const handleCreateStrategy = async () => {
+    const token = await authenticate()
+    if (!token) {
+      return
+    }
     router.push('/strategies/create')
   }
 
-  if (authLoading) {
-    return (
-      <div style={styles.formContainer}>
-        <div style={{ textAlign: 'center', padding: '50px 20px' }}>
-          <div style={{ fontSize: '16px', color: '#666' }}>Loading...</div>
-        </div>
-        <BottomNavigation activeTab="strategies" />
-      </div>
-    )
+  // Handle Create Bot - requires auth
+  const handleCreateBot = async (strategy: Strategy, e: React.MouseEvent) => {
+    e.stopPropagation()
+
+    const token = await authenticate()
+    if (!token) {
+      return
+    }
+
+    router.push(`/my-bots/create?strategy_id=${strategy.strategy_id}`)
   }
 
-  if (authError) {
-    return (
-      <div style={styles.formContainer}>
-        <div style={styles.errorCard}>
-          <div style={styles.errorTitle}>Authentication Error</div>
-          <div style={styles.errorText}>{authError}</div>
-          <button 
-            onClick={clearAuthError}
-            style={{
-              ...styles.submitButton,
-              marginTop: '16px'
-            }}
-          >
-            Try Again
-          </button>
-        </div>
-        <BottomNavigation activeTab="strategies" />
-      </div>
-    )
-  }
-
-  if (!token) {
-    return (
-      <div style={styles.formContainer}>
-        <div style={{ textAlign: 'center', padding: '50px 20px' }}>
-          <div style={{ fontSize: '16px', color: '#666' }}>Authentication required</div>
-        </div>
-        <BottomNavigation activeTab="strategies" />
-      </div>
-    )
+  // Format created date
+  const formatCreatedDate = (dateString: string): string => {
+    try {
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true })
+    } catch {
+      return 'Unknown'
+    }
   }
 
   return (
-    <div style={styles.formContainer}>
-      {/* Header */}
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#f5f5f5',
+      display: 'flex',
+      flexDirection: 'column',
+      paddingBottom: '80px'
+    }}>
+      {/* Header - Title + Create Strategy (scrolls away) */}
       <div style={{
-        backgroundColor: 'white',
-        padding: '20px 20px 20px',
-        marginBottom: '0'
+        padding: '16px 16px 12px 16px',
+        backgroundColor: '#fff',
       }}>
-        <h1 style={styles.formTitle}>Strategies</h1>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <h1 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#1a1a1a',
+            margin: 0,
+          }}>
+            Strategies
+          </h1>
+          <button
+            onClick={handleCreateStrategy}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: '#14b8a6',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '20px',
+              padding: '8px 16px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Create Strategy
+          </button>
+        </div>
       </div>
 
-      {/* Main Content */}
+      {/* Sticky Controls - Search + Sort */}
       <div style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '40px 20px',
-        minHeight: '400px'
+        position: 'sticky',
+        top: 0,
+        zIndex: 10,
+        backgroundColor: '#fff',
+        padding: '12px 16px',
+        boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
       }}>
-        <button
-          onClick={handleCreateStrategy}
+        {/* Search */}
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          backgroundColor: '#f5f5f5',
+          borderRadius: '10px',
+          padding: '10px 14px',
+          marginBottom: '12px',
+        }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+            <circle cx="11" cy="11" r="8" />
+            <path d="M21 21l-4.35-4.35" />
+          </svg>
+          <input
+            type="text"
+            placeholder="Search strategies..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            style={{
+              flex: 1,
+              border: 'none',
+              background: 'none',
+              marginLeft: '10px',
+              fontSize: '14px',
+              outline: 'none',
+              color: '#333',
+            }}
+          />
+        </div>
+
+        {/* Sort */}
+        <select
+          value={sortBy}
+          onChange={(e) => setSortBy(e.target.value)}
           style={{
-            ...styles.submitButton,
-            fontSize: '18px',
-            fontWeight: '600',
-            padding: '16px 32px',
-            minWidth: '200px'
+            width: '100%',
+            padding: '10px 12px',
+            fontSize: '13px',
+            fontWeight: '500',
+            color: '#333',
+            backgroundColor: '#fff',
+            border: '1px solid #e5e5e5',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            outline: 'none',
           }}
         >
-          Create Strategy
-        </button>
+          <option value="id">Sort by ID</option>
+          <option value="bots"># of Bots</option>
+          <option value="performance">Performance</option>
+          <option value="newest">Newest</option>
+          <option value="oldest">Oldest</option>
+          <option value="creator">Creator</option>
+        </select>
+      </div>
+
+      {/* Strategy List */}
+      <div style={{
+        flex: 1,
+        overflow: 'auto',
+        padding: '12px 16px',
+      }}>
+        {loading && (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#888' }}>
+            Loading...
+          </div>
+        )}
+
+        {error && (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#ef4444' }}>
+            {error}
+          </div>
+        )}
+
+        {!loading && !error && filteredAndSortedStrategies.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '40px 20px', color: '#888' }}>
+            No strategies found
+          </div>
+        )}
+
+        {!loading && !error && filteredAndSortedStrategies.length > 0 && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+            {filteredAndSortedStrategies.map((strategy, index) => (
+              <div
+                key={`${strategy.strategy_id}-${strategy.creator_address}-${index}`}
+                style={{
+                  backgroundColor: '#fff',
+                  borderRadius: '12px',
+                  padding: '16px',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                }}
+              >
+                {/* Header Row */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '12px',
+                }}>
+                  <div>
+                    {/* Strategy ID Pill */}
+                    <span style={{
+                      backgroundColor: '#e0f7f5',
+                      color: '#14b8a6',
+                      fontWeight: '700',
+                      padding: '4px 10px',
+                      borderRadius: '6px',
+                      fontSize: '14px',
+                      minWidth: '76px',
+                      textAlign: 'center',
+                      display: 'inline-block',
+                    }}>
+                      #{strategy.strategy_id}
+                    </span>
+                    {/* Creator */}
+                    <div style={{ fontSize: '13px', color: '#666', marginTop: '6px' }}>
+                      by @{strategy.creator_handle || 'unknown'}
+                    </div>
+                  </div>
+                  {/* Create Bot Button */}
+                  <button
+                    onClick={(e) => handleCreateBot(strategy, e)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '5px',
+                      background: '#f5f5f5',
+                      border: '1px solid #e5e5e5',
+                      fontSize: '11px',
+                      color: '#666',
+                      fontWeight: '500',
+                      cursor: 'pointer',
+                      padding: '3px 10px',
+                      borderRadius: '14px',
+                      flexShrink: 0,
+                    }}
+                  >
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+                      <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    Create Bot
+                  </button>
+                </div>
+
+                {/* Content */}
+                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                  {/* Left side - details */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', fontSize: '13px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
+                      <span style={{ fontSize: '13px', color: '#adadad', width: '65px', fontWeight: '400', flexShrink: 0 }}>Bots:</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1e' }}>
+                        {Number(strategy.bots_count) || 0}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
+                      <span style={{ fontSize: '13px', color: '#adadad', width: '65px', fontWeight: '400', flexShrink: 0 }}>Created:</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1e' }}>
+                        {formatCreatedDate(strategy.created_at)}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Right side - performance (only show if not null) */}
+                  {strategy.performance_pct != null && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '4px', marginTop: '2px' }}>
+                      <span style={{
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        color: getProfitColor(Number(strategy.performance_pct) || 0),
+                      }}>
+                        {Number(strategy.performance_pct) > 0 ? '+' : ''}{Number(strategy.performance_pct || 0).toFixed(2)}%
+                      </span>
+                      <span style={{ fontSize: '13px', color: '#888' }}>
+                        avg
+                      </span>
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       <BottomNavigation activeTab="strategies" />

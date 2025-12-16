@@ -1,14 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth, callExternalAPI } from '@/lib/apiAuth'
 
-export const GET = withAuth(async (request: NextRequest, auth) => {
-  console.log('Strategies API called with authenticated token:', auth.token.slice(0, 20), '...')
+export async function GET(request: NextRequest) {
+  console.log('Strategies API called (public)')
 
-  // Construct the URL
-  const url = `${auth.apiUrl}/strategies`
-  
+  const apiUrl = process.env.GAMMABOTS_API_URL
+  const apiKey = process.env.GAMMABOTS_API_KEY
+
+  if (!apiUrl || !apiKey) {
+    console.error('Missing Gammabots API configuration')
+    return NextResponse.json(
+      { error: 'API configuration missing' },
+      { status: 500 }
+    )
+  }
+
   try {
-    const response = await callExternalAPI(url, auth)
+    const url = `${apiUrl}/strategies`
+
+    const response = await fetch(url, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'X-API-Key': apiKey
+      }
+    })
 
     if (!response.ok) {
       console.error('Gammabots API error:', response.status, response.statusText)
@@ -19,9 +35,9 @@ export const GET = withAuth(async (request: NextRequest, auth) => {
     }
 
     const strategiesData = await response.json()
-    console.log('✅ Strategies data received and returned successfully')
+    console.log('✅ Strategies data received successfully')
     return NextResponse.json(strategiesData)
-    
+
   } catch (error) {
     console.error('Error in strategies API:', error)
     return NextResponse.json(
@@ -29,7 +45,7 @@ export const GET = withAuth(async (request: NextRequest, auth) => {
       { status: 500 }
     )
   }
-})
+}
 
 export const POST = withAuth(async (request: NextRequest, auth) => {
   console.log('Create Strategy API called with authenticated token:', auth.token.slice(0, 20), '...')
