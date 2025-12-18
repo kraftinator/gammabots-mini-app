@@ -145,7 +145,7 @@ export default function CreateStrategyPage() {
             color: '#666',
             margin: '0 0 4px 0',
           }}>
-            Visually build rules and actions
+            Visually build your trading strategy
           </p>
           <p style={{
             fontSize: '13px',
