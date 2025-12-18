@@ -269,7 +269,9 @@ export const styles = {
     minHeight: "100vh",
     backgroundColor: colors.background.primary,
     color: colors.text.primary,
-    padding: "20px",
+    paddingTop: "20px",
+    paddingLeft: "20px",
+    paddingRight: "20px",
     paddingBottom: "80px"
   },
 

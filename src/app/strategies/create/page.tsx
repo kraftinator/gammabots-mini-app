@@ -1,275 +1,213 @@
 'use client'
 
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { useQuickAuth } from '@/hooks/useQuickAuth'
 import BottomNavigation from '@/components/BottomNavigation'
-import { styles } from '@/styles/common'
+import { colors } from '@/styles/common'
 
 export default function CreateStrategyPage() {
   const router = useRouter()
-  const { authLoading, authError, authenticate, clearAuthError } = useQuickAuth()
-  const [token, setToken] = useState<string | null>(null)
-  const [isReady, setIsReady] = useState(false)
-  const [strategyData, setStrategyData] = useState('')
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [submitError, setSubmitError] = useState<string | null>(null)
 
   useEffect(() => {
     async function initializePage() {
       try {
         const { sdk } = await import('@farcaster/miniapp-sdk')
-        
         await sdk.actions.ready()
-        console.log('Create Strategy page is ready!')
       } catch (error) {
         console.error('Error initializing page:', error)
-        setIsReady(true)
       }
     }
-
     initializePage()
   }, [])
 
-  useEffect(() => {
-    const initAuth = async () => {
-      const authToken = await authenticate()
-      if (authToken) {
-        setToken(authToken)
-      }
-    }
-
-    initAuth()
-  }, [authenticate])
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    if (!strategyData.trim()) {
-      setSubmitError('Strategy is required')
-      return
-    }
-
-    if (strategyData.length > 5000) {
-      setSubmitError('Strategy must be 5000 characters or less')
-      return
-    }
-
-    if (!token) {
-      setSubmitError('Authentication required')
-      return
-    }
-
-    setIsSubmitting(true)
-    setSubmitError(null)
-
-    try {
-      // First, validate the strategy
-      const response = await fetch('/api/strategies/validate', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
-        body: JSON.stringify({
-          strategy: strategyData
-        })
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.message || 'Failed to validate strategy')
-      }
-
-      const result = await response.json()
-      console.log('Strategy validated successfully:', result)
-
-      // If strategy is valid, mint the NFT
-      if (result.valid) {
-        try {
-          const { sdk } = await import('@farcaster/miniapp-sdk')
-          const { encodeMintStrategy, STRATEGY_NFT_CONTRACT } = await import('@/contracts')
-
-          // Check if we're in Mini App environment
-          const inMiniApp = await sdk.isInMiniApp()
-          if (!inMiniApp) {
-            console.warn('Not in Mini App environment, skipping NFT minting')
-            router.push('/strategies')
-            return
-          }
-
-          // Get the user's account
-          const accounts = await sdk.wallet.ethProvider.request({
-            method: 'eth_requestAccounts',
-          })
-          
-          if (!accounts || accounts.length === 0) {
-            throw new Error('No wallet accounts available')
-          }
-
-          // Encode the contract call data
-          //const data = encodeMintStrategy('test2')
-          const data = encodeMintStrategy(result.compressed || strategyData)
-
-          // Send the mint transaction
-          const txHash = await sdk.wallet.ethProvider.request({
-            method: 'eth_sendTransaction',
-            params: [{
-              from: accounts[0],
-              to: STRATEGY_NFT_CONTRACT,
-              data: data,
-            }]
-          })
-          
-          console.log('Strategy NFT minted successfully:', txHash)
-          
-          // Send transaction hash to backend to register the strategy creation
-          try {
-            await fetch('/api/strategies', {
-              method: 'POST',
-              headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
-              },
-              body: JSON.stringify({
-                mint_tx_hash: txHash
-              })
-            })
-            console.log('Strategy creation registered with backend')
-          } catch (backendError) {
-            console.error('Failed to register strategy with backend:', backendError)
-            // Don't fail the whole process if backend call fails
-          }
-          
-        } catch (mintError) {
-          console.error('NFT minting failed:', mintError)
-          setSubmitError('Strategy validated but NFT minting failed. Please try again.')
-          return
-        }
-      } else {
-        setSubmitError('Strategy validation failed')
-        return
-      }
-      
-      // Redirect to strategies page
-      router.push('/strategies')
-
-    } catch (error) {
-      console.error('Error creating strategy:', error)
-      setSubmitError(error instanceof Error ? error.message : 'Failed to create strategy')
-    } finally {
-      setIsSubmitting(false)
-    }
-  }
-
-  if (authLoading) {
-    return (
-      <div style={styles.formContainer}>
-        <div style={{ textAlign: 'center', padding: '50px 20px' }}>
-          <div style={{ fontSize: '16px', color: '#666' }}>Loading...</div>
-        </div>
-        <BottomNavigation activeTab="strategies" />
-      </div>
-    )
-  }
-
-  if (authError) {
-    return (
-      <div style={styles.formContainer}>
-        <div style={styles.errorCard}>
-          <div style={styles.errorTitle}>Authentication Error</div>
-          <div style={styles.errorText}>{authError}</div>
-          <button 
-            onClick={clearAuthError}
-            style={{
-              ...styles.submitButton,
-              marginTop: '16px'
-            }}
-          >
-            Try Again
-          </button>
-        </div>
-        <BottomNavigation activeTab="strategies" />
-      </div>
-    )
-  }
-
-  if (!token) {
-    return (
-      <div style={styles.formContainer}>
-        <div style={{ textAlign: 'center', padding: '50px 20px' }}>
-          <div style={{ fontSize: '16px', color: '#666' }}>Authentication required</div>
-        </div>
-        <BottomNavigation activeTab="strategies" />
-      </div>
-    )
-  }
-
   return (
-    <div style={styles.formContainer}>
+    <div style={{
+      minHeight: '100vh',
+      backgroundColor: '#f5f5f5',
+      display: 'flex',
+      flexDirection: 'column',
+      paddingBottom: '80px',
+    }}>
       {/* Header */}
-      <div style={styles.formHeader}>
-        <div>
-          <h1 style={styles.formTitle}>
-            Create Strategy
-          </h1>
-          <p style={styles.formSubtitle}>
-            Set up your new trading strategy
-          </p>
-        </div>
+      <div style={{
+        padding: '16px 16px 12px 16px',
+        backgroundColor: '#fff',
+      }}>
+        {/* Back Link */}
+        <button
+          onClick={() => router.push('/strategies')}
+          style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '4px',
+            background: 'none',
+            border: 'none',
+            padding: '0',
+            marginBottom: '12px',
+            cursor: 'pointer',
+            color: colors.primary,
+            fontSize: '14px',
+            fontWeight: '500',
+          }}
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+          Strategies
+        </button>
+
+        <h1 style={{
+          fontSize: '24px',
+          fontWeight: '700',
+          color: '#1a1a1a',
+          margin: 0,
+        }}>
+          Create Strategy
+        </h1>
+        <p style={{
+          fontSize: '14px',
+          color: '#666',
+          margin: '4px 0 0 0',
+        }}>
+          Choose how you want to build your strategy
+        </p>
       </div>
 
-      {/* Form */}
-      <form onSubmit={handleSubmit}>
-        <div style={styles.formCard}>
-          <div style={styles.formGroup}>
-            <label style={styles.formLabel}>
-              Strategy
-            </label>
-            <textarea
-              value={strategyData}
-              onChange={(e) => setStrategyData(e.target.value)}
-              placeholder='{"c":"bcn==0 && crt>60","a":["deact force"]},{"c":"bcn==0 && cpr>ppr","a":["buy init"]},{"c":"bcn>0 && cpr>ibp*1.2 && cma<lma","a":["sell all","deact"]}'
-              style={{
-                ...styles.formInput,
-                minHeight: '200px',
-                resize: 'vertical' as const,
-                fontFamily: 'monospace',
-                fontSize: '14px'
-              }}
-              required
-            />
+      {/* Selection Cards */}
+      <div style={{
+        flex: 1,
+        padding: '16px',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '16px',
+      }}>
+        {/* Use Builder Card */}
+        <style>{`
+          .create-card {
+            background-color: #fff;
+            border-radius: 16px;
+            padding: 24px;
+            border: 2px solid #e5e5e5;
+            cursor: pointer;
+            text-align: left;
+            transition: background-color 0.15s, border-color 0.15s;
+          }
+          .create-card:hover {
+            background-color: #fafafa;
+          }
+          .create-card:active {
+            background-color: #f5f5f5;
+          }
+          .create-card-builder:hover {
+            border-color: #14b8a6;
+          }
+          .create-card-gammascript:hover {
+            border-color: #8b5cf6;
+          }
+        `}</style>
+        <button
+          className="create-card create-card-builder"
+          onClick={() => router.push('/strategies/create/builder')}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '8px',
+          }}>
             <div style={{
-              fontSize: '12px',
-              color: strategyData.length > 5000 ? '#ff3b30' : '#8e8e93',
-              marginTop: '4px'
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              backgroundColor: '#e0f7f5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}>
-              {strategyData.length} / 5000 characters maximum
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
             </div>
+            <h2 style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              color: '#1a1a1a',
+              margin: 0,
+            }}>
+              Use Builder
+            </h2>
           </div>
+          <p style={{
+            fontSize: '14px',
+            color: '#666',
+            margin: '0 0 4px 0',
+          }}>
+            Visually build rules and actions
+          </p>
+          <p style={{
+            fontSize: '13px',
+            color: '#14b8a6',
+            fontWeight: '600',
+            margin: 0,
+          }}>
+            Best for most users
+          </p>
+        </button>
 
-          {submitError && (
+        {/* Write GammaScript Card */}
+        <button
+          className="create-card create-card-gammascript"
+          onClick={() => router.push('/strategies/create/gammascript')}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '8px',
+          }}>
             <div style={{
-              ...styles.errorCard,
-              margin: '16px 0'
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              backgroundColor: '#f3e8ff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
             }}>
-              <div style={styles.errorText}>{submitError}</div>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2">
+                <polyline points="16 18 22 12 16 6" />
+                <polyline points="8 6 2 12 8 18" />
+              </svg>
             </div>
-          )}
-
-          <button
-            type="submit"
-            disabled={isSubmitting || strategyData.length > 5000}
-            style={{
-              ...styles.submitButton,
-              opacity: isSubmitting || strategyData.length > 5000 ? 0.6 : 1,
-              cursor: isSubmitting || strategyData.length > 5000 ? 'not-allowed' : 'pointer'
-            }}
-          >
-            {isSubmitting ? 'Validating & Minting NFT...' : 'Create Strategy'}
-          </button>
-        </div>
-      </form>
+            <h2 style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              color: '#1a1a1a',
+              margin: 0,
+            }}>
+              Write GammaScript
+            </h2>
+          </div>
+          <p style={{
+            fontSize: '14px',
+            color: '#666',
+            margin: '0 0 4px 0',
+          }}>
+            Write or paste GammaScript JSON
+          </p>
+          <p style={{
+            fontSize: '13px',
+            color: '#8b5cf6',
+            fontWeight: '600',
+            margin: 0,
+          }}>
+            Advanced users only
+          </p>
+        </button>
+      </div>
 
       <BottomNavigation activeTab="strategies" />
     </div>
