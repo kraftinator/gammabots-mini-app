@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 
 // Variable mappings (human-readable to abbreviated)
 const VAR_MAPPINGS: Record<string, string> = {
@@ -91,6 +91,8 @@ interface StrategyBuilderProps {
 export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderProps) {
   const [previewMode, setPreviewMode] = useState<'readable' | 'raw'>('readable')
   const [focusedCondition, setFocusedCondition] = useState<{ stepId: number; condId: number } | null>(null)
+  const [openMenuRuleId, setOpenMenuRuleId] = useState<number | null>(null)
+  const menuRef = useRef<HTMLDivElement>(null)
   const [rules, setRules] = useState<Rule[]>([
     {
       id: 1,
@@ -132,9 +134,6 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
         if (a.type === 'sell' && a.param) {
           return `sell ${a.param}`
         }
-        if (a.type === 'sell all') {
-          return 'sell 1'
-        }
         return a.type
       })
   }
@@ -151,7 +150,7 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
   // Generate raw format
   const generateRaw = (): string => {
     const ruleObjs = rules.map(rule => {
-      const condStr = generateConditionStr(rule, true)
+      const condStr = generateConditionStr(rule, false)
       const actions = generateActionsArr(rule)
       return { c: condStr, a: actions }
     })
@@ -184,6 +183,19 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
     const rawScript = generateRaw()
     onStrategyChange?.(rawScript, isFormValid)
   }, [rules, isFormValid])
+
+  // Close menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setOpenMenuRuleId(null)
+      }
+    }
+    if (openMenuRuleId !== null) {
+      document.addEventListener('mousedown', handleClickOutside)
+    }
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [openMenuRuleId])
 
   // Rule management
   const addRule = () => {
@@ -347,36 +359,93 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
                 }}>
                   Rule {ruleIndex + 1}
                 </span>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  {ruleIndex > 0 && (
-                    <button
-                      onClick={() => moveRule(rule.id, 'up')}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-                        <path d="M18 15l-6-6-6 6" />
-                      </svg>
-                    </button>
-                  )}
-                  {ruleIndex < rules.length - 1 && (
-                    <button
-                      onClick={() => moveRule(rule.id, 'down')}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-                        <path d="M6 9l6 6 6-6" />
-                      </svg>
-                    </button>
-                  )}
-                  {rules.length > 1 && (
-                    <button
-                      onClick={() => removeRule(rule.id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
-                    >
-                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2">
-                        <path d="M3 6h18M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2" />
-                      </svg>
-                    </button>
+                <div style={{ position: 'relative' }} ref={openMenuRuleId === rule.id ? menuRef : null}>
+                  <button
+                    onClick={() => setOpenMenuRuleId(openMenuRuleId === rule.id ? null : rule.id)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      cursor: 'pointer',
+                      padding: '4px 8px',
+                      fontSize: '18px',
+                      color: '#888',
+                      lineHeight: 1,
+                    }}
+                  >
+                    ⋮
+                  </button>
+                  {openMenuRuleId === rule.id && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '100%',
+                      right: 0,
+                      backgroundColor: '#fff',
+                      borderRadius: '8px',
+                      boxShadow: '0 2px 10px rgba(0,0,0,0.15)',
+                      minWidth: '140px',
+                      zIndex: 10,
+                      overflow: 'hidden',
+                    }}>
+                      <button
+                        onClick={() => {
+                          moveRule(rule.id, 'up')
+                          setOpenMenuRuleId(null)
+                        }}
+                        disabled={ruleIndex === 0}
+                        style={{
+                          width: '100%',
+                          padding: '6px 12px',
+                          border: 'none',
+                          background: 'none',
+                          textAlign: 'left',
+                          fontSize: '13px',
+                          color: ruleIndex === 0 ? '#ccc' : '#333',
+                          cursor: ruleIndex === 0 ? 'default' : 'pointer',
+                        }}
+                      >
+                        Move up
+                      </button>
+                      <button
+                        onClick={() => {
+                          moveRule(rule.id, 'down')
+                          setOpenMenuRuleId(null)
+                        }}
+                        disabled={ruleIndex === rules.length - 1}
+                        style={{
+                          width: '100%',
+                          padding: '6px 12px',
+                          border: 'none',
+                          background: 'none',
+                          textAlign: 'left',
+                          fontSize: '13px',
+                          color: ruleIndex === rules.length - 1 ? '#ccc' : '#333',
+                          cursor: ruleIndex === rules.length - 1 ? 'default' : 'pointer',
+                        }}
+                      >
+                        Move down
+                      </button>
+                      {rules.length > 1 && (
+                        <button
+                          onClick={() => {
+                            removeRule(rule.id)
+                            setOpenMenuRuleId(null)
+                          }}
+                          style={{
+                            width: '100%',
+                            padding: '6px 12px',
+                            border: 'none',
+                            background: 'none',
+                            textAlign: 'left',
+                            fontSize: '13px',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            borderTop: '1px solid #f0f0f0',
+                          }}
+                        >
+                          Delete rule
+                        </button>
+                      )}
+                    </div>
                   )}
                 </div>
               </div>
@@ -573,8 +642,20 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
                           <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '4px' }}>
                             <input
                               type="text"
+                              inputMode="decimal"
                               value={cond.rightValue}
-                              onChange={(e) => updateCondition(rule.id, cond.id, 'rightValue', e.target.value)}
+                              onChange={(e) => {
+                                const val = e.target.value
+                                if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
+                                  updateCondition(rule.id, cond.id, 'rightValue', val)
+                                }
+                              }}
+                              onBlur={(e) => {
+                                const val = e.target.value
+                                if (val.startsWith('.')) {
+                                  updateCondition(rule.id, cond.id, 'rightValue', '0' + val)
+                                }
+                              }}
                               placeholder="Enter number"
                               style={{
                                 width: '100%',
@@ -637,8 +718,20 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
                                   <span style={{ fontSize: '13px', color: '#888' }}>×</span>
                                   <input
                                     type="text"
+                                    inputMode="decimal"
                                     value={cond.rightMultiplier || ''}
-                                    onChange={(e) => updateCondition(rule.id, cond.id, 'rightMultiplier', e.target.value)}
+                                    onChange={(e) => {
+                                      const val = e.target.value
+                                      if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
+                                        updateCondition(rule.id, cond.id, 'rightMultiplier', val)
+                                      }
+                                    }}
+                                    onBlur={(e) => {
+                                      const val = e.target.value
+                                      if (val.startsWith('.')) {
+                                        updateCondition(rule.id, cond.id, 'rightMultiplier', '0' + val)
+                                      }
+                                    }}
                                     placeholder="1.0"
                                     style={{
                                       width: '66px',
@@ -885,14 +978,14 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
                         <div style={{ display: 'flex', marginTop: '-2px', fontSize: '12px' }}>
                           <span style={{ flexShrink: 0, color: '#9ca3af', fontSize: '13px' }}>&nbsp;&nbsp;&nbsp;</span>
                           <span style={{ flexShrink: 0, color: 'rgba(139, 92, 246, 0.7)' }}>a:&nbsp;</span>
-                          <span>{actions.map(a => a === 'sell 1' ? 'sell all' : a).join(', ') || '...'}</span>
+                          <span>{actions.join(', ') || '...'}</span>
                         </div>
                       </div>
                     )
                   })}
                 </div>
               ) : (
-                <div style={{ whiteSpace: 'pre-wrap', wordBreak: 'break-word', fontSize: '12px' }}>
+                <div style={{ whiteSpace: 'pre', overflowX: 'auto', fontSize: '12px' }}>
                   {gammaScript || '[[condition,action]]'}
                 </div>
               )}

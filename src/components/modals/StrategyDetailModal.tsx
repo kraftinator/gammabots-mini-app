@@ -119,7 +119,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId }: Str
     const token = await authenticate()
     if (!token) return
 
-    router.push(`/strategies/create?strategy=${encodeURIComponent(stats.compressed_strategy)}`)
+    router.push(`/strategies/create?strategy=${encodeURIComponent(stats.user_friendly_strategy)}`)
     onClose()
   }
 
@@ -392,7 +392,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId }: Str
                           padding: '0',
                         }}
                       >
-                        Logic
+                        Readable
                       </button>
                       <span style={{ fontSize: '13px', color: '#ccc' }}>|</span>
                       <button
@@ -407,60 +407,48 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId }: Str
                           padding: '0',
                         }}
                       >
-                        GammaScript
+                        Raw
                       </button>
                     </div>
 
                     {/* Logic View */}
                     {strategyView === 'logic' && (
-                      <div style={{ borderTop: '1px solid #f0f0f0' }}>
+                      <div style={{
+                        padding: '12px 16px',
+                        fontFamily: 'ui-monospace, monospace',
+                        fontSize: '12px',
+                        color: '#333',
+                      }}>
                         {(() => {
+                          // Format condition string with spaces around operators
+                          const formatCondition = (c: string): string => {
+                            return c
+                              .replace(/&&/g, ' && ')
+                              .replace(/([<>!=]=?)/g, ' $1 ')
+                              .replace(/\*/g, ' * ')
+                              .replace(/\s+/g, ' ')
+                              .trim()
+                          }
                           try {
                             const steps: StrategyStep[] = JSON.parse(stats.user_friendly_strategy)
-                            return steps.map((step, index) => (
-                              <div
-                                key={index}
-                                style={{
-                                  display: 'flex',
-                                  borderBottom: '1px solid #f0f0f0',
-                                }}
-                              >
-                                {/* Step Number */}
-                                <div style={{
-                                  width: '40px',
-                                  padding: '12px',
-                                  fontSize: '14px',
-                                  fontWeight: '600',
-                                  color: '#8b5cf6',
-                                  borderRight: '1px solid #f0f0f0',
-                                  display: 'flex',
-                                  alignItems: 'flex-start',
-                                  justifyContent: 'center',
-                                }}>
-                                  {index + 1}
-                                </div>
-                                {/* Step Content */}
-                                <div style={{
-                                  flex: 1,
-                                  padding: '12px',
-                                  fontSize: '13px',
-                                  fontFamily: 'ui-monospace, monospace',
-                                  color: '#555',
-                                  lineHeight: '1.6',
-                                }}>
-                                  <div>
-                                    <span>c: </span>
-                                    {step.c.split('&&').map((part, i) => (
-                                      <span key={i}>
-                                        {i > 0 && <><br />&nbsp;&nbsp;&nbsp;{'&& '}</>}
-                                        {part.trim()}
-                                      </span>
-                                    ))}
+                            return (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                {steps.map((step, index) => (
+                                  <div key={index}>
+                                    <div style={{ display: 'flex', fontSize: '12px' }}>
+                                      <span style={{ flexShrink: 0, color: '#9ca3af', fontSize: '13px' }}>{index + 1}&nbsp;&nbsp;</span>
+                                      <span style={{ flexShrink: 0, color: 'rgba(139, 92, 246, 0.7)' }}>c:&nbsp;</span>
+                                      <span style={{ wordBreak: 'break-word' }}>{formatCondition(step.c)}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', marginTop: '-2px', fontSize: '12px' }}>
+                                      <span style={{ flexShrink: 0, color: '#9ca3af', fontSize: '13px' }}>&nbsp;&nbsp;&nbsp;</span>
+                                      <span style={{ flexShrink: 0, color: 'rgba(139, 92, 246, 0.7)' }}>a:&nbsp;</span>
+                                      <span>{step.a.map(a => a === 'sell 1' ? 'sell all' : a).join(', ')}</span>
+                                    </div>
                                   </div>
-                                  <div>a: {step.a.join(', ')}</div>
-                                </div>
+                                ))}
                               </div>
-                            ))
+                            )
                           } catch {
                             return <div style={{ padding: '12px', color: '#888', fontSize: '13px' }}>Unable to parse strategy</div>
                           }
@@ -468,17 +456,34 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId }: Str
                       </div>
                     )}
 
-                    {/* GammaScript View */}
+                    {/* Raw View */}
                     {strategyView === 'gammascript' && (
                       <div style={{
-                        backgroundColor: '#e5e5e5',
+                        backgroundColor: '#f0f0f0',
                         margin: '0 16px 16px 16px',
                         borderRadius: '8px',
-                        padding: '16px',
+                        padding: '12px',
                         position: 'relative',
                       }}>
                         <button
-                          onClick={() => copyToClipboard(stats.compressed_strategy)}
+                          onClick={() => {
+                            try {
+                              const parsed = JSON.parse(stats.user_friendly_strategy)
+                              const formatted = '[\n' + parsed.map((r: StrategyStep) => {
+                                const formattedC = r.c
+                                  .replace(/&&/g, ' && ')
+                                  .replace(/([<>!=]=?)/g, ' $1 ')
+                                  .replace(/\*/g, ' * ')
+                                  .replace(/\s+/g, ' ')
+                                  .trim()
+                                const actionsStr = JSON.stringify(r.a)
+                                return `  {\n    "c": "${formattedC}",\n    "a": ${actionsStr}\n  }`
+                              }).join(',\n') + '\n]'
+                              copyToClipboard(formatted)
+                            } catch {
+                              copyToClipboard(stats.user_friendly_strategy)
+                            }
+                          }}
                           style={{
                             position: 'absolute',
                             top: '10px',
@@ -496,12 +501,30 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId }: Str
                         </button>
                         <div style={{
                           fontFamily: 'ui-monospace, monospace',
-                          fontSize: '14px',
+                          fontSize: '12px',
                           color: '#333',
-                          wordBreak: 'break-all',
+                          whiteSpace: 'pre',
+                          overflowX: 'auto',
                           paddingRight: '24px',
                         }}>
-                          {stats.compressed_strategy}
+                          {(() => {
+                            try {
+                              const parsed = JSON.parse(stats.user_friendly_strategy)
+                              const lines = parsed.map((r: StrategyStep) => {
+                                const formattedC = r.c
+                                  .replace(/&&/g, ' && ')
+                                  .replace(/([<>!=]=?)/g, ' $1 ')
+                                  .replace(/\*/g, ' * ')
+                                  .replace(/\s+/g, ' ')
+                                  .trim()
+                                const actionsStr = JSON.stringify(r.a)
+                                return `  {\n    "c": "${formattedC}",\n    "a": ${actionsStr}\n  }`
+                              })
+                              return `[\n${lines.join(',\n')}\n]`
+                            } catch {
+                              return stats.user_friendly_strategy
+                            }
+                          })()}
                         </div>
                       </div>
                     )}

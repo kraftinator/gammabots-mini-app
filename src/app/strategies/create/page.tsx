@@ -1,12 +1,13 @@
 'use client'
 
-import React, { useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import React, { useEffect, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import BottomNavigation from '@/components/BottomNavigation'
 import { colors } from '@/styles/common'
 
-export default function CreateStrategyPage() {
+function CreateStrategyPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   useEffect(() => {
     async function initializePage() {
@@ -19,6 +20,14 @@ export default function CreateStrategyPage() {
     }
     initializePage()
   }, [])
+
+  // If strategy param is present, redirect to GammaScript page with it
+  useEffect(() => {
+    const strategy = searchParams.get('strategy')
+    if (strategy) {
+      router.replace(`/strategies/create/gammascript?strategy=${encodeURIComponent(strategy)}`)
+    }
+  }, [searchParams, router])
 
   return (
     <div style={{
@@ -211,5 +220,23 @@ export default function CreateStrategyPage() {
 
       <BottomNavigation activeTab="strategies" />
     </div>
+  )
+}
+
+export default function CreateStrategyPage() {
+  return (
+    <Suspense fallback={
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#f5f5f5',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <span style={{ color: '#888' }}>Loading...</span>
+      </div>
+    }>
+      <CreateStrategyPageContent />
+    </Suspense>
   )
 }

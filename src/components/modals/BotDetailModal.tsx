@@ -110,6 +110,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
   const [strategyData, setStrategyData] = useState<StrategyData | null>(null)
   const [strategyLoading, setStrategyLoading] = useState(false)
   const [strategyError, setStrategyError] = useState<string | null>(null)
+  const [strategyFetched, setStrategyFetched] = useState(false)
 
   const [isEditOpen, setIsEditOpen] = useState(false)
   const [editStrategyId, setEditStrategyId] = useState('')
@@ -137,6 +138,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
     setIsStrategyExpanded(false)
     setStrategyData(null)
     setStrategyError(null)
+    setStrategyFetched(false)
     setIsEditOpen(false)
     setEditError(null)
     setIsLiquidateOpen(false)
@@ -319,10 +321,11 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
     fetchTrades()
   }, [isTradesExpanded, tradesData, tradesLoading, authenticate, bot])
 
-  // Fetch strategy when expanded
+  // Fetch strategy when expanded (only once per bot)
   useEffect(() => {
     const fetchStrategy = async () => {
-      if (!isStrategyExpanded || strategyData || strategyLoading || !bot) return
+      // Skip if not expanded, already fetched, currently loading, or no bot
+      if (!isStrategyExpanded || strategyFetched || strategyLoading || !bot) return
 
       try {
         setStrategyLoading(true)
@@ -331,6 +334,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
         const token = await authenticate()
         if (!token) {
           setStrategyError('Cannot load strategy at this time.')
+          setStrategyFetched(true)
           return
         }
 
@@ -342,21 +346,25 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
 
         if (!response.ok) {
           setStrategyError('Cannot load strategy at this time.')
+          setStrategyFetched(true)
           return
         }
 
         const data = await response.json()
         setStrategyData(data)
+        setStrategyFetched(true)
       } catch (error) {
         console.error('Error fetching strategy:', error)
         setStrategyError('Cannot load strategy at this time.')
+        setStrategyFetched(true)
       } finally {
         setStrategyLoading(false)
       }
     }
 
     fetchStrategy()
-  }, [isStrategyExpanded, strategyData, strategyLoading, authenticate, bot])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isStrategyExpanded, bot?.strategy_id])
 
   // Format trade timestamp
   const formatTradeTime = (timestamp: string): string => {
@@ -1097,59 +1105,49 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
                 )}
 
                 {!strategyLoading && !strategyError && strategyData && (
-                  <div style={{
-                    borderTop: '1px solid #f0f0f0',
-                  }}>
-                    {/* Steps Table */}
-                    {(() => {
-                      try {
-                        const steps: StrategyStep[] = JSON.parse(strategyData.user_friendly_strategy)
-                        return steps.map((step, index) => (
-                          <div
-                            key={index}
-                            style={{
-                              display: 'flex',
-                              borderBottom: '1px solid #f0f0f0',
-                            }}
-                          >
-                            <div style={{
-                              width: '40px',
-                              padding: '12px',
-                              fontSize: '14px',
-                              fontWeight: '600',
-                              color: '#8b5cf6',
-                              borderRight: '1px solid #f0f0f0',
-                              display: 'flex',
-                              alignItems: 'flex-start',
-                              justifyContent: 'center',
-                            }}>
-                              {index + 1}
+                  <div>
+                    {/* Strategy Steps */}
+                    <div style={{
+                      padding: '12px 16px',
+                      fontFamily: 'ui-monospace, monospace',
+                      fontSize: '12px',
+                      color: '#333',
+                    }}>
+                      {(() => {
+                        // Format condition string with spaces around operators
+                        const formatCondition = (c: string): string => {
+                          return c
+                            .replace(/&&/g, ' && ')
+                            .replace(/([<>!=]=?)/g, ' $1 ')
+                            .replace(/\*/g, ' * ')
+                            .replace(/\s+/g, ' ')
+                            .trim()
+                        }
+                        try {
+                          const steps: StrategyStep[] = JSON.parse(strategyData.user_friendly_strategy)
+                          return (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                              {steps.map((step, index) => (
+                                <div key={index}>
+                                  <div style={{ display: 'flex', fontSize: '12px' }}>
+                                    <span style={{ flexShrink: 0, color: '#9ca3af', fontSize: '13px' }}>{index + 1}&nbsp;&nbsp;</span>
+                                    <span style={{ flexShrink: 0, color: 'rgba(139, 92, 246, 0.7)' }}>c:&nbsp;</span>
+                                    <span style={{ wordBreak: 'break-word' }}>{formatCondition(step.c)}</span>
+                                  </div>
+                                  <div style={{ display: 'flex', marginTop: '-2px', fontSize: '12px' }}>
+                                    <span style={{ flexShrink: 0, color: '#9ca3af', fontSize: '13px' }}>&nbsp;&nbsp;&nbsp;</span>
+                                    <span style={{ flexShrink: 0, color: 'rgba(139, 92, 246, 0.7)' }}>a:&nbsp;</span>
+                                    <span>{step.a.map(a => a === 'sell 1' ? 'sell all' : a).join(', ')}</span>
+                                  </div>
+                                </div>
+                              ))}
                             </div>
-                            <div style={{
-                              flex: 1,
-                              padding: '12px',
-                              fontSize: '13px',
-                              fontFamily: 'ui-monospace, monospace',
-                              color: '#555',
-                              lineHeight: '1.6',
-                            }}>
-                              <div>
-                                <span>c: </span>
-                                {step.c.split('&&').map((part, i) => (
-                                  <span key={i}>
-                                    {i > 0 && <><br />&nbsp;&nbsp;&nbsp;{'&& '}</>}
-                                    {part.trim()}
-                                  </span>
-                                ))}
-                              </div>
-                              <div>a: {step.a.join(', ')}</div>
-                            </div>
-                          </div>
-                        ))
-                      } catch {
-                        return <div style={{ padding: '12px', color: '#6b7280', fontSize: '13px' }}>Unable to parse strategy</div>
-                      }
-                    })()}
+                          )
+                        } catch {
+                          return <div style={{ padding: '12px', color: '#6b7280', fontSize: '13px' }}>Unable to parse strategy</div>
+                        }
+                      })()}
+                    </div>
 
                     {/* Creator */}
                     <div style={{

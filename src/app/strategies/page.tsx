@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useMemo, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { getProfitColor } from '@/styles/common'
 import BottomNavigation from '@/components/BottomNavigation'
@@ -17,8 +17,9 @@ interface Strategy {
   performance_pct?: number
 }
 
-export default function StrategiesPage() {
+function StrategiesPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { authenticate } = useQuickAuth()
   const [strategies, setStrategies] = useState<Strategy[]>([])
   const [loading, setLoading] = useState(true)
@@ -27,6 +28,16 @@ export default function StrategiesPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('performance')
   const [selectedStrategyId, setSelectedStrategyId] = useState<string | null>(null)
+
+  // Check for view query parameter to open modal
+  useEffect(() => {
+    const viewId = searchParams.get('view')
+    if (viewId) {
+      setSelectedStrategyId(viewId)
+      // Clear the query parameter from URL without navigation
+      router.replace('/strategies', { scroll: false })
+    }
+  }, [searchParams, router])
 
   useEffect(() => {
     const initSdk = async () => {
@@ -383,5 +394,23 @@ export default function StrategiesPage() {
         strategyId={selectedStrategyId}
       />
     </div>
+  )
+}
+
+export default function StrategiesPage() {
+  return (
+    <Suspense fallback={
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#f5f5f5',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <span style={{ color: '#888' }}>Loading...</span>
+      </div>
+    }>
+      <StrategiesPageContent />
+    </Suspense>
   )
 }

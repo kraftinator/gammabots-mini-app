@@ -15,10 +15,8 @@ export const POST = withAuth(async (request: NextRequest, auth) => {
 
     if (!response.ok) {
       console.error('Gammabots Validate Strategy API error:', response.status, response.statusText)
-      return NextResponse.json(
-        { error: 'Failed to validate strategy' },
-        { status: response.status }
-      )
+      const errorData = await response.json().catch(() => ({ error: 'Failed to validate strategy' }))
+      return NextResponse.json(errorData, { status: response.status })
     }
 
     const validationData = await response.json()
