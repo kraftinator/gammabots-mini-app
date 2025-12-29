@@ -52,8 +52,7 @@ const OPERATORS = ['==', '!=', '>', '>=', '<', '<=']
 
 const ACTION_TYPES = [
   { value: 'buy', label: 'buy', hasParam: false },
-  { value: 'sell', label: 'sell (fraction)', hasParam: true },
-  { value: 'sell all', label: 'sell all', hasParam: false },
+  { value: 'sell', label: 'sell', hasParam: true },
   { value: 'liquidate', label: 'liquidate', hasParam: false },
   { value: 'deact', label: 'deact', hasParam: false },
   { value: 'reset', label: 'reset', hasParam: false },
@@ -132,7 +131,8 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
       .filter(a => a.type)
       .map(a => {
         if (a.type === 'sell' && a.param) {
-          return `sell ${a.param}`
+          // Output "sell all" for 100%, otherwise "sell {fraction}"
+          return a.param === '1' ? 'sell all' : `sell ${a.param}`
         }
         return a.type
       })
@@ -323,9 +323,18 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
       if (rule.id === ruleId) {
         return {
           ...rule,
-          actions: rule.actions.map(a =>
-            a.id === actionId ? { ...a, [field]: value } : a
-          ),
+          actions: rule.actions.map(a => {
+            if (a.id !== actionId) return a
+            // When selecting 'sell', default to 'all' (param = '1')
+            if (field === 'type' && value === 'sell') {
+              return { ...a, type: value, param: '1' }
+            }
+            // When changing away from 'sell', clear param
+            if (field === 'type' && value !== 'sell') {
+              return { ...a, type: value, param: '' }
+            }
+            return { ...a, [field]: value }
+          }),
         }
       }
       return rule
@@ -784,79 +793,136 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
                   Actions
                 </div>
 
-                {rule.actions.map((action) => (
-                  <div
-                    key={action.id}
-                    style={{
-                      display: 'flex',
-                      gap: '8px',
-                      alignItems: 'center',
-                      marginBottom: '8px',
-                    }}
-                  >
-                    <select
-                      value={action.type}
-                      onChange={(e) => updateAction(rule.id, action.id, 'type', e.target.value)}
+                {rule.actions.map((action) => {
+                  // Convert decimal param to display percentage (e.g., '0.25' -> '25', '1' -> '100')
+                  const displayPct = action.param
+                    ? String(Math.round(parseFloat(action.param) * 100))
+                    : ''
+
+                  // Check if current param matches a preset
+                  const isPresetSelected = (preset: string) => action.param === preset
+
+                  // Handle custom input change
+                  const handleCustomChange = (value: string) => {
+                    // Allow empty or valid integer input
+                    if (value === '' || /^\d+$/.test(value)) {
+                      const num = parseInt(value, 10)
+                      if (value === '') {
+                        updateAction(rule.id, action.id, 'param', '')
+                      } else if (num >= 1 && num <= 100) {
+                        // Convert percentage to decimal
+                        const decimal = num === 100 ? '1' : (num / 100).toString()
+                        updateAction(rule.id, action.id, 'param', decimal)
+                      }
+                    }
+                  }
+
+                  return (
+                    <div
+                      key={action.id}
                       style={{
-                        flex: 1,
-                        padding: '10px',
-                        fontSize: '13px',
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        backgroundColor: '#fff',
+                        marginBottom: '8px',
                       }}
                     >
-                      <option value="">Select action...</option>
-                      {ACTION_TYPES
-                        .filter(at => {
-                          if (rule.phase === 'buy') {
-                            return ['buy', 'deact', 'skip'].includes(at.value)
-                          } else {
-                            return at.value !== 'buy'
-                          }
-                        })
-                        .map(at => (
-                          <option key={at.value} value={at.value}>{at.label}</option>
-                        ))}
-                    </select>
+                      {/* Row 1: Dropdown + delete button */}
+                      <div style={{
+                        display: 'flex',
+                        gap: '8px',
+                        alignItems: 'center',
+                      }}>
+                        <select
+                          value={action.type}
+                          onChange={(e) => updateAction(rule.id, action.id, 'type', e.target.value)}
+                          style={{
+                            flex: 1,
+                            padding: '10px',
+                            fontSize: '13px',
+                            border: '1px solid #ddd',
+                            borderRadius: '8px',
+                            backgroundColor: '#fff',
+                          }}
+                        >
+                          <option value="">Select action...</option>
+                          {rule.phase === 'buy' ? (
+                            // Buy phase: buy, deact, skip
+                            ACTION_TYPES
+                              .filter(at => ['buy', 'deact', 'skip'].includes(at.value))
+                              .map(at => (
+                                <option key={at.value} value={at.value}>{at.label}</option>
+                              ))
+                          ) : (
+                            // Sell phase: sell, liquidate, deact, reset, skip
+                            <>
+                              <option value="sell">sell</option>
+                              <option value="liquidate">liquidate</option>
+                              <option value="deact">deact</option>
+                              <option value="reset">reset</option>
+                              <option value="skip">skip</option>
+                            </>
+                          )}
+                        </select>
 
-                    {/* Fraction param for sell */}
-                    {action.type === 'sell' && (
-                      <div style={{ display: 'flex', gap: '4px' }}>
-                        {FRACTION_PRESETS.map(f => (
+                        {rule.actions.length > 1 && (
                           <button
-                            key={f}
-                            onClick={() => updateAction(rule.id, action.id, 'param', f)}
-                            style={{
-                              padding: '8px 10px',
-                              fontSize: '12px',
-                              fontWeight: action.param === f ? '600' : '400',
-                              border: '1px solid',
-                              borderColor: action.param === f ? '#14b8a6' : '#ddd',
-                              borderRadius: '6px',
-                              backgroundColor: action.param === f ? '#e0f7f5' : '#fff',
-                              color: action.param === f ? '#14b8a6' : '#666',
-                              cursor: 'pointer',
-                            }}
+                            onClick={() => removeAction(rule.id, action.id)}
+                            style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
                           >
-                            {f === '1' ? 'all' : `${parseFloat(f) * 100}%`}
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+                              <path d="M18 6L6 18M6 6l12 12" />
+                            </svg>
                           </button>
-                        ))}
+                        )}
                       </div>
-                    )}
 
-                    {rule.actions.length > 1 && (
-                      <button
-                        onClick={() => removeAction(rule.id, action.id)}
-                        style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-                          <path d="M18 6L6 18M6 6l12 12" />
-                        </svg>
-                      </button>
-                    )}
-                  </div>
-                ))}
+                      {/* Row 2: Fraction presets + custom input (only for sell) */}
+                      {action.type === 'sell' && (
+                        <div style={{
+                          display: 'flex',
+                          gap: '4px',
+                          marginTop: '8px',
+                          alignItems: 'center',
+                        }}>
+                          {FRACTION_PRESETS.map(f => (
+                            <button
+                              key={f}
+                              onClick={() => updateAction(rule.id, action.id, 'param', f)}
+                              style={{
+                                padding: '8px 10px',
+                                fontSize: '12px',
+                                fontWeight: isPresetSelected(f) ? '600' : '400',
+                                border: '1px solid',
+                                borderColor: isPresetSelected(f) ? '#14b8a6' : '#ddd',
+                                borderRadius: '6px',
+                                backgroundColor: isPresetSelected(f) ? '#e0f7f5' : '#fff',
+                                color: isPresetSelected(f) ? '#14b8a6' : '#666',
+                                cursor: 'pointer',
+                              }}
+                            >
+                              {f === '1' ? 'all' : `${parseFloat(f) * 100}%`}
+                            </button>
+                          ))}
+                          <input
+                            type="text"
+                            inputMode="numeric"
+                            value={displayPct}
+                            onChange={(e) => handleCustomChange(e.target.value)}
+                            placeholder="custom"
+                            style={{
+                              width: '60px',
+                              padding: '8px',
+                              fontSize: '12px',
+                              border: '1px solid',
+                              borderColor: !FRACTION_PRESETS.includes(action.param) && action.param ? '#14b8a6' : '#ddd',
+                              borderRadius: '6px',
+                              backgroundColor: '#fff',
+                              textAlign: 'center',
+                            }}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  )
+                })}
 
                 {/* Buy phase: max 1 action, Sell phase: max 2 actions */}
                 {((rule.phase === 'buy' && rule.actions.length < 1) ||
