@@ -2,7 +2,7 @@ import { Interface } from 'ethers'
 import strategyNFTABI from './StrategyNFT.abi.json'
 
 // Contract address for the Strategy NFT
-export const STRATEGY_NFT_CONTRACT = '0x7239244d4c913068eb44A91a58acDa388dd9d43e'
+export const STRATEGY_NFT_CONTRACT = process.env.NEXT_PUBLIC_STRATEGY_NFT_ADDRESS as `0x${string}`
 
 // ABI for the Strategy NFT contract
 export const STRATEGY_NFT_ABI = strategyNFTABI
