@@ -6,6 +6,7 @@ import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useMintStrategy } from '@/hooks/useMintStrategy'
 import BottomNavigation from '@/components/BottomNavigation'
 import StrategyBuilder from '@/components/strategy-builder/StrategyBuilder'
+import InsufficientBalanceCard from '@/components/InsufficientBalanceCard'
 import { styles, colors } from '@/styles/common'
 
 export default function BuilderPage() {
@@ -19,6 +20,7 @@ export default function BuilderPage() {
     submitErrors,
     submitWarning,
     duplicateTokenId,
+    insufficientBalance,
     isSubmitting,
     hasErrors,
     clearErrors,
@@ -199,6 +201,10 @@ export default function BuilderPage() {
           </div>
         )}
 
+        {insufficientBalance && (
+          <InsufficientBalanceCard info={insufficientBalance} />
+        )}
+
         {duplicateTokenId && (
           <div style={{
             backgroundColor: '#fffbeb',
@@ -305,7 +311,7 @@ export default function BuilderPage() {
             gap: '8px',
           }}
         >
-          {(submitStage === 'validating' || submitStage === 'finalizing') && (
+          {(submitStage === 'validating' || submitStage === 'approving' || submitStage === 'finalizing') && (
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ animation: 'spin 1s linear infinite' }}>
               <circle cx="12" cy="12" r="10" strokeOpacity="0.25" />
               <path d="M12 2a10 10 0 0 1 10 10" />
@@ -313,6 +319,7 @@ export default function BuilderPage() {
           )}
           {submitStage === 'idle' && 'Mint Strategy'}
           {submitStage === 'validating' && 'Validating...'}
+          {submitStage === 'approving' && 'Approving...'}
           {submitStage === 'minting' && 'Minting...'}
           {submitStage === 'finalizing' && 'Finalizing...'}
         </button>

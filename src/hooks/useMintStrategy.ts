@@ -4,13 +4,21 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 
-export type MintStage = 'idle' | 'validating' | 'minting' | 'finalizing'
+export type MintStage = 'idle' | 'validating' | 'approving' | 'minting' | 'finalizing'
+
+export interface InsufficientBalanceInfo {
+  required: string
+  current: string
+  symbol: string
+  tokenAddress: string
+}
 
 interface UseMintStrategyResult {
   submitStage: MintStage
   submitErrors: string[]
   submitWarning: string | null
   duplicateTokenId: string | null
+  insufficientBalance: InsufficientBalanceInfo | null
   isSubmitting: boolean
   hasErrors: boolean
   clearErrors: () => void
@@ -24,6 +32,7 @@ export function useMintStrategy(): UseMintStrategyResult {
   const [submitErrors, setSubmitErrors] = useState<string[]>([])
   const [submitWarning, setSubmitWarning] = useState<string | null>(null)
   const [duplicateTokenId, setDuplicateTokenId] = useState<string | null>(null)
+  const [insufficientBalance, setInsufficientBalance] = useState<InsufficientBalanceInfo | null>(null)
   const isMountedRef = useRef(true)
 
   // Track component mount state
@@ -37,6 +46,7 @@ export function useMintStrategy(): UseMintStrategyResult {
   const clearErrors = useCallback(() => {
     setSubmitErrors([])
     setDuplicateTokenId(null)
+    setInsufficientBalance(null)
   }, [])
 
   const mint = useCallback(async (strategyData: string) => {
@@ -89,10 +99,9 @@ export function useMintStrategy(): UseMintStrategyResult {
       const result = await response.json()
 
       if (result.valid) {
-        setSubmitStage('minting')
         try {
           const { sdk } = await import('@farcaster/miniapp-sdk')
-          const { encodeMintStrategy, STRATEGY_NFT_CONTRACT } = await import('@/contracts')
+          const { encodeMintStrategy, encodeApprove, STRATEGY_NFT_CONTRACT } = await import('@/contracts')
 
           const inMiniApp = await sdk.isInMiniApp()
           if (!inMiniApp) {
@@ -108,6 +117,88 @@ export function useMintStrategy(): UseMintStrategyResult {
           if (!accounts || accounts.length === 0) {
             throw new Error('No wallet accounts available')
           }
+
+          // Get mint details to check if approval is needed
+          const mintDetailsResponse = await fetch(`/api/strategies/mint_details?wallet_address=${accounts[0]}`, {
+            headers: {
+              'Authorization': `Bearer ${token}`
+            }
+          })
+
+          if (!mintDetailsResponse.ok) {
+            throw new Error('Failed to get mint details')
+          }
+
+          const mintDetails = await mintDetailsResponse.json()
+
+          // Check if user has enough balance
+          const userBalance = BigInt(mintDetails.userBalance)
+          const mintFee = BigInt(mintDetails.mintFee)
+
+          if (userBalance < mintFee) {
+            const requiredAmount = Number(mintFee) / Math.pow(10, mintDetails.feeTokenDecimals)
+            const currentAmount = Number(userBalance) / Math.pow(10, mintDetails.feeTokenDecimals)
+            setInsufficientBalance({
+              required: String(requiredAmount),
+              current: String(currentAmount),
+              symbol: mintDetails.feeTokenSymbol,
+              tokenAddress: mintDetails.feeToken,
+            })
+            return
+          }
+
+          // Handle token approval if needed
+          if (mintDetails.needsApproval) {
+            setSubmitStage('approving')
+
+            const approveData = encodeApprove(
+              STRATEGY_NFT_CONTRACT,
+              BigInt(mintDetails.mintFee)
+            )
+
+            await sdk.wallet.ethProvider.request({
+              method: 'eth_sendTransaction',
+              params: [{
+                from: accounts[0],
+                to: mintDetails.feeToken as `0x${string}`,
+                data: approveData,
+              }]
+            })
+
+            // Wait for approval to be confirmed by polling mint_details
+            const APPROVAL_POLL_INTERVAL = 2000
+            const APPROVAL_TIMEOUT = 60000
+            const approvalStartTime = Date.now()
+
+            while (isMountedRef.current) {
+              await new Promise(resolve => setTimeout(resolve, APPROVAL_POLL_INTERVAL))
+
+              const checkResponse = await fetch(`/api/strategies/mint_details?wallet_address=${accounts[0]}`, {
+                headers: {
+                  'Authorization': `Bearer ${token}`
+                }
+              })
+
+              if (!isMountedRef.current) return
+
+              if (checkResponse.ok) {
+                const updatedDetails = await checkResponse.json()
+                if (!updatedDetails.needsApproval) {
+                  // Approval confirmed
+                  break
+                }
+              }
+
+              if (Date.now() - approvalStartTime > APPROVAL_TIMEOUT) {
+                throw new Error('Approval confirmation timed out')
+              }
+            }
+
+            if (!isMountedRef.current) return
+          }
+
+          // Proceed with minting
+          setSubmitStage('minting')
 
           const data = encodeMintStrategy(result.compressed || strategyData)
 
@@ -160,9 +251,9 @@ export function useMintStrategy(): UseMintStrategyResult {
               const statusData = await statusResponse.json()
 
               if (statusData.mint_status === 'confirmed' && statusData.nft_token_id) {
-                // Success - redirect (only if still mounted)
+                // Success - redirect to strategies with modal open (only if still mounted)
                 if (isMountedRef.current) {
-                  router.push('/strategies')
+                  router.push(`/strategies?view=${statusData.nft_token_id}`)
                 }
                 return
               }
@@ -192,7 +283,16 @@ export function useMintStrategy(): UseMintStrategyResult {
             await new Promise(resolve => setTimeout(resolve, POLL_INTERVAL))
           }
 
-        } catch (mintError) {
+        } catch (mintError: unknown) {
+          // Check if user rejected/cancelled the transaction
+          const errorName = mintError instanceof Error ? mintError.name : ''
+          const errorMessage = mintError instanceof Error ? mintError.message : String(mintError)
+
+          if (errorName.includes('UserRejected') || errorMessage.includes('rejected')) {
+            // User cancelled - silently return to idle
+            return
+          }
+
           console.error('NFT minting failed:', mintError)
           setSubmitErrors(['Strategy validated but NFT minting failed. Please try again.'])
           return
@@ -223,6 +323,7 @@ export function useMintStrategy(): UseMintStrategyResult {
     submitErrors,
     submitWarning,
     duplicateTokenId,
+    insufficientBalance,
     isSubmitting: submitStage !== 'idle',
     hasErrors: submitErrors.length > 0,
     clearErrors,
