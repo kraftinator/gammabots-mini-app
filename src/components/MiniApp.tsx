@@ -278,7 +278,7 @@ export default function MiniApp() {
 
           {/* Leaderboard */}
           {dashboardData.top_performers.length > 0 && (
-            <ActivityCard title="Top Performers (7d)">
+            <ActivityCard title="Top Performers (30d)">
               {dashboardData.top_performers.map((performer, index) => {
                 const rankColors = ["bg-orange-500", "bg-gray-500", "bg-yellow-600"];
                 return (
