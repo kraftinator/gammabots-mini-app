@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors, getProfitColor } from '@/styles/common'
+import { formatTokenAmount } from '@/utils/formatters'
 import BottomNavigation from '@/components/BottomNavigation'
 import BotDetailModal from '@/components/modals/BotDetailModal'
 import { formatDistanceToNow } from 'date-fns'
@@ -206,19 +207,6 @@ export default function MyBotsPage() {
     if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
 
     router.push(`/my-bots/create?${params.toString()}`)
-  }
-
-  // Helper function to format token amounts
-  const formatTokenAmount = (value: number): string => {
-    if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(1)}M`
-    } else if (value >= 10000) {
-      return `${(value / 1000).toFixed(0)}K`
-    } else if (value >= 1) {
-      return Math.round(value).toLocaleString()
-    } else {
-      return Number(value).toFixed(2)
-    }
   }
 
   const filteredAndSortedBots = useMemo(() => {
@@ -436,24 +424,21 @@ export default function MyBotsPage() {
                           {(() => {
                             const tokensNum = bot.tokens ? Number(bot.tokens) : 0;
                             const ethNum = bot.eth ? Number(bot.eth) : 0;
-
-                            // Check displayed values, not raw values
-                            const tokensDisplay = Math.floor(tokensNum);
                             const ethDisplay = Number(ethNum.toFixed(6));
 
                             // Use "tokens" if symbol is too long
                             const symbol = bot.token_symbol || '';
                             const displaySymbol = symbol.length > 8 ? 'tokens' : symbol;
 
-                            if (tokensDisplay > 0 && ethDisplay > 0) {
+                            if (tokensNum >= 1 && ethDisplay > 0) {
                               return (
                                 <>
-                                  <div>{formatTokenAmount(tokensDisplay)} <span style={{ color: '#8e8e93', fontWeight: '500' }}>{displaySymbol}</span></div>
+                                  <div>{formatTokenAmount(tokensNum)} <span style={{ color: '#8e8e93', fontWeight: '500' }}>{displaySymbol}</span></div>
                                   <div>{parseFloat(ethDisplay.toFixed(6))} <span style={{ color: '#8e8e93', fontWeight: '500' }}>ETH</span></div>
                                 </>
                               );
-                            } else if (tokensDisplay > 0) {
-                              return <span>{formatTokenAmount(tokensDisplay)} <span style={{ color: '#8e8e93', fontWeight: '500' }}>{displaySymbol}</span></span>;
+                            } else if (tokensNum >= 1) {
+                              return <span>{formatTokenAmount(tokensNum)} <span style={{ color: '#8e8e93', fontWeight: '500' }}>{displaySymbol}</span></span>;
                             } else if (ethDisplay > 0) {
                               return <span>{parseFloat(ethDisplay.toFixed(6))} <span style={{ color: '#8e8e93', fontWeight: '500' }}>ETH</span></span>;
                             } else {

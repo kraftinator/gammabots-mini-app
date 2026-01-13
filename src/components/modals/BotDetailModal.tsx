@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { colors, getProfitColor } from '@/styles/common'
+import { formatTokenAmount } from '@/utils/formatters'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 
 interface Bot {
@@ -161,19 +162,6 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
       document.documentElement.style.overflow = ''
     }
   }, [isOpen])
-
-  // Helper function to format token amounts
-  const formatTokenAmount = (value: number): string => {
-    if (value >= 1000000) {
-      return `${(value / 1000000).toFixed(1)}M`
-    } else if (value >= 10000) {
-      return `${(value / 1000).toFixed(0)}K`
-    } else if (value >= 1) {
-      return Math.round(value).toLocaleString()
-    } else {
-      return Number(value).toFixed(2)
-    }
-  }
 
   // Helper function to format tokenAmt
   const formatTokenAmt = (value: number): string => {

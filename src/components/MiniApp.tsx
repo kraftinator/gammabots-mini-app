@@ -7,6 +7,8 @@ import Footer from './layout/Footer'
 import SignUpModal from './modals/SignUpModal'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors, getChangeColor, getCircleColor, getRankColor } from '@/styles/common'
+import { formatTokenAmount } from '@/utils/formatters'
+import RobotLogo from './RobotLogo'
 
 export default function MiniApp() {
   const router = useRouter()
@@ -72,6 +74,7 @@ export default function MiniApp() {
       strategy_id: string;
       token_symbol: string;
       performance: string;
+      farcaster_avatar_url: string;
     }>,
     user_bot_count: 0,
     user_exists: true,
@@ -166,53 +169,28 @@ export default function MiniApp() {
 
   return (
     <div style={styles.container}>
-      {/* Hero Section */}
-      <div style={styles.heroGradient}>
-        {/* Decorative elements */}
-        <div style={{ 
-          content: '', 
-          position: 'absolute', 
-          top: '-20px', 
-          right: '-20px', 
-          width: '80px', 
-          height: '80px', 
-          background: 'rgba(255, 255, 255, 0.1)', 
-          borderRadius: '20px', 
-          transform: 'rotate(45deg)' 
-        }}></div>
-        <div style={{ 
-          content: '', 
-          position: 'absolute', 
-          bottom: '-15px', 
-          left: '-15px', 
-          width: '60px', 
-          height: '60px', 
-          background: 'rgba(255, 255, 255, 0.08)', 
-          borderRadius: '15px', 
-          transform: 'rotate(45deg)' 
-        }}></div>
-        
-        <div style={{ position: "relative", zIndex: 2 }}>
-          <div style={styles.logo}>
-            Γ
-          </div>
-          <div style={styles.heading1}>GAMMABOTS</div>
-          <div style={{ fontSize: "16px", fontWeight: "500", opacity: "0.9" }}>Trading Bots Made Easy</div>
+      {/* Header */}
+      <div style={{ backgroundColor: '#2d3f54', padding: '32px 24px 24px 24px' }}>
+        {/* Logo */}
+        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+          <RobotLogo size={100} />
         </div>
-        
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: "20px", position: "relative", zIndex: 2 }}>
-          <div style={{ 
-            fontSize: "14px", 
-            fontWeight: "600", 
-            color: "white",
-            maxWidth: "60%",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            whiteSpace: "nowrap"
-          }}>Welcome, @{username}</div>
-          <div style={{ fontSize: "12px", fontWeight: "500", color: "#ffffff" }}>
-            Balance: <span style={{ fontWeight: "700", fontSize: "14px" }}>2200 GAMMA</span>
-          </div>
+
+        {/* App name */}
+        <h1 style={{ textAlign: 'center', color: 'white', fontSize: '24px', fontWeight: '600', letterSpacing: '0.05em', marginBottom: '4px' }}>
+          GAMMABOTS
+        </h1>
+
+        {/* Tagline */}
+        <p style={{ textAlign: 'center', color: '#cbd5e1', fontSize: '14px', letterSpacing: '0.025em' }}>
+          Trading bots. Simplified.
+        </p>
+
+        {/* User info bar */}
+        <div style={{ marginTop: '24px', paddingTop: '16px', borderTop: '1px solid rgba(100, 116, 139, 0.5)' }}>
+          <p style={{ color: 'white', fontWeight: '500', textAlign: 'center' }}>
+            Welcome, <span style={{ color: '#22d3ee' }}>@{username}</span>
+          </p>
         </div>
       </div>
 
@@ -236,7 +214,84 @@ export default function MiniApp() {
               <MetricCard label="Total Trades" value={dashboardData.trades_executed.toLocaleString()} change="" />
             </div>
           </div>
+
+          {/* Action Buttons */}
+          <div style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: "12px",
+            marginTop: "16px"
+          }}>
+            <button
+              style={styles.buttonPrimary}
+              onClick={() => {
+                if (dashboardData.user_exists) {
+                  router.push('/my-bots/create')
+                } else {
+                  setSignUpRedirectTo('/my-bots/create')
+                  setSignUpModalOpen(true)
+                }
+              }}
+            >
+              Create Bot
+            </button>
+            {dashboardData.user_exists ? (
+              <button
+                onClick={handleMyBotsClick}
+                disabled={authLoading}
+                style={styles.buttonSecondary}
+              >
+                {authLoading ? "Checking…" : `My Bots (${dashboardData.user_bot_count})`}
+              </button>
+            ) : (
+              <button
+                onClick={() => {
+                  setSignUpRedirectTo('/my-bots')
+                  setSignUpModalOpen(true)
+                }}
+                style={styles.buttonSecondary}
+              >
+                Sign Up
+              </button>
+            )}
+          </div>
+
+          {/* Description */}
+          <div style={{ marginTop: '8px' }}>
+            <p style={{ color: '#4b5563', fontSize: '12px', lineHeight: '1.4' }}>
+              Deploy automated trading bots in seconds. Choose a strategy, fund your bot, and let it trade for you.
+            </p>
+            <p style={{ fontSize: '12px', marginTop: '12px' }}>
+              <a href="#" style={{ color: 'rgba(59, 130, 246, 0.8)' }}>How it works</a>
+              <span style={{ color: '#6b7280', margin: '0 8px' }}>·</span>
+              <a href="#" style={{ color: 'rgba(59, 130, 246, 0.8)' }}>What is Gammascript?</a>
+            </p>
+          </div>
         </div>
+
+        {/* Top Performers */}
+        {dashboardData.top_performers.length > 0 && (
+          <div style={{ marginBottom: "24px" }}>
+            <ActivityCard title={<>Top Performers <span style={{ fontSize: "14px", fontWeight: "500", color: "#8e8e93" }}>30d</span></>}>
+              {dashboardData.top_performers.map((performer, index) => {
+                const rankColors = ["bg-orange-500", "bg-gray-500", "bg-yellow-600"];
+                return (
+                  <LeaderboardItem
+                    key={index}
+                    rank={index + 1}
+                    rankColor={rankColors[index] || "bg-blue-500"}
+                    botId={performer.bot_id}
+                    creator={`@${performer.username}`}
+                    strategy={performer.token_symbol}
+                    strategyId={performer.strategy_id}
+                    profit={`+${performer.performance}%`}
+                    avatarUrl={performer.farcaster_avatar_url}
+                  />
+                );
+              })}
+            </ActivityCard>
+          </div>
+        )}
 
         {/* Popular Tokens */}
         <div style={{ marginBottom: "24px" }}>
@@ -267,7 +322,7 @@ export default function MiniApp() {
                 strategy={`Bot #${activity.bot_id} by @${activity.farcaster_username} • ${activity.time_ago} ago`}
                 time=""
                 creator=""
-                tokenAmount={activity.amount.toLocaleString()}
+                tokenAmount={formatTokenAmount(activity.amount)}
                 tokenSymbol={activity.token_symbol}
                 avatarUrl={activity.farcaster_avatar_url}
                 profit={activity.performance_pct !== null && activity.performance_pct !== undefined ? `${activity.performance_pct > 0 ? '+' : ''}${Number(activity.performance_pct).toFixed(1)}%` : undefined}
@@ -275,67 +330,6 @@ export default function MiniApp() {
               />
             ))}
           </ActivityCard>
-
-          {/* Leaderboard */}
-          {dashboardData.top_performers.length > 0 && (
-            <ActivityCard title="Top Performers (30d)">
-              {dashboardData.top_performers.map((performer, index) => {
-                const rankColors = ["bg-orange-500", "bg-gray-500", "bg-yellow-600"];
-                return (
-                  <LeaderboardItem
-                    key={index}
-                    rank={index + 1}
-                    rankColor={rankColors[index] || "bg-blue-500"}
-                    botName={`Bot #${performer.bot_id}`}
-                    creator={`@${performer.username}`}
-                    strategy={performer.token_symbol}
-                    profit={`+${performer.performance}%`}
-                  />
-                );
-              })}
-            </ActivityCard>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        <div style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: "12px",
-          marginTop: "20px"
-        }}>
-          <button
-            style={styles.buttonPrimary}
-            onClick={() => {
-              if (dashboardData.user_exists) {
-                router.push('/my-bots/create')
-              } else {
-                setSignUpRedirectTo('/my-bots/create')
-                setSignUpModalOpen(true)
-              }
-            }}
-          >
-            Create Bot
-          </button>
-          {dashboardData.user_exists ? (
-            <button
-              onClick={handleMyBotsClick}
-              disabled={authLoading}
-              style={styles.buttonSecondary}
-            >
-              {authLoading ? "Checking…" : `My Bots (${dashboardData.user_bot_count})`}
-            </button>
-          ) : (
-            <button
-              onClick={() => {
-                setSignUpRedirectTo('/my-bots')
-                setSignUpModalOpen(true)
-              }}
-              style={styles.buttonSecondary}
-            >
-              Sign Up
-            </button>
-          )}
         </div>
 
         {/* Footer */}
@@ -404,7 +398,7 @@ function TokenCard({ name, tvl, borderColor }: { name: string; tvl: string; bord
   )
 }
 
-function ActivityCard({ title, children }: { title: string; children: React.ReactNode }) {
+function ActivityCard({ title, children }: { title: React.ReactNode; children: React.ReactNode }) {
   return (
     <div style={styles.activityCard}>
       <div style={{
@@ -499,14 +493,14 @@ function ActivityItem({
           whiteSpace: "nowrap",
           ...styles.textPrimary
         }}>
-          <span style={{ fontWeight: "700" }}>{action}</span> {tokenAmount && tokenSymbol ? (
+          <span style={{ fontWeight: "600" }}>{action}</span> {tokenAmount && tokenSymbol ? (
             <>
-              <span style={{ fontWeight: "700" }}>{tokenAmount}</span> <span style={{ fontWeight: "500", color: "#8e8e93" }}>
+              <span style={{ fontWeight: "500", color: "rgba(28, 28, 30, 0.85)" }}>
                 {tokenSymbol.length > 12 ? `${tokenSymbol.slice(0, 12)}...` : tokenSymbol}
-              </span>
+              </span> <span style={{ fontSize: "13px", fontWeight: "400", color: "#8e8e93" }}>· {tokenAmount}</span>
             </>
           ) : (
-            <span style={{ fontWeight: "700" }}>{amount}</span>
+            <span style={{ fontWeight: "600" }}>{amount}</span>
           )}
         </div>
         <div style={{
@@ -531,20 +525,24 @@ function ActivityItem({
   )
 }
 
-function LeaderboardItem({ 
-  rank, 
-  rankColor, 
-  botName, 
-  creator, 
-  strategy, 
-  profit 
-}: { 
-  rank: number; 
-  rankColor: string; 
-  botName: string; 
-  creator: string; 
-  strategy: string; 
+function LeaderboardItem({
+  rank,
+  rankColor,
+  botId,
+  creator,
+  strategy,
+  strategyId,
+  profit,
+  avatarUrl
+}: {
+  rank: number;
+  rankColor: string;
+  botId: number;
+  creator: string;
+  strategy: string;
+  strategyId: string;
   profit: string;
+  avatarUrl?: string;
 }) {
   // Use imported utility
   const backgroundColor = getRankColor(rankColor);
@@ -557,20 +555,52 @@ function LeaderboardItem({
       gap: "16px",
       borderBottom: "1px solid #f2f2f7"
     }}>
-      <div style={{
-        width: "32px",
-        height: "32px",
-        borderRadius: "10px",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        fontSize: "14px",
-        fontWeight: "700",
-        color: "white",
-        flexShrink: 0,
-        background: backgroundColor
-      }}>
-        {rank}
+      <div style={{ position: "relative", flexShrink: 0 }}>
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt={creator}
+            style={{
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              objectFit: "cover"
+            }}
+          />
+        ) : (
+          <div style={{
+            width: "40px",
+            height: "40px",
+            borderRadius: "50%",
+            background: "#e5e5ea",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: "14px",
+            fontWeight: "600",
+            color: "#8e8e93"
+          }}>
+            {creator.charAt(1).toUpperCase()}
+          </div>
+        )}
+        <div style={{
+          position: "absolute",
+          bottom: "-2px",
+          right: "-2px",
+          width: "16px",
+          height: "16px",
+          borderRadius: "5px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          fontSize: "9px",
+          fontWeight: "700",
+          color: "white",
+          background: "#6b7fa3",
+          border: "2px solid white"
+        }}>
+          {rank}
+        </div>
       </div>
       <div style={{ flex: 1 }}>
         <div style={{
@@ -578,14 +608,16 @@ function LeaderboardItem({
           fontWeight: "600",
           color: "#1c1c1e",
           marginBottom: "4px"
-        }}>{botName}</div>
+        }}>
+          {strategy} <span style={{ fontSize: "12px", fontWeight: "500", color: "#8e8e93" }}>#{botId}</span>
+        </div>
         <div style={{
           fontSize: "11px",
           color: "#8e8e93",
           marginTop: "2px",
           fontWeight: "500"
         }}>
-          by {creator} • {strategy}
+          by {creator} · Strategy #{strategyId}
         </div>
       </div>
       <div style={{
