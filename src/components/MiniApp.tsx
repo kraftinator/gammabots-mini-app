@@ -257,11 +257,11 @@ export default function MiniApp() {
           </div>
 
           {/* Description */}
-          <div style={{ marginTop: '8px' }}>
+          <div style={{ marginTop: '7px', padding: '0 12px' }}>
             <p style={{ color: '#4b5563', fontSize: '12px', lineHeight: '1.4' }}>
               Deploy automated trading bots in seconds. Choose a strategy, fund your bot, and let it trade for you.
             </p>
-            <p style={{ fontSize: '12px', marginTop: '12px' }}>
+            <p style={{ fontSize: '12px', marginTop: '12px', marginBottom: '8px' }}>
               <a href="#" style={{ color: 'rgba(59, 130, 246, 0.8)' }}>How it works</a>
               <span style={{ color: '#6b7280', margin: '0 8px' }}>·</span>
               <a href="#" style={{ color: 'rgba(59, 130, 246, 0.8)' }}>What is Gammascript?</a>
