@@ -25,6 +25,7 @@ interface LeaderboardBot {
   profit_share?: number
   profit_threshold?: number
   trades?: number
+  display_name: string
 }
 
 export default function LeaderboardPage() {
@@ -120,6 +121,7 @@ export default function LeaderboardPage() {
       active_seconds: bot.active_seconds,
       owner_farcaster_username: bot.owner_farcaster_username,
       status: 'active',
+      display_name: bot.display_name,
     })
     setIsModalOpen(true)
   }
@@ -351,10 +353,7 @@ export default function LeaderboardPage() {
                     <div style={{ minWidth: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
                         <span style={{ fontSize: '15px', fontWeight: '700', color: '#1c1c1e' }}>
-                          {bot.token_symbol ? (bot.token_symbol.length > 10 ? `${bot.token_symbol.slice(0, 10)}...` : bot.token_symbol) : 'Unknown'}
-                        </span>
-                        <span style={{ fontSize: '11px', color: '#8e8e93', fontWeight: '500' }}>
-                          #{bot.bot_id}
+                          {bot.display_name.length > 18 ? `${bot.display_name.slice(0, 18)}...` : bot.display_name}
                         </span>
                       </div>
                       <span style={{ fontSize: '13px', color: '#666' }}>

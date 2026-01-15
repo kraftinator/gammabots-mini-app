@@ -33,6 +33,7 @@ interface Bot {
   profit_share?: number
   profit_threshold?: number
   trade_mode?: 'buy' | 'sell'
+  display_name?: string
 }
 
 export default function MyBotsPage() {
@@ -519,11 +520,10 @@ export default function MyBotsPage() {
                     <span style={styles.myBotTokenInfo}>
                       <span style={{ whiteSpace: 'nowrap' }}>
                         {(() => {
-                          const symbol = bot.token_symbol || 'Unknown';
-                          return symbol.length > 15 ? `${symbol.slice(0, 15)}...` : symbol;
+                          const name = bot.display_name || `${bot.token_symbol} #${bot.bot_id}`;
+                          return name.length > 18 ? `${name.slice(0, 18)}...` : name;
                         })()}
                       </span>
-                      <span style={styles.myBotId}>#{bot.bot_id}</span>
                       <span style={{
                         ...styles.myBotStatus,
                         whiteSpace: 'nowrap',

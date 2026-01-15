@@ -80,6 +80,7 @@ export default function MiniApp() {
       performance_pct: number | null;
       trades: number;
       active_seconds: number;
+      display_name: string;
     }>,
     top_performers: [] as Array<{
       bot_id: number;
@@ -92,6 +93,7 @@ export default function MiniApp() {
       owner_avatar_url: string;
       trades: number;
       active_seconds: number;
+      display_name: string;
     }>,
     user_bot_count: 0,
     user_exists: true,
@@ -307,7 +309,7 @@ export default function MiniApp() {
                     rankColor={rankColors[index] || "bg-blue-500"}
                     botId={performer.bot_id}
                     creator={`@${performer.owner_username}`}
-                    strategy={performer.token_symbol}
+                    strategy={performer.display_name}
                     strategyId={performer.strategy_id}
                     profit={`${Number(performer.performance_pct) >= 0 ? '+' : ''}${Number(performer.performance_pct).toFixed(2)}%`}
                     avatarUrl={performer.owner_avatar_url}
@@ -323,6 +325,7 @@ export default function MiniApp() {
                         trades: performer.trades,
                         active_seconds: performer.active_seconds,
                         status: 'active',
+                        display_name: performer.display_name,
                       })
                       setIsBotModalOpen(true)
                     }}
@@ -359,7 +362,7 @@ export default function MiniApp() {
                 key={index}
                 action={activity.action === "Buy" ? "Bought" : "Sold"}
                 amount={`${activity.amount.toLocaleString()} ${activity.token_symbol}`}
-                strategy={`@${activity.owner_username} · ${activity.token_symbol} #${activity.bot_id} · ${activity.time_ago} ago`}
+                strategy={`@${activity.owner_username} · ${activity.display_name.length > 18 ? `${activity.display_name.slice(0, 18)}...` : activity.display_name} · ${activity.time_ago} ago`}
                 time=""
                 creator=""
                 tokenAmount={formatTokenAmount(activity.amount)}
@@ -377,6 +380,7 @@ export default function MiniApp() {
                     trades: activity.trades,
                     active_seconds: activity.active_seconds,
                     status: 'active',
+                    display_name: activity.display_name,
                   })
                   setIsBotModalOpen(true)
                 }}
@@ -707,7 +711,7 @@ function LeaderboardItem({
           color: "#1c1c1e",
           marginBottom: "4px"
         }}>
-          {strategy} <span style={{ fontSize: "12px", fontWeight: "500", color: "#8e8e93" }}>#{botId}</span>
+          {strategy.length > 18 ? `${strategy.slice(0, 18)}...` : strategy}
         </div>
         <div style={{
           fontSize: "11px",

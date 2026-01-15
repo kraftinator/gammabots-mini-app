@@ -33,6 +33,7 @@ export interface Bot {
   bot_owner_id?: number
   active_seconds?: number
   owner_farcaster_username?: string
+  display_name?: string
 }
 
 interface BotDetailModalProps {
@@ -680,16 +681,9 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, fro
               color: '#1c1c1e'
             }}>
               {(() => {
-                const symbol = bot.token_symbol || 'Unknown';
-                return symbol.length > 15 ? `${symbol.slice(0, 15)}...` : symbol;
+                const name = bot.display_name || `${bot.token_symbol || 'Unknown'} #${bot.bot_id}`;
+                return name.length > 18 ? `${name.slice(0, 18)}...` : name;
               })()}
-            </span>
-            <span style={{
-              fontSize: '11px',
-              color: '#8e8e93',
-              fontWeight: '500'
-            }}>
-              #{bot.bot_id}
             </span>
             {isOwner && (
             <span style={{
@@ -1746,7 +1740,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, fro
                   color: '#1a1a1a',
                   marginBottom: '12px',
                 }}>
-                  Liquidate & Deactivate {bot.token_symbol} #{bot.bot_id}?
+                  Liquidate & Deactivate {bot.display_name || `${bot.token_symbol} #${bot.bot_id}`}?
                 </div>
                 <div style={{
                   fontSize: '14px',
@@ -1857,7 +1851,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, fro
                   color: '#1a1a1a',
                   marginBottom: '12px',
                 }}>
-                  Deactivate {bot.token_symbol} #{bot.bot_id}?
+                  Deactivate {bot.display_name || `${bot.token_symbol} #${bot.bot_id}`}?
                 </div>
                 <div style={{
                   fontSize: '14px',
