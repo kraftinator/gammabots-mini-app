@@ -8,17 +8,22 @@ import SignUpModal from './modals/SignUpModal'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors, getChangeColor, getCircleColor, getRankColor } from '@/styles/common'
 import { formatTokenAmount } from '@/utils/formatters'
+import { useMe } from '@/contexts/MeContext'
 import RobotLogo from './RobotLogo'
+import BotDetailModal, { Bot } from './modals/BotDetailModal'
 
 export default function MiniApp() {
   const router = useRouter()
   const { authLoading, authError, authenticate, navigateToMyBots } = useQuickAuth()
+  const { me, fetchMe } = useMe()
   const [isReady, setIsReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sdkRef, setSdkRef] = useState<typeof import('@farcaster/miniapp-sdk').sdk | null>(null)
   const [username, setUsername] = useState<string>('guest') // Default fallback for development
   const [signUpModalOpen, setSignUpModalOpen] = useState(false)
   const [signUpRedirectTo, setSignUpRedirectTo] = useState<string>('/my-bots')
+  const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
+  const [isBotModalOpen, setIsBotModalOpen] = useState(false)
 
   // Function to fetch dashboard data with auth token
   const fetchDashboardData = async (token: string) => {
@@ -73,6 +78,8 @@ export default function MiniApp() {
       username: string;
       strategy_id: string;
       token_symbol: string;
+      token_address: string;
+      moving_average: number;
       performance: string;
       farcaster_avatar_url: string;
     }>,
@@ -114,7 +121,10 @@ export default function MiniApp() {
         // Perform Quick Auth and fetch dashboard data with auth
         const token = await authenticate()
         if (token) {
-          await fetchDashboardData(token)
+          await Promise.all([
+            fetchMe(token),
+            fetchDashboardData(token)
+          ])
         }
         
       } catch (error) {
@@ -135,7 +145,10 @@ export default function MiniApp() {
     // Re-authenticate and refresh dashboard
     const token = await authenticate()
     if (token) {
-      await fetchDashboardData(token)
+      await Promise.all([
+        fetchMe(token),
+        fetchDashboardData(token)
+      ])
     }
   }
 
@@ -286,6 +299,19 @@ export default function MiniApp() {
                     strategyId={performer.strategy_id}
                     profit={`+${performer.performance}%`}
                     avatarUrl={performer.farcaster_avatar_url}
+                    onClick={() => {
+                      setSelectedBot({
+                        bot_id: String(performer.bot_id),
+                        token_symbol: performer.token_symbol,
+                        token_address: performer.token_address,
+                        strategy_id: performer.strategy_id,
+                        moving_average: performer.moving_average,
+                        profit_percent: parseFloat(performer.performance),
+                        owner_farcaster_username: performer.username,
+                        status: 'active',
+                      })
+                      setIsBotModalOpen(true)
+                    }}
                   />
                 );
               })}
@@ -357,6 +383,16 @@ export default function MiniApp() {
         onClose={() => setSignUpModalOpen(false)}
         onSuccess={handleSignUpSuccess}
         redirectTo={signUpRedirectTo}
+      />
+
+      {/* Bot Detail Modal */}
+      <BotDetailModal
+        isOpen={isBotModalOpen}
+        onClose={() => {
+          setIsBotModalOpen(false)
+          setSelectedBot(null)
+        }}
+        bot={selectedBot}
       />
     </div>
   )
@@ -533,7 +569,8 @@ function LeaderboardItem({
   strategy,
   strategyId,
   profit,
-  avatarUrl
+  avatarUrl,
+  onClick
 }: {
   rank: number;
   rankColor: string;
@@ -543,18 +580,22 @@ function LeaderboardItem({
   strategyId: string;
   profit: string;
   avatarUrl?: string;
+  onClick?: () => void;
 }) {
   // Use imported utility
   const backgroundColor = getRankColor(rankColor);
 
   return (
-    <div style={{
-      display: "flex",
-      alignItems: "center",
-      padding: "16px 20px",
-      gap: "16px",
-      borderBottom: "1px solid #f2f2f7"
-    }}>
+    <div
+      onClick={onClick}
+      style={{
+        display: "flex",
+        alignItems: "center",
+        padding: "16px 20px",
+        gap: "16px",
+        borderBottom: "1px solid #f2f2f7",
+        cursor: onClick ? "pointer" : "default"
+      }}>
       <div style={{ position: "relative", flexShrink: 0 }}>
         {avatarUrl ? (
           <img

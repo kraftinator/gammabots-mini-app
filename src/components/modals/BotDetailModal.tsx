@@ -1,13 +1,15 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power } from 'lucide-react'
+import { useRouter } from 'next/navigation'
+import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power, Copy } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { colors, getProfitColor } from '@/styles/common'
-import { formatTokenAmount } from '@/utils/formatters'
+import { formatTokenAmount, formatActiveTime } from '@/utils/formatters'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
+import { useMe } from '@/contexts/MeContext'
 
-interface Bot {
+export interface Bot {
   bot_id: string
   token_symbol: string
   token_address?: string
@@ -28,6 +30,9 @@ interface Bot {
   profit_share?: number
   profit_threshold?: number
   trade_mode?: 'buy' | 'sell'
+  bot_owner_id?: number
+  active_seconds?: number
+  owner_farcaster_username?: string
 }
 
 interface BotDetailModalProps {
@@ -95,7 +100,11 @@ interface StrategyData {
 }
 
 export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: BotDetailModalProps) {
+  const router = useRouter()
   const { authenticate } = useQuickAuth()
+  const { me } = useMe()
+  const isOwner = me?.id != null && bot?.bot_owner_id != null && String(me.id) === String(bot.bot_owner_id)
+
   const [isMetricsExpanded, setIsMetricsExpanded] = useState(false)
   const [metricsData, setMetricsData] = useState<Record<string, string | number | boolean> | null>(null)
   const [metricsLoading, setMetricsLoading] = useState(false)
@@ -679,6 +688,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             }}>
               #{bot.bot_id}
             </span>
+            {isOwner && (
             <span style={{
               fontSize: '12px',
               fontWeight: '500',
@@ -687,7 +697,25 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             }}>
               {bot.status === 'unfunded' ? 'Awaiting funding' : (bot.status === 'liquidating' ? 'Liquidating...' : (bot.status === 'completed' ? 'Completed' : (bot.status === 'stopped' ? 'Stopped' : (bot.status === 'funding_failed' ? 'Funding failed' : (bot.is_active ? 'Active' : 'Inactive')))))}
             </span>
+            )}
           </div>
+          {!isOwner && bot.owner_farcaster_username && (
+            <div style={{ fontSize: '13px', color: '#666' }}>
+              @{bot.owner_farcaster_username}
+            </div>
+          )}
+          {!isOwner && bot.profit_percent != null && (
+            <span style={{
+              position: 'absolute',
+              top: '16px',
+              right: '50px',
+              fontSize: '14px',
+              fontWeight: '600',
+              color: Number(bot.profit_percent) >= 0 ? '#34c759' : '#ff3b30'
+            }}>
+              {Number(bot.profit_percent) >= 0 ? '+' : ''}{Number(bot.profit_percent).toFixed(2)}%
+            </span>
+          )}
           <button
             onClick={onClose}
             style={{
@@ -707,7 +735,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
           </button>
         </div>
 
-        {/* Current Value Section */}
+        {/* Current Value Section - Owner only */}
+        {isOwner && (
         <div style={{
           padding: '20px 16px 0px'
         }}>
@@ -738,6 +767,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             )}
           </div>
         </div>
+        )}
 
         {/* Details Section */}
         <div style={{ padding: '20px 16px' }}>
@@ -773,8 +803,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
               </span>
             </div>
 
-            {/* Holdings */}
-            {bot.status !== 'stopped' && bot.status !== 'funding_failed' && bot.status !== 'completed' && (
+            {/* Holdings - Owner only */}
+            {isOwner && bot.status !== 'stopped' && bot.status !== 'funding_failed' && bot.status !== 'completed' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
               <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Holdings</span>
               <div style={{ textAlign: 'right' }}>
@@ -830,16 +860,23 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             </div>
             )}
 
-            {/* Last Action */}
+            {/* Last Action (owner) or Lifespan (public, only if data exists) */}
+            {(isOwner || bot.active_seconds != null) && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
-              <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Last Action</span>
+              <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>
+                {isOwner ? 'Last Action' : 'Lifespan'}
+              </span>
               <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                {bot.last_action ? formatDistanceToNow(new Date(bot.last_action), { addSuffix: true }) : 'N/A'}
+                {isOwner
+                  ? (bot.last_action ? formatDistanceToNow(new Date(bot.last_action), { addSuffix: true }) : 'N/A')
+                  : formatActiveTime(bot.active_seconds!)
+                }
               </span>
             </div>
+            )}
 
-            {/* Init Value */}
-            {bot.status !== 'funding_failed' && (
+            {/* Init Value - Owner only */}
+            {isOwner && bot.status !== 'funding_failed' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
               <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Initial Value</span>
               <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
@@ -852,7 +889,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
 
         {/* Expandable Sections */}
         <div style={{ padding: '0 0 20px' }}>
-          {bot.status === 'active' && (
+          {isOwner && bot.status === 'active' && (
           <div>
             <div
               style={{
@@ -941,6 +978,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
           </div>
           )}
 
+          {isOwner && (
           <div>
             <div
               style={{
@@ -1046,6 +1084,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
               </div>
             )}
           </div>
+          )}
 
           <div>
             <div
@@ -1237,8 +1276,42 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
           </div>
         </div>
 
-        {/* Action Buttons */}
-        {bot.status === 'active' && (
+        {/* Clone Button - Public view only */}
+        {!isOwner && (
+        <div style={{ padding: '2px 16px 16px' }}>
+          <button
+            onClick={() => {
+              const params = new URLSearchParams()
+              params.set('from', 'leaderboard')
+              if (bot.token_address) params.set('token_address', bot.token_address)
+              if (bot.strategy_id) params.set('strategy_id', bot.strategy_id)
+              if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
+              if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
+              if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
+              router.push(`/my-bots/create?${params.toString()}`)
+              onClose()
+            }}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '12px 16px',
+              backgroundColor: '#f3f4f6',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              border: 'none',
+            }}
+          >
+            <Copy style={{ width: '16px', height: '16px', color: '#1c1c1e' }} />
+            <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Clone</span>
+          </button>
+        </div>
+        )}
+
+        {/* Action Buttons - Owner only */}
+        {isOwner && bot.status === 'active' && (
         <div style={{ padding: '0 16px 16px' }}>
           <button
             onClick={handleOpenEdit}
@@ -1300,6 +1373,34 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
               <span style={{ color: '#dc2626', fontSize: '14px', fontWeight: '500' }}>Liquidate</span>
             </button>
           )}
+          <button
+            onClick={() => {
+              const params = new URLSearchParams()
+              if (bot.token_address) params.set('token_address', bot.token_address)
+              if (bot.strategy_id) params.set('strategy_id', bot.strategy_id)
+              if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
+              if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
+              if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
+              router.push(`/my-bots/create?${params.toString()}`)
+              onClose()
+            }}
+            style={{
+              width: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              padding: '12px 16px',
+              backgroundColor: '#f3f4f6',
+              borderRadius: '12px',
+              cursor: 'pointer',
+              border: 'none',
+              marginTop: '10px'
+            }}
+          >
+            <Copy style={{ width: '16px', height: '16px', color: '#1c1c1e' }} />
+            <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Clone</span>
+          </button>
         </div>
         )}
 

@@ -44,7 +44,6 @@ export function useQuickAuth(): UseQuickAuthReturn {
         return null
       }
 
-      console.log("Quick Auth token received:", token.slice(0, 20), "...")
       return token
 
     } catch (err: unknown) {

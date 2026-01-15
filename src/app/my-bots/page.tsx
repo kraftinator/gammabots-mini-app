@@ -75,11 +75,9 @@ export default function MyBotsPage() {
       }
 
       const data = await response.json()
-      console.log('Raw API response:', data)
-      
-        const botsArray = Array.isArray(data) ? data : data.bots || []
-        console.log('Processed bots array:', botsArray)
-        setBots(botsArray)    } catch (error: unknown) {
+      const botsArray = Array.isArray(data) ? data : data.bots || []
+      setBots(botsArray)
+    } catch (error: unknown) {
       console.error('Failed to fetch bots:', error)
       setBotsError(error instanceof Error ? error.message : 'Failed to fetch bots')
     } finally {

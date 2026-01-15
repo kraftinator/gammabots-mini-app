@@ -4,7 +4,9 @@ import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { getProfitColor } from '@/styles/common'
+import { formatActiveTime } from '@/utils/formatters'
 import BottomNavigation from '@/components/BottomNavigation'
+import BotDetailModal, { Bot } from '@/components/modals/BotDetailModal'
 
 interface LeaderboardBot {
   rank: number
@@ -23,22 +25,6 @@ interface LeaderboardBot {
   trades?: number
 }
 
-// Format active time from seconds
-function formatActiveTime(seconds: number): string {
-  if (seconds < 60) {
-    return `${seconds} seconds`
-  } else if (seconds < 3600) {
-    const minutes = Math.floor(seconds / 60)
-    return `${minutes} minute${minutes !== 1 ? 's' : ''}`
-  } else if (seconds < 86400) {
-    const hours = Math.floor(seconds / 3600)
-    return `${hours} hour${hours !== 1 ? 's' : ''}`
-  } else {
-    const days = Math.floor(seconds / 86400)
-    return `${days} day${days !== 1 ? 's' : ''}`
-  }
-}
-
 export default function LeaderboardPage() {
   const router = useRouter()
   const { authenticate } = useQuickAuth()
@@ -49,6 +35,10 @@ export default function LeaderboardPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState('all')
   const [timePeriod, setTimePeriod] = useState('all_time')
+
+  // Bot detail modal state
+  const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
+  const [isModalOpen, setIsModalOpen] = useState(false)
 
   useEffect(() => {
     const initSdk = async () => {
@@ -75,7 +65,6 @@ export default function LeaderboardPage() {
         }
 
         const data = await response.json()
-        console.log('Leaderboard API response:', data)
         setBots(Array.isArray(data) ? data : data.bots || [])
       } catch (err) {
         console.error('Error fetching leaderboard:', err)
@@ -100,7 +89,30 @@ export default function LeaderboardPage() {
     )
   }, [bots, searchQuery])
 
-  // Handle clone - requires auth
+  // Handle bot click to show details (public view only)
+  const handleBotClick = (bot: LeaderboardBot) => {
+    setSelectedBot({
+      bot_id: bot.bot_id,
+      token_symbol: bot.token_symbol,
+      token_address: bot.token_address,
+      strategy_id: bot.strategy_id,
+      moving_average: bot.moving_average,
+      profit_share: bot.profit_share,
+      profit_threshold: bot.profit_threshold,
+      profit_percent: bot.performance_pct,
+      trades: bot.trades,
+      active_seconds: bot.active_seconds,
+      owner_farcaster_username: bot.owner_farcaster_username,
+      status: 'active',
+    })
+    setIsModalOpen(true)
+  }
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false)
+    setSelectedBot(null)
+  }
+
   const handleClone = async (bot: LeaderboardBot, e: React.MouseEvent) => {
     e.stopPropagation()
 
@@ -112,12 +124,14 @@ export default function LeaderboardPage() {
     }
 
     const params = new URLSearchParams()
+    params.set('from', 'leaderboard')
     if (bot.token_address) params.set('token_address', bot.token_address)
     if (bot.strategy_id) params.set('strategy_id', bot.strategy_id)
     if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
     if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
     if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
 
+    console.log('🔍 Leaderboard Clone:', { bot, params: params.toString() })
     router.push(`/my-bots/create?${params.toString()}`)
   }
 
@@ -247,12 +261,14 @@ export default function LeaderboardPage() {
             {filteredBots.map((bot) => (
               <div
                 key={bot.bot_id}
+                onClick={() => handleBotClick(bot)}
                 style={{
                   backgroundColor: '#fff',
                   borderRadius: '12px',
                   padding: '16px',
                   boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
                   position: 'relative',
+                  cursor: 'pointer',
                 }}
               >
                 {/* Rank Badge */}
@@ -399,6 +415,12 @@ export default function LeaderboardPage() {
       </div>
 
       <BottomNavigation activeTab="leaderboard" />
+
+      <BotDetailModal
+        isOpen={isModalOpen}
+        onClose={handleCloseModal}
+        bot={selectedBot}
+      />
     </div>
   )
 }

@@ -34,6 +34,8 @@ function CreateBotContent() {
     const profitShare = searchParams.get('profit_share')
     const profitThreshold = searchParams.get('profit_threshold')
 
+    console.log('🔍 Create page params:', { tokenAddress, strategyId, movingAvg, profitShare, profitThreshold })
+
     if (tokenAddress || strategyId || movingAvg || profitShare || profitThreshold) {
       setFormData(prev => ({
         ...prev,
@@ -303,7 +305,12 @@ function CreateBotContent() {
     <div style={styles.formContainer}>
       {/* Back Link */}
       <button
-        onClick={() => router.push(searchParams.get('from') === 'strategies' ? '/strategies' : '/my-bots')}
+        onClick={() => {
+          const from = searchParams.get('from')
+          if (from === 'strategies') router.push('/strategies')
+          else if (from === 'leaderboard') router.push('/leaderboard')
+          else router.push('/my-bots')
+        }}
         style={{
           display: 'flex',
           alignItems: 'center',
@@ -321,7 +328,7 @@ function CreateBotContent() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M15 18l-6-6 6-6" />
         </svg>
-        {searchParams.get('from') === 'strategies' ? 'Strategies' : 'My Bots'}
+        {searchParams.get('from') === 'strategies' ? 'Strategies' : searchParams.get('from') === 'leaderboard' ? 'Leaderboard' : 'My Bots'}
       </button>
 
       {/* Header */}
