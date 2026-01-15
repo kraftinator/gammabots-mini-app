@@ -3,9 +3,11 @@
 import { useEffect, useState, useMemo, Suspense } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
+import { useMe } from '@/contexts/MeContext'
 import { getProfitColor } from '@/styles/common'
 import BottomNavigation from '@/components/BottomNavigation'
 import StrategyDetailModal from '@/components/modals/StrategyDetailModal'
+import SignUpModal from '@/components/modals/SignUpModal'
 import { formatDistanceToNow } from 'date-fns'
 
 interface Strategy {
@@ -21,6 +23,7 @@ function StrategiesPageContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { authenticate } = useQuickAuth()
+  const { me, fetchMe } = useMe()
   const [strategies, setStrategies] = useState<Strategy[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -28,6 +31,13 @@ function StrategiesPageContent() {
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('performance')
   const [selectedStrategyId, setSelectedStrategyId] = useState<string | null>(null)
+
+  // Sign up modal state
+  const [signUpModalOpen, setSignUpModalOpen] = useState(false)
+  const [signUpRedirectTo, setSignUpRedirectTo] = useState<string>('/my-bots')
+
+  // Check if user exists (has signed up)
+  const userExists = me?.user_exists === true
 
   // Check for view query parameter to open modal
   useEffect(() => {
@@ -44,6 +54,12 @@ function StrategiesPageContent() {
       try {
         const { sdk } = await import('@farcaster/miniapp-sdk')
         await sdk.actions.ready()
+
+        // Fetch user data to check if signed up
+        const token = await authenticate()
+        if (token) {
+          await fetchMe(token)
+        }
       } catch (err) {
         console.error('Failed to initialize SDK:', err)
       }
@@ -113,23 +129,41 @@ function StrategiesPageContent() {
 
   // Handle Create Strategy - requires auth
   const handleCreateStrategy = async () => {
+    const redirectUrl = '/strategies/create'
+
+    // If user hasn't signed up, show signup modal
+    if (!userExists) {
+      setSignUpRedirectTo(redirectUrl)
+      setSignUpModalOpen(true)
+      return
+    }
+
     const token = await authenticate()
     if (!token) {
       return
     }
-    router.push('/strategies/create')
+    router.push(redirectUrl)
   }
 
   // Handle Create Bot - requires auth
   const handleCreateBot = async (strategy: Strategy, e: React.MouseEvent) => {
     e.stopPropagation()
 
+    const redirectUrl = `/my-bots/create?strategy_id=${strategy.strategy_id}&from=strategies`
+
+    // If user hasn't signed up, show signup modal
+    if (!userExists) {
+      setSignUpRedirectTo(redirectUrl)
+      setSignUpModalOpen(true)
+      return
+    }
+
     const token = await authenticate()
     if (!token) {
       return
     }
 
-    router.push(`/my-bots/create?strategy_id=${strategy.strategy_id}&from=strategies`)
+    router.push(redirectUrl)
   }
 
   // Format created date
@@ -392,6 +426,23 @@ function StrategiesPageContent() {
         isOpen={selectedStrategyId !== null}
         onClose={() => setSelectedStrategyId(null)}
         strategyId={selectedStrategyId}
+        userExists={userExists}
+        onSignUpRequired={(redirectUrl) => {
+          setSignUpRedirectTo(redirectUrl)
+          setSignUpModalOpen(true)
+        }}
+      />
+
+      <SignUpModal
+        isOpen={signUpModalOpen}
+        onClose={() => setSignUpModalOpen(false)}
+        onSuccess={async () => {
+          const token = await authenticate()
+          if (token) {
+            await fetchMe(token)
+          }
+        }}
+        redirectTo={signUpRedirectTo}
       />
     </div>
   )

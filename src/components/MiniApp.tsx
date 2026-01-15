@@ -24,9 +24,11 @@ export default function MiniApp() {
   const [signUpRedirectTo, setSignUpRedirectTo] = useState<string>('/my-bots')
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
   const [isBotModalOpen, setIsBotModalOpen] = useState(false)
+  const [dashboardLoading, setDashboardLoading] = useState(true)
 
   // Function to fetch dashboard data with auth token
   const fetchDashboardData = async (token: string) => {
+    setDashboardLoading(true)
     try {
       console.log('🔍 Frontend: Calling /api/dashboard with token')
 
@@ -46,6 +48,8 @@ export default function MiniApp() {
       }
     } catch (dashboardError) {
       console.warn('🚨 Frontend: Error fetching dashboard data:', dashboardError)
+    } finally {
+      setDashboardLoading(false)
     }
   }
 
@@ -218,19 +222,19 @@ export default function MiniApp() {
         {/* Platform Metrics */}
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
-            <MetricCard label="Active Bots" value={dashboardData.active_bots.toLocaleString()} change={formatPercentageChange(dashboardData.active_bots_change_24h)} />
-            <MetricCard label="TVL" value={formatCurrency(dashboardData.tvl)} change={formatPercentageChange(dashboardData.tvl_change_24h)} />
-            <MetricCard label="24h Volume" value={formatCurrency(dashboardData.volume_24h)} change={formatPercentageChange(dashboardData.volume_24h_change_24h)} />
+            <MetricCard label="Active Bots" value={dashboardData.active_bots.toLocaleString()} change={formatPercentageChange(dashboardData.active_bots_change_24h)} loading={dashboardLoading} />
+            <MetricCard label="TVL" value={formatCurrency(dashboardData.tvl)} change={formatPercentageChange(dashboardData.tvl_change_24h)} loading={dashboardLoading} />
+            <MetricCard label="24h Volume" value={formatCurrency(dashboardData.volume_24h)} change={formatPercentageChange(dashboardData.volume_24h_change_24h)} loading={dashboardLoading} />
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "12px" }}>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
-              <MetricCard label="Strategies" value={dashboardData.strategies.toLocaleString()} change="" />
+              <MetricCard label="Strategies" value={dashboardData.strategies.toLocaleString()} change="" loading={dashboardLoading} />
             </div>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
-              <MetricCard label="Total Profits" value={formatCurrency(dashboardData.total_profits)} change="" />
+              <MetricCard label="Total Profits" value={formatCurrency(dashboardData.total_profits)} change="" loading={dashboardLoading} />
             </div>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
-              <MetricCard label="Total Trades" value={dashboardData.trades_executed.toLocaleString()} change="" />
+              <MetricCard label="Total Trades" value={dashboardData.trades_executed.toLocaleString()} change="" loading={dashboardLoading} />
             </div>
           </div>
 
@@ -417,20 +421,44 @@ export default function MiniApp() {
         }}
         bot={selectedBot}
         from="dashboard"
+        userExists={dashboardData.user_exists}
+        onSignUpRequired={(redirectUrl) => {
+          setSignUpRedirectTo(redirectUrl)
+          setSignUpModalOpen(true)
+        }}
       />
     </div>
   )
 }
 
 // Component helpers
-function MetricCard({ label, value, change }: { label: string; value: string; change?: string }) {
+function MetricCard({ label, value, change, loading }: { label: string; value: string; change?: string; loading?: boolean }) {
   return (
     <div style={styles.metricCard}>
       <div style={styles.textSmall}>{label}</div>
-      <div style={{ fontSize: "16px", fontWeight: "700", ...styles.textPrimary }}>{value}</div>
-      <div style={{ fontSize: "10px", fontWeight: "600", color: getChangeColor(change), height: "12px", lineHeight: "12px" }}>
-        {change || "\u00A0"}
-      </div>
+      {loading ? (
+        <div style={{
+          height: "20px",
+          width: "60%",
+          backgroundColor: "#e5e5e5",
+          borderRadius: "4px",
+          margin: "2px 0"
+        }} />
+      ) : (
+        <div style={{ fontSize: "16px", fontWeight: "700", ...styles.textPrimary }}>{value}</div>
+      )}
+      {loading ? (
+        <div style={{
+          height: "12px",
+          width: "40%",
+          backgroundColor: "#e5e5e5",
+          borderRadius: "3px"
+        }} />
+      ) : (
+        <div style={{ fontSize: "10px", fontWeight: "600", color: getChangeColor(change), height: "12px", lineHeight: "12px" }}>
+          {change || "\u00A0"}
+        </div>
+      )}
     </div>
   )
 }

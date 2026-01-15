@@ -4,10 +4,12 @@ import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { Search } from 'lucide-react'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
+import { useMe } from '@/contexts/MeContext'
 import { styles, colors, getProfitColor } from '@/styles/common'
 import { formatTokenAmount } from '@/utils/formatters'
 import BottomNavigation from '@/components/BottomNavigation'
 import BotDetailModal from '@/components/modals/BotDetailModal'
+import SignUpModal from '@/components/modals/SignUpModal'
 import { formatDistanceToNow } from 'date-fns'
 
 interface Bot {
@@ -36,13 +38,14 @@ interface Bot {
 export default function MyBotsPage() {
   const router = useRouter()
   const { authLoading, authError, authenticate } = useQuickAuth()
+  const { me, fetchMe } = useMe()
   const [isReady, setIsReady] = useState(false)
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [username, setUsername] = useState<string>('kraft')
   const [bots, setBots] = useState<Bot[]>([])
   const [botsLoading, setBotsLoading] = useState(false)
   const [botsError, setBotsError] = useState<string | null>(null)
-  
+
   // Filter and search states
   const [searchQuery, setSearchQuery] = useState('')
   const [sortBy, setSortBy] = useState('recent')
@@ -51,6 +54,43 @@ export default function MyBotsPage() {
   // Modal state
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
+
+  // Sign up modal state
+  const [signUpModalOpen, setSignUpModalOpen] = useState(false)
+  const [signUpRedirectTo, setSignUpRedirectTo] = useState('/my-bots')
+
+  // Check if user exists (has signed up)
+  const userExists = me?.user_exists === true
+  const walletAddress = me?.wallet_address
+
+  // Copy wallet state
+  const [copied, setCopied] = useState(false)
+
+  const truncateAddress = (address: string) => {
+    return `${address.slice(0, 6)}...${address.slice(-4)}`
+  }
+
+  const copyAddress = async () => {
+    if (walletAddress) {
+      await navigator.clipboard.writeText(walletAddress)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    }
+  }
+
+  // Handle Create Bot button click
+  const handleCreateBot = () => {
+    const redirectUrl = '/my-bots/create'
+
+    // If user hasn't signed up, show signup modal
+    if (!userExists) {
+      setSignUpRedirectTo(redirectUrl)
+      setSignUpModalOpen(true)
+      return
+    }
+
+    router.push(redirectUrl)
+  }
 
   // Fetch bots function
   const fetchBots = useCallback(async (token: string, botStatus: 'active' | 'inactive' = 'active') => {
@@ -112,10 +152,11 @@ export default function MyBotsPage() {
             console.log('Could not get user context:', contextError)
           }
 
-          // Now perform Quick Auth and fetch bots
+          // Now perform Quick Auth
           const token = await authenticate()
           if (token) {
-            await fetchBots(token, status)
+            // Fetch user data to check if signed up
+            await fetchMe(token)
           }
         } else {
           console.log('Not running in Mini App environment')
@@ -128,7 +169,20 @@ export default function MyBotsPage() {
     }
 
     initializePage()
-  }, [authenticate, fetchBots])
+  }, [authenticate, fetchMe])
+
+  // Fetch bots when user exists
+  useEffect(() => {
+    const loadBots = async () => {
+      if (userExists) {
+        const token = await authenticate()
+        if (token) {
+          await fetchBots(token, status)
+        }
+      }
+    }
+    loadBots()
+  }, [userExists, authenticate, fetchBots, status])
 
   // Auto-refresh when there are unfunded or liquidating bots
   useEffect(() => {
@@ -254,16 +308,85 @@ export default function MyBotsPage() {
     <div style={styles.myBotsContainer}>
       {/* Header */}
       <div style={{
-        ...styles.formHeader,
-        padding: '20px 20px 20px 20px',
-        marginBottom: '0',
-        backgroundColor: 'white'
+        padding: '16px 16px 9px 16px',
+        backgroundColor: '#fff',
       }}>
-        <div>
-          <h1 style={styles.formTitle}>
+        <div style={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+        }}>
+          <h1 style={{
+            fontSize: '24px',
+            fontWeight: '700',
+            color: '#1a1a1a',
+            margin: 0,
+          }}>
             My Bots
           </h1>
+          <button
+            onClick={handleCreateBot}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '6px',
+              backgroundColor: '#14b8a6',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '20px',
+              padding: '8px 16px',
+              fontSize: '13px',
+              fontWeight: '600',
+              cursor: 'pointer',
+            }}
+          >
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+              <path d="M12 5v14M5 12h14" />
+            </svg>
+            Create Bot
+          </button>
         </div>
+        {/* Wallet Address - only for signed up users */}
+        {walletAddress && (
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '8px',
+            marginTop: '8px',
+          }}>
+            <span style={{
+              fontSize: '13px',
+              color: '#8e8e93',
+            }}>
+              Gammabots Wallet:
+            </span>
+            <span style={{
+              fontSize: '13px',
+              fontWeight: '500',
+              color: '#1c1c1e',
+              fontFamily: 'monospace',
+            }}>
+              {truncateAddress(walletAddress)}
+            </span>
+            <button
+              onClick={copyAddress}
+              style={{
+                padding: '4px 10px',
+                fontSize: '12px',
+                backgroundColor: copied ? '#d1fae5' : '#f5f5f5',
+                border: '1px solid',
+                borderColor: copied ? '#6ee7b7' : '#e5e5e5',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                color: copied ? '#047857' : '#666',
+                fontWeight: '500',
+                transition: 'all 0.2s',
+              }}
+            >
+              {copied ? 'Copied!' : 'Copy'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Auth Error */}
@@ -278,7 +401,39 @@ export default function MyBotsPage() {
         </div>
       )}
 
-      {/* Search and Filters */}
+      {/* Sign Up Button - shown if user hasn't signed up */}
+      {!userExists && me !== null && (
+        <div style={{ padding: '16px' }}>
+          <button
+            onClick={() => setSignUpModalOpen(true)}
+            style={{
+              width: '100%',
+              padding: '14px 24px',
+              fontSize: '15px',
+              fontWeight: '600',
+              backgroundColor: '#3b82f6',
+              color: '#fff',
+              border: 'none',
+              borderRadius: '12px',
+              cursor: 'pointer',
+            }}
+          >
+            Sign Up
+          </button>
+          <p style={{
+            textAlign: 'center',
+            color: '#8e8e93',
+            fontSize: '13px',
+            marginTop: '12px'
+          }}>
+            Sign up to create and manage your bots
+          </p>
+        </div>
+      )}
+
+      {/* Search and Filters - only show if user exists */}
+      {userExists && (
+      <>
       <div style={styles.myBotsFilters}>
         <div style={styles.myBotsSearchContainer}>
           <Search style={styles.myBotsSearchIcon} />
@@ -490,6 +645,8 @@ export default function MyBotsPage() {
           )}
         </div>
       )}
+      </>
+      )}
 
       <BottomNavigation activeTab="my-bots" />
 
@@ -498,6 +655,18 @@ export default function MyBotsPage() {
         onClose={handleCloseModal}
         bot={selectedBot}
         onBotUpdated={handleBotUpdated}
+      />
+
+      <SignUpModal
+        isOpen={signUpModalOpen}
+        onClose={() => setSignUpModalOpen(false)}
+        onSuccess={async () => {
+          const token = await authenticate()
+          if (token) {
+            await fetchMe(token)
+          }
+        }}
+        redirectTo={signUpRedirectTo}
       />
     </div>
   )

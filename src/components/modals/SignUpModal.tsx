@@ -17,9 +17,13 @@ export default function SignUpModal({ isOpen, onClose, onSuccess, redirectTo = '
   const router = useRouter()
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [currentView, setCurrentView] = useState<'signup' | 'terms' | 'privacy'>('signup')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const { authenticate } = useQuickAuth()
 
   const handleContinue = async () => {
+    if (isSubmitting) return
+    setIsSubmitting(true)
+
     try {
       console.log('Starting sign up...')
 
@@ -27,6 +31,7 @@ export default function SignUpModal({ isOpen, onClose, onSuccess, redirectTo = '
       const token = await authenticate()
       if (!token) {
         alert('Unable to authenticate. Please try again.')
+        setIsSubmitting(false)
         return
       }
       console.log('Auth token obtained')
@@ -41,6 +46,7 @@ export default function SignUpModal({ isOpen, onClose, onSuccess, redirectTo = '
 
       if (!inMiniApp) {
         alert('This feature is only available in the Farcaster Mini App')
+        setIsSubmitting(false)
         return
       }
 
@@ -50,6 +56,7 @@ export default function SignUpModal({ isOpen, onClose, onSuccess, redirectTo = '
 
       if (!context?.user) {
         alert('Unable to get user information')
+        setIsSubmitting(false)
         return
       }
 
@@ -62,6 +69,7 @@ export default function SignUpModal({ isOpen, onClose, onSuccess, redirectTo = '
 
       if (!accounts || accounts.length === 0) {
         alert('No wallet accounts available')
+        setIsSubmitting(false)
         return
       }
 
@@ -115,6 +123,7 @@ Timestamp: ${timestamp}`
       if (!response.ok) {
         const errorData = await response.json()
         alert(errorData.error || 'Failed to create account')
+        setIsSubmitting(false)
         return
       }
 
@@ -127,6 +136,7 @@ Timestamp: ${timestamp}`
     } catch (error) {
       console.error('Sign up error:', error)
       alert('An error occurred during sign up. Please try again.')
+      setIsSubmitting(false)
     }
   }
 
@@ -296,21 +306,21 @@ Timestamp: ${timestamp}`
             {/* Continue Button */}
             <button
               onClick={handleContinue}
-              disabled={!agreedToTerms}
+              disabled={!agreedToTerms || isSubmitting}
               style={{
                 width: '100%',
                 padding: '14px',
-                backgroundColor: agreedToTerms ? '#7c65c1' : '#d1d1d6',
+                backgroundColor: (agreedToTerms && !isSubmitting) ? '#7c65c1' : '#d1d1d6',
                 color: 'white',
                 border: 'none',
                 borderRadius: '12px',
                 fontSize: '16px',
                 fontWeight: '600',
-                cursor: agreedToTerms ? 'pointer' : 'not-allowed',
+                cursor: (agreedToTerms && !isSubmitting) ? 'pointer' : 'not-allowed',
                 transition: 'background-color 0.2s'
               }}
             >
-              Continue
+              {isSubmitting ? 'Signing up...' : 'Continue'}
             </button>
           </div>
         )}

@@ -3,10 +3,12 @@
 import { useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
+import { useMe } from '@/contexts/MeContext'
 import { getProfitColor } from '@/styles/common'
 import { formatActiveTime } from '@/utils/formatters'
 import BottomNavigation from '@/components/BottomNavigation'
 import BotDetailModal, { Bot } from '@/components/modals/BotDetailModal'
+import SignUpModal from '@/components/modals/SignUpModal'
 
 interface LeaderboardBot {
   rank: number
@@ -28,6 +30,7 @@ interface LeaderboardBot {
 export default function LeaderboardPage() {
   const router = useRouter()
   const { authenticate } = useQuickAuth()
+  const { me, fetchMe } = useMe()
   const [bots, setBots] = useState<LeaderboardBot[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -40,11 +43,24 @@ export default function LeaderboardPage() {
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
 
+  // Sign up modal state
+  const [signUpModalOpen, setSignUpModalOpen] = useState(false)
+  const [signUpRedirectTo, setSignUpRedirectTo] = useState<string>('/my-bots')
+
+  // Check if user exists (has signed up)
+  const userExists = me?.user_exists === true
+
   useEffect(() => {
     const initSdk = async () => {
       try {
         const { sdk } = await import('@farcaster/miniapp-sdk')
         await sdk.actions.ready()
+
+        // Fetch user data to check if signed up
+        const token = await authenticate()
+        if (token) {
+          await fetchMe(token)
+        }
       } catch (err) {
         console.error('Failed to initialize SDK:', err)
       }
@@ -116,13 +132,6 @@ export default function LeaderboardPage() {
   const handleClone = async (bot: LeaderboardBot, e: React.MouseEvent) => {
     e.stopPropagation()
 
-    // Try to authenticate
-    const token = await authenticate()
-    if (!token) {
-      // Auth flow will handle redirect/sign up
-      return
-    }
-
     const params = new URLSearchParams()
     params.set('from', 'leaderboard')
     if (bot.token_address) params.set('token_address', bot.token_address)
@@ -131,8 +140,22 @@ export default function LeaderboardPage() {
     if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
     if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
 
-    console.log('🔍 Leaderboard Clone:', { bot, params: params.toString() })
-    router.push(`/my-bots/create?${params.toString()}`)
+    const redirectUrl = `/my-bots/create?${params.toString()}`
+
+    // If user hasn't signed up, show signup modal
+    if (!userExists) {
+      setSignUpRedirectTo(redirectUrl)
+      setSignUpModalOpen(true)
+      return
+    }
+
+    // Try to authenticate
+    const token = await authenticate()
+    if (!token) {
+      return
+    }
+
+    router.push(redirectUrl)
   }
 
   return (
@@ -421,6 +444,23 @@ export default function LeaderboardPage() {
         onClose={handleCloseModal}
         bot={selectedBot}
         from="leaderboard"
+        userExists={userExists}
+        onSignUpRequired={(redirectUrl) => {
+          setSignUpRedirectTo(redirectUrl)
+          setSignUpModalOpen(true)
+        }}
+      />
+
+      <SignUpModal
+        isOpen={signUpModalOpen}
+        onClose={() => setSignUpModalOpen(false)}
+        onSuccess={async () => {
+          const token = await authenticate()
+          if (token) {
+            await fetchMe(token)
+          }
+        }}
+        redirectTo={signUpRedirectTo}
       />
     </div>
   )

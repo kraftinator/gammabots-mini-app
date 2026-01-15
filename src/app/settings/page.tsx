@@ -3,13 +3,20 @@
 import { useEffect, useState } from 'react'
 import BottomNavigation from '@/components/BottomNavigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
+import { useMe } from '@/contexts/MeContext'
+import SignUpModal from '@/components/modals/SignUpModal'
 
 export default function SettingsPage() {
   const { authenticate } = useQuickAuth()
-  const [walletAddress, setWalletAddress] = useState<string | null>(null)
+  const { me, fetchMe } = useMe()
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [copied, setCopied] = useState(false)
+  const [signUpModalOpen, setSignUpModalOpen] = useState(false)
+
+  // Check if user exists (has signed up)
+  const userExists = me?.user_exists === true
+  const walletAddress = me?.wallet_address
 
   useEffect(() => {
     const initPage = async () => {
@@ -24,28 +31,17 @@ export default function SettingsPage() {
           return
         }
 
-        const response = await fetch('/api/users/account', {
-          headers: {
-            'Authorization': `Bearer ${token}`
-          }
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to load settings')
-        }
-
-        const data = await response.json()
-        setWalletAddress(data.wallet_address)
+        // Fetch user data
+        await fetchMe(token)
       } catch (err) {
         console.error('Error loading settings:', err)
-        setError('Settings cannot be loaded at this time. Please try again later.')
       } finally {
         setLoading(false)
       }
     }
 
     initPage()
-  }, [authenticate])
+  }, [authenticate, fetchMe])
 
   const truncateAddress = (address: string) => {
     return `${address.slice(0, 6)}...${address.slice(-4)}`
@@ -103,6 +99,28 @@ export default function SettingsPage() {
           </div>
         )}
 
+        {/* Sign Up Button - shown if user hasn't signed up */}
+        {!loading && !error && !userExists && (
+          <div style={{ marginBottom: '16px' }}>
+            <button
+              onClick={() => setSignUpModalOpen(true)}
+              style={{
+                width: '100%',
+                padding: '14px 24px',
+                fontSize: '15px',
+                fontWeight: '600',
+                backgroundColor: '#3b82f6',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '12px',
+                cursor: 'pointer',
+              }}
+            >
+              Sign Up
+            </button>
+          </div>
+        )}
+
         {!loading && !error && walletAddress && (
           <div style={{
             backgroundColor: '#fff',
@@ -156,6 +174,18 @@ export default function SettingsPage() {
       </div>
 
       <BottomNavigation activeTab="settings" />
+
+      <SignUpModal
+        isOpen={signUpModalOpen}
+        onClose={() => setSignUpModalOpen(false)}
+        onSuccess={async () => {
+          const token = await authenticate()
+          if (token) {
+            await fetchMe(token)
+          }
+        }}
+        redirectTo="/settings"
+      />
     </div>
   )
 }

@@ -41,6 +41,8 @@ interface BotDetailModalProps {
   bot: Bot | null
   onBotUpdated?: (updatedBot: Bot) => void
   from?: string
+  userExists?: boolean
+  onSignUpRequired?: (redirectUrl: string) => void
 }
 
 // Metrics categories configuration
@@ -100,7 +102,7 @@ interface StrategyData {
   created_at: string
 }
 
-export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, from }: BotDetailModalProps) {
+export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, from, userExists = true, onSignUpRequired }: BotDetailModalProps) {
   const router = useRouter()
   const { authenticate } = useQuickAuth()
   const { me } = useMe()
@@ -1299,7 +1301,13 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, fro
               if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
               if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
               if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
-              router.push(`/my-bots/create?${params.toString()}`)
+              const redirectUrl = `/my-bots/create?${params.toString()}`
+              if (!userExists && onSignUpRequired) {
+                onSignUpRequired(redirectUrl)
+                onClose()
+                return
+              }
+              router.push(redirectUrl)
               onClose()
             }}
             style={{

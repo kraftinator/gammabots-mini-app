@@ -37,9 +37,11 @@ interface StrategyDetailModalProps {
   isOpen: boolean
   onClose: () => void
   strategyId: string | null
+  userExists?: boolean
+  onSignUpRequired?: (redirectUrl: string) => void
 }
 
-export default function StrategyDetailModal({ isOpen, onClose, strategyId }: StrategyDetailModalProps) {
+export default function StrategyDetailModal({ isOpen, onClose, strategyId, userExists = true, onSignUpRequired }: StrategyDetailModalProps) {
   const router = useRouter()
   const { authenticate } = useQuickAuth()
 
@@ -105,10 +107,19 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId }: Str
 
   // Handle Create Bot - requires auth
   const handleCreateBot = async () => {
+    const redirectUrl = `/my-bots/create?strategy_id=${strategyId}&from=strategies`
+
+    // If user hasn't signed up, show signup modal
+    if (!userExists && onSignUpRequired) {
+      onSignUpRequired(redirectUrl)
+      onClose()
+      return
+    }
+
     const token = await authenticate()
     if (!token) return
 
-    router.push(`/my-bots/create?strategy_id=${strategyId}&from=strategies`)
+    router.push(redirectUrl)
     onClose()
   }
 
@@ -116,10 +127,19 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId }: Str
   const handleCopyStrategy = async () => {
     if (!stats) return
 
+    const redirectUrl = `/strategies/create?strategy=${encodeURIComponent(stats.user_friendly_strategy)}`
+
+    // If user hasn't signed up, show signup modal
+    if (!userExists && onSignUpRequired) {
+      onSignUpRequired(redirectUrl)
+      onClose()
+      return
+    }
+
     const token = await authenticate()
     if (!token) return
 
-    router.push(`/strategies/create?strategy=${encodeURIComponent(stats.user_friendly_strategy)}`)
+    router.push(redirectUrl)
     onClose()
   }
 
