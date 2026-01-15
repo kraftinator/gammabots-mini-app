@@ -317,7 +317,7 @@ export default function LeaderboardPage() {
                           style={{
                             width: '100%',
                             height: '100%',
-                            objectFit: 'contain',
+                            objectFit: 'cover',
                           }}
                         />
                       ) : (
@@ -384,7 +384,7 @@ export default function LeaderboardPage() {
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
-                      <span style={{ fontSize: '13px', color: '#adadad', width: '80px', fontWeight: '400', flexShrink: 0 }}>Lifespan:</span>
+                      <span style={{ fontSize: '13px', color: '#adadad', width: '80px', fontWeight: '400', flexShrink: 0 }}>Active For:</span>
                       <span style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1e' }}>
                         {formatActiveTime(Number(bot.active_seconds) || 0)}
                       </span>
@@ -420,6 +420,7 @@ export default function LeaderboardPage() {
         isOpen={isModalOpen}
         onClose={handleCloseModal}
         bot={selectedBot}
+        from="leaderboard"
       />
     </div>
   )

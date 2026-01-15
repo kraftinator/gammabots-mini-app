@@ -41,7 +41,6 @@ export default function MiniApp() {
       if (response.ok) {
         const data = await response.json()
         setDashboardData(data)
-        console.log('✅ Frontend: Dashboard data loaded successfully')
       } else {
         console.warn('🚨 Frontend: Failed to fetch dashboard metrics data:', response.status)
       }
@@ -61,7 +60,10 @@ export default function MiniApp() {
     active_bots_change_24h: 0,
     tvl_change_24h: 0,
     volume_24h_change_24h: 0,
-    popular_tokens: {} as Record<string, number>,
+    popular_tokens: [] as Array<{
+      token_symbol: string;
+      tvl_usd: string;
+    }>,
     recent_activity: [] as Array<{
       action: string;
       amount: number;
@@ -69,19 +71,23 @@ export default function MiniApp() {
       strategy_id: string;
       bot_id: number;
       time_ago: string;
-      farcaster_username: string;
-      farcaster_avatar_url: string;
+      owner_username: string;
+      owner_avatar_url: string;
       performance_pct: number | null;
+      trades: number;
+      active_seconds: number;
     }>,
     top_performers: [] as Array<{
       bot_id: number;
-      username: string;
+      owner_username: string;
       strategy_id: string;
       token_symbol: string;
       token_address: string;
       moving_average: number;
-      performance: string;
-      farcaster_avatar_url: string;
+      performance_pct: number;
+      owner_avatar_url: string;
+      trades: number;
+      active_seconds: number;
     }>,
     user_bot_count: 0,
     user_exists: true,
@@ -271,10 +277,12 @@ export default function MiniApp() {
 
           {/* Description */}
           <div style={{ marginTop: '7px', padding: '0 12px' }}>
-            <p style={{ color: '#4b5563', fontSize: '12px', lineHeight: '1.4' }}>
-              Deploy automated trading bots in seconds. Choose a strategy, fund your bot, and let it trade for you.
-            </p>
-            <p style={{ fontSize: '12px', marginTop: '12px', marginBottom: '8px' }}>
+            {!dashboardData.user_exists && (
+              <p style={{ color: '#4b5563', fontSize: '12px', lineHeight: '1.4' }}>
+                Deploy automated trading bots in seconds. Choose a strategy, fund your bot, and let it trade for you.
+              </p>
+            )}
+            <p style={{ fontSize: '12px', marginTop: dashboardData.user_exists ? '0' : '12px', marginBottom: '8px' }}>
               <a href="#" style={{ color: 'rgba(59, 130, 246, 0.8)' }}>How it works</a>
               <span style={{ color: '#6b7280', margin: '0 8px' }}>·</span>
               <a href="#" style={{ color: 'rgba(59, 130, 246, 0.8)' }}>What is Gammascript?</a>
@@ -294,11 +302,11 @@ export default function MiniApp() {
                     rank={index + 1}
                     rankColor={rankColors[index] || "bg-blue-500"}
                     botId={performer.bot_id}
-                    creator={`@${performer.username}`}
+                    creator={`@${performer.owner_username}`}
                     strategy={performer.token_symbol}
                     strategyId={performer.strategy_id}
-                    profit={`+${performer.performance}%`}
-                    avatarUrl={performer.farcaster_avatar_url}
+                    profit={`${Number(performer.performance_pct) >= 0 ? '+' : ''}${Number(performer.performance_pct).toFixed(2)}%`}
+                    avatarUrl={performer.owner_avatar_url}
                     onClick={() => {
                       setSelectedBot({
                         bot_id: String(performer.bot_id),
@@ -306,8 +314,10 @@ export default function MiniApp() {
                         token_address: performer.token_address,
                         strategy_id: performer.strategy_id,
                         moving_average: performer.moving_average,
-                        profit_percent: parseFloat(performer.performance),
-                        owner_farcaster_username: performer.username,
+                        profit_percent: performer.performance_pct,
+                        owner_farcaster_username: performer.owner_username,
+                        trades: performer.trades,
+                        active_seconds: performer.active_seconds,
                         status: 'active',
                       })
                       setIsBotModalOpen(true)
@@ -323,14 +333,14 @@ export default function MiniApp() {
         <div style={{ marginBottom: "24px" }}>
           <div style={{ fontSize: "18px", fontWeight: "700", color: "#1c1c1e", marginBottom: "16px", padding: "0 4px" }}>Popular Tokens</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            {Object.entries(dashboardData.popular_tokens).map(([tokenName, tvl], index) => {
+            {dashboardData.popular_tokens.map((token, index) => {
               const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
               return (
-                <TokenCard 
-                  key={tokenName}
-                  name={tokenName} 
-                  tvl={`${formatCurrency(tvl)} TVL`} 
-                  borderColor={colors[index % colors.length]} 
+                <TokenCard
+                  key={token.token_symbol}
+                  name={token.token_symbol}
+                  tvl={`${formatCurrency(Number(token.tvl_usd))} TVL`}
+                  borderColor={colors[index % colors.length]}
                 />
               );
             })}
@@ -345,14 +355,27 @@ export default function MiniApp() {
                 key={index}
                 action={activity.action === "Buy" ? "Bought" : "Sold"}
                 amount={`${activity.amount.toLocaleString()} ${activity.token_symbol}`}
-                strategy={`@${activity.farcaster_username} · ${activity.token_symbol} #${activity.bot_id} · ${activity.time_ago} ago`}
+                strategy={`@${activity.owner_username} · ${activity.token_symbol} #${activity.bot_id} · ${activity.time_ago} ago`}
                 time=""
                 creator=""
                 tokenAmount={formatTokenAmount(activity.amount)}
                 tokenSymbol={activity.token_symbol}
-                avatarUrl={activity.farcaster_avatar_url}
+                avatarUrl={activity.owner_avatar_url}
                 profit={activity.performance_pct !== null && activity.performance_pct !== undefined ? `${activity.performance_pct > 0 ? '+' : ''}${Number(activity.performance_pct).toFixed(1)}%` : undefined}
                 profitPct={activity.performance_pct !== null && activity.performance_pct !== undefined ? activity.performance_pct : undefined}
+                onClick={() => {
+                  setSelectedBot({
+                    bot_id: String(activity.bot_id),
+                    token_symbol: activity.token_symbol,
+                    strategy_id: activity.strategy_id,
+                    profit_percent: activity.performance_pct ?? undefined,
+                    owner_farcaster_username: activity.owner_username,
+                    trades: activity.trades,
+                    active_seconds: activity.active_seconds,
+                    status: 'active',
+                  })
+                  setIsBotModalOpen(true)
+                }}
               />
             ))}
           </ActivityCard>
@@ -393,6 +416,7 @@ export default function MiniApp() {
           setSelectedBot(null)
         }}
         bot={selectedBot}
+        from="dashboard"
       />
     </div>
   )
@@ -448,17 +472,18 @@ function ActivityCard({ title, children }: { title: React.ReactNode; children: R
   )
 }
 
-function ActivityItem({ 
-  action, 
-  amount, 
-  strategy, 
-  time, 
-  creator, 
+function ActivityItem({
+  action,
+  amount,
+  strategy,
+  time,
+  creator,
   profit,
   profitPct,
   tokenAmount,
   tokenSymbol,
-  avatarUrl
+  avatarUrl,
+  onClick
 }: {
   action: string;
   amount: string;
@@ -470,18 +495,22 @@ function ActivityItem({
   tokenAmount?: string;
   tokenSymbol?: string;
   avatarUrl?: string;
+  onClick?: () => void;
 }) {
   // Use imported utility
   const circleColor = getCircleColor(action);
 
   return (
-    <div style={{
-      padding: "16px 20px",
-      borderBottom: "1px solid #f2f2f7",
-      display: "flex",
-      alignItems: "center",
-      gap: "16px"
-    }}>
+    <div
+      onClick={onClick}
+      style={{
+        padding: "16px 20px",
+        borderBottom: "1px solid #f2f2f7",
+        display: "flex",
+        alignItems: "center",
+        gap: "16px",
+        cursor: onClick ? "pointer" : "default"
+      }}>
       <div style={{
         width: "40px",
         height: "40px",

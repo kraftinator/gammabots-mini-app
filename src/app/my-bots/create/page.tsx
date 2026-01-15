@@ -309,6 +309,7 @@ function CreateBotContent() {
           const from = searchParams.get('from')
           if (from === 'strategies') router.push('/strategies')
           else if (from === 'leaderboard') router.push('/leaderboard')
+          else if (from === 'dashboard') router.push('/')
           else router.push('/my-bots')
         }}
         style={{
@@ -328,7 +329,13 @@ function CreateBotContent() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M15 18l-6-6 6-6" />
         </svg>
-        {searchParams.get('from') === 'strategies' ? 'Strategies' : searchParams.get('from') === 'leaderboard' ? 'Leaderboard' : 'My Bots'}
+        {(() => {
+          const from = searchParams.get('from')
+          if (from === 'strategies') return 'Strategies'
+          if (from === 'leaderboard') return 'Leaderboard'
+          if (from === 'dashboard') return 'Dashboard'
+          return 'My Bots'
+        })()}
       </button>
 
       {/* Header */}

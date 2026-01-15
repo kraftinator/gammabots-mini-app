@@ -40,6 +40,7 @@ interface BotDetailModalProps {
   onClose: () => void
   bot: Bot | null
   onBotUpdated?: (updatedBot: Bot) => void
+  from?: string
 }
 
 // Metrics categories configuration
@@ -99,7 +100,7 @@ interface StrategyData {
   created_at: string
 }
 
-export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: BotDetailModalProps) {
+export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, from }: BotDetailModalProps) {
   const router = useRouter()
   const { authenticate } = useQuickAuth()
   const { me } = useMe()
@@ -803,6 +804,16 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
               </span>
             </div>
 
+            {/* Total Trades - Public view only */}
+            {!isOwner && bot.trades != null && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
+              <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Total Trades</span>
+              <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
+                {bot.trades}
+              </span>
+            </div>
+            )}
+
             {/* Holdings - Owner only */}
             {isOwner && bot.status !== 'stopped' && bot.status !== 'funding_failed' && bot.status !== 'completed' && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
@@ -860,11 +871,11 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
             </div>
             )}
 
-            {/* Last Action (owner) or Lifespan (public, only if data exists) */}
+            {/* Last Action (owner) or Active For (public, only if data exists) */}
             {(isOwner || bot.active_seconds != null) && (
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
               <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>
-                {isOwner ? 'Last Action' : 'Lifespan'}
+                {isOwner ? 'Last Action' : 'Active For'}
               </span>
               <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
                 {isOwner
@@ -1282,7 +1293,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated }: B
           <button
             onClick={() => {
               const params = new URLSearchParams()
-              params.set('from', 'leaderboard')
+              if (from) params.set('from', from)
               if (bot.token_address) params.set('token_address', bot.token_address)
               if (bot.strategy_id) params.set('strategy_id', bot.strategy_id)
               if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
