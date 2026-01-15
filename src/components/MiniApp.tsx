@@ -496,7 +496,7 @@ function ActivityItem({
             style={{
               width: "100%",
               height: "100%",
-              objectFit: "contain"
+              objectFit: "cover"
             }}
             onError={(e) => {
               // Try fallback to original URL if modified URL fails
