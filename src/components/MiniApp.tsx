@@ -366,7 +366,7 @@ export default function MiniApp() {
                 key={index}
                 action={activity.action === "Buy" ? "Bought" : "Sold"}
                 amount={`${activity.amount.toLocaleString()} ${activity.token_symbol}`}
-                strategy={`@${activity.owner_username} · ${activity.display_name.length > 18 ? `${activity.display_name.slice(0, 18)}...` : activity.display_name} · ${activity.time_ago} ago`}
+                strategy={`Bot ${activity.display_name} by @${activity.owner_username} · ${activity.time_ago} ago`}
                 time=""
                 creator=""
                 tokenAmount={formatTokenAmount(activity.amount)}

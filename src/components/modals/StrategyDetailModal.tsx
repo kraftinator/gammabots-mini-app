@@ -25,6 +25,7 @@ interface StrategyStats {
     token_symbol: string
     owner_handle?: string
     profit_pct: number
+    bot_display_name?: string
   }
 }
 
@@ -322,7 +323,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                         <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Top Bot</span>
                         <div style={{ textAlign: 'right' }}>
                           <div style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e', lineHeight: '1.5' }}>
-                            {stats.top_bot.token_symbol} #{stats.top_bot.bot_id}{' '}
+                            {stats.top_bot.bot_display_name || `${stats.top_bot.token_symbol} #${stats.top_bot.bot_id}`}{' '}
                             <span style={{ color: getProfitColor(Number(stats.top_bot.profit_pct) || 0) }}>
                               {Number(stats.top_bot.profit_pct) > 0 ? '+' : ''}{Number(stats.top_bot.profit_pct || 0).toFixed(2)}%
                             </span>
