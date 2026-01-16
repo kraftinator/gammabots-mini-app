@@ -315,7 +315,7 @@ export default function MiniApp() {
                     creator={`@${performer.owner_username}`}
                     strategy={performer.display_name}
                     strategyId={performer.strategy_id}
-                    profit={`${Number(performer.performance_pct) >= 0 ? '+' : ''}${Number(performer.performance_pct).toFixed(2)}%`}
+                    profit={`${Number(performer.performance_pct) >= 0 ? '+' : ''}${Number(performer.performance_pct).toFixed(1)}%`}
                     avatarUrl={performer.owner_avatar_url}
                     onClick={() => {
                       setSelectedBot({
