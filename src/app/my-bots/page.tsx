@@ -95,11 +95,13 @@ export default function MyBotsPage() {
   }
 
   // Fetch bots function
-  const fetchBots = useCallback(async (token: string, botStatus: 'active' | 'inactive' = 'active') => {
+  const fetchBots = useCallback(async (token: string, botStatus: 'active' | 'inactive' = 'active', clearFirst: boolean = true) => {
     try {
-      setBotsLoading(true)
+      if (clearFirst) {
+        setBotsLoading(true)
+        setBots([]) // Clear existing bots when fetching new status
+      }
       setBotsError(null)
-      setBots([]) // Clear existing bots when fetching new status
 
       const url = new URL('/api/bots', window.location.origin)
       url.searchParams.append('status', botStatus)
@@ -123,7 +125,9 @@ export default function MyBotsPage() {
       console.error('Failed to fetch bots:', error)
       setBotsError(error instanceof Error ? error.message : 'Failed to fetch bots')
     } finally {
-      setBotsLoading(false)
+      if (clearFirst) {
+        setBotsLoading(false)
+      }
     }
   }, [setBots, setBotsLoading, setBotsError])
 
@@ -202,7 +206,7 @@ export default function MyBotsPage() {
         const token = await authenticate()
         if (token) {
           console.log('Auto-refreshing bots data...')
-          await fetchBots(token, status)
+          await fetchBots(token, status, false) // Don't clear list during auto-refresh
         }
       } catch (error) {
         console.error('Error during auto-refresh:', error)
@@ -530,10 +534,10 @@ export default function MyBotsPage() {
                       <span style={{
                         ...styles.myBotStatus,
                         whiteSpace: 'nowrap',
-                        color: bot.status === 'unfunded' ? colors.error : (bot.status === 'liquidating' ? '#f59e0b' : (bot.status === 'completed' ? '#5f9ea0' : (bot.status === 'stopped' ? '#555' : (bot.status === 'funding_failed' ? '#E35B5B' : (bot.is_active ? colors.success : colors.text.secondary))))),
+                        color: bot.status === 'unfunded' ? '#6b7280' : (bot.status === 'liquidating' ? '#f59e0b' : (bot.status === 'completed' ? '#5f9ea0' : (bot.status === 'stopped' ? '#555' : (bot.status === 'funding_failed' ? '#E35B5B' : (bot.is_active ? colors.success : colors.text.secondary))))),
                         fontStyle: bot.status === 'liquidating' ? 'italic' : 'normal'
                       }}>
-                        {bot.status === 'unfunded' ? 'Awaiting funding' : (bot.status === 'liquidating' ? 'Liquidating...' : (bot.status === 'completed' ? 'Completed' : (bot.status === 'stopped' ? 'Stopped' : (bot.status === 'funding_failed' ? 'Funding failed' : (bot.is_active ? 'Active' : 'Inactive')))))}
+                        {bot.status === 'unfunded' ? 'Confirming funds' : (bot.status === 'liquidating' ? 'Liquidating...' : (bot.status === 'completed' ? 'Completed' : (bot.status === 'stopped' ? 'Stopped' : (bot.status === 'funding_failed' ? 'Funding failed' : (bot.is_active ? 'Active' : 'Inactive')))))}
                       </span>
                     </span>
                     <button
