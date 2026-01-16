@@ -14,6 +14,7 @@ interface LeaderboardBot {
   rank: number
   bot_id: string
   token_symbol: string
+  token_name?: string
   token_address?: string
   strategy_id: string
   owner_farcaster_username: string
@@ -100,7 +101,7 @@ export default function LeaderboardPage() {
 
     const query = searchQuery.toLowerCase()
     return bots.filter(bot =>
-      bot.bot_id?.toLowerCase().includes(query) ||
+      bot.display_name?.toLowerCase().includes(query) ||
       bot.token_symbol?.toLowerCase().includes(query) ||
       bot.owner_farcaster_username?.toLowerCase().includes(query)
     )
@@ -111,6 +112,7 @@ export default function LeaderboardPage() {
     setSelectedBot({
       bot_id: bot.bot_id,
       token_symbol: bot.token_symbol,
+      token_name: bot.token_name,
       token_address: bot.token_address,
       strategy_id: bot.strategy_id,
       moving_average: bot.moving_average,
@@ -137,6 +139,8 @@ export default function LeaderboardPage() {
     const params = new URLSearchParams()
     params.set('from', 'leaderboard')
     if (bot.token_address) params.set('token_address', bot.token_address)
+    if (bot.token_symbol) params.set('token_symbol', bot.token_symbol)
+    if (bot.token_name) params.set('token_name', bot.token_name)
     if (bot.strategy_id) params.set('strategy_id', bot.strategy_id)
     if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
     if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())

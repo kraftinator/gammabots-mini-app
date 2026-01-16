@@ -15,6 +15,7 @@ import { formatDistanceToNow } from 'date-fns'
 interface Bot {
   bot_id: string
   token_symbol: string
+  token_name?: string
   token_address?: string
   strategy_id: string
   status?: string
@@ -254,6 +255,8 @@ export default function MyBotsPage() {
 
     const params = new URLSearchParams()
     if (bot.token_address) params.set('token_address', bot.token_address)
+    if (bot.token_symbol) params.set('token_symbol', bot.token_symbol)
+    if (bot.token_name) params.set('token_name', bot.token_name)
     if (bot.strategy_id) params.set('strategy_id', bot.strategy_id)
     if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
     if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())

@@ -72,6 +72,7 @@ export default function MiniApp() {
       action: string;
       amount: number;
       token_symbol: string;
+      token_name?: string;
       token_address: string;
       strategy_id: string;
       bot_id: number;
@@ -91,6 +92,7 @@ export default function MiniApp() {
       owner_username: string;
       strategy_id: string;
       token_symbol: string;
+      token_name?: string;
       token_address: string;
       moving_average: number;
       performance_pct: number;
@@ -321,6 +323,7 @@ export default function MiniApp() {
                       setSelectedBot({
                         bot_id: String(performer.bot_id),
                         token_symbol: performer.token_symbol,
+                        token_name: performer.token_name,
                         token_address: performer.token_address,
                         strategy_id: performer.strategy_id,
                         moving_average: performer.moving_average,
@@ -378,6 +381,7 @@ export default function MiniApp() {
                   setSelectedBot({
                     bot_id: String(activity.bot_id),
                     token_symbol: activity.token_symbol,
+                    token_name: activity.token_name,
                     token_address: activity.token_address,
                     strategy_id: activity.strategy_id,
                     moving_average: activity.moving_average,

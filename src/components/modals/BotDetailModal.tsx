@@ -12,6 +12,7 @@ import { useMe } from '@/contexts/MeContext'
 export interface Bot {
   bot_id: string
   token_symbol: string
+  token_name?: string
   token_address?: string
   strategy_id: string
   status?: string
@@ -208,7 +209,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, fro
       // Check if it's a price-like value (has many decimals)
       const str = value.toString()
       if (str.includes('.') && str.split('.')[1].length > 10) {
-        return value.toFixed(10)
+        return value.toFixed(18)
       }
       return str
     }
@@ -224,7 +225,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, fro
         return num.toFixed(4)
       }
       if (!isNaN(num) && value.includes('.') && value.split('.')[1].length > 10) {
-        return num.toFixed(10)
+        return num.toFixed(18)
       }
       // Check if it's a timestamp
       const date = new Date(value)
@@ -1291,6 +1292,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, fro
               const params = new URLSearchParams()
               if (from) params.set('from', from)
               if (bot.token_address) params.set('token_address', bot.token_address)
+              if (bot.token_symbol) params.set('token_symbol', bot.token_symbol)
+              if (bot.token_name) params.set('token_name', bot.token_name)
               if (bot.strategy_id) params.set('strategy_id', bot.strategy_id)
               if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
               if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
@@ -1390,6 +1393,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, fro
             onClick={() => {
               const params = new URLSearchParams()
               if (bot.token_address) params.set('token_address', bot.token_address)
+              if (bot.token_symbol) params.set('token_symbol', bot.token_symbol)
+              if (bot.token_name) params.set('token_name', bot.token_name)
               if (bot.strategy_id) params.set('strategy_id', bot.strategy_id)
               if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
               if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
