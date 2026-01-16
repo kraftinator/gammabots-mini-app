@@ -72,6 +72,7 @@ export default function MiniApp() {
       action: string;
       amount: number;
       token_symbol: string;
+      token_address: string;
       strategy_id: string;
       bot_id: number;
       time_ago: string;
@@ -81,6 +82,9 @@ export default function MiniApp() {
       trades: number;
       active_seconds: number;
       display_name: string;
+      moving_average: number;
+      profit_share?: number;
+      profit_threshold?: number;
     }>,
     top_performers: [] as Array<{
       bot_id: number;
@@ -374,7 +378,11 @@ export default function MiniApp() {
                   setSelectedBot({
                     bot_id: String(activity.bot_id),
                     token_symbol: activity.token_symbol,
+                    token_address: activity.token_address,
                     strategy_id: activity.strategy_id,
+                    moving_average: activity.moving_average,
+                    profit_share: activity.profit_share,
+                    profit_threshold: activity.profit_threshold,
                     profit_percent: activity.performance_pct ?? undefined,
                     owner_farcaster_username: activity.owner_username,
                     trades: activity.trades,
