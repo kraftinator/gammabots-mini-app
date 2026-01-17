@@ -89,7 +89,6 @@ interface StrategyBuilderProps {
 
 export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderProps) {
   const [previewMode, setPreviewMode] = useState<'readable' | 'raw'>('readable')
-  const [focusedCondition, setFocusedCondition] = useState<{ stepId: number; condId: number } | null>(null)
   const [openMenuRuleId, setOpenMenuRuleId] = useState<number | null>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const [rules, setRules] = useState<Rule[]>([
@@ -589,12 +588,6 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
                         padding: '12px',
                         marginBottom: '8px',
                       }}
-                      onFocus={() => setFocusedCondition({ stepId: rule.id, condId: cond.id })}
-                      onBlur={(e) => {
-                        if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                          setFocusedCondition(null)
-                        }
-                      }}
                     >
                       {/* Row 1: Left variable + Operator */}
                       <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginBottom: '6px' }}>
@@ -720,9 +713,6 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
                             {/* Multiplier - fixed width container to match Row 1 right side: operator (70px) + button (26px) = 96px */}
                             <div style={{ width: '104px', flexShrink: 0, display: 'flex', alignItems: 'center', gap: '4px' }}>
                               {cond.rightValue && cond.rightValue !== '' && (
-                                cond.rightMultiplier ||
-                                (focusedCondition && focusedCondition.stepId === rule.id && focusedCondition.condId === cond.id)
-                              ) && (
                                 <>
                                   <span style={{ fontSize: '13px', color: '#888' }}>×</span>
                                   <input
