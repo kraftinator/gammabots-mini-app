@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useMemo, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { Search } from 'lucide-react'
+import { Search, RefreshCw } from 'lucide-react'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useMe } from '@/contexts/MeContext'
 import { styles, colors, getProfitColor } from '@/styles/common'
@@ -332,27 +332,52 @@ export default function MyBotsPage() {
           }}>
             My Bots
           </h1>
-          <button
-            onClick={handleCreateBot}
-            style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '6px',
-              backgroundColor: '#14b8a6',
-              color: '#fff',
-              border: 'none',
-              borderRadius: '20px',
-              padding: '8px 16px',
-              fontSize: '13px',
-              fontWeight: '600',
-              cursor: 'pointer',
-            }}
-          >
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Create Bot
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <button
+              onClick={async () => {
+                const token = await authenticate()
+                if (token) {
+                  await fetchBots(token, status)
+                }
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: '36px',
+                height: '36px',
+                backgroundColor: '#f5f5f5',
+                color: '#666',
+                border: 'none',
+                borderRadius: '50%',
+                cursor: 'pointer',
+              }}
+              title="Refresh"
+            >
+              <RefreshCw size={18} />
+            </button>
+            <button
+              onClick={handleCreateBot}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                backgroundColor: '#14b8a6',
+                color: '#fff',
+                border: 'none',
+                borderRadius: '20px',
+                padding: '8px 16px',
+                fontSize: '13px',
+                fontWeight: '600',
+                cursor: 'pointer',
+              }}
+            >
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
+                <path d="M12 5v14M5 12h14" />
+              </svg>
+              Create Bot
+            </button>
+          </div>
         </div>
         {/* Wallet Address - only for signed up users */}
         {walletAddress && (
