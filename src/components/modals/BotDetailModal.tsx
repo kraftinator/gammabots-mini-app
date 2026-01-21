@@ -42,6 +42,7 @@ interface BotDetailModalProps {
   onClose: () => void
   bot: Bot | null
   onBotUpdated?: (updatedBot: Bot) => void
+  onRefresh?: () => void
   from?: string
   userExists?: boolean
   onSignUpRequired?: (redirectUrl: string) => void
@@ -104,7 +105,7 @@ interface StrategyData {
   created_at: string
 }
 
-export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, from, userExists = true, onSignUpRequired }: BotDetailModalProps) {
+export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onRefresh, from, userExists = true, onSignUpRequired }: BotDetailModalProps) {
   const router = useRouter()
   const { authenticate } = useQuickAuth()
   const { me } = useMe()
@@ -588,20 +589,16 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, fro
         return
       }
 
-      const data = await response.json()
-
-      // Update bot status in parent
-      if (onBotUpdated) {
-        onBotUpdated({
-          ...bot,
-          is_active: data.is_active,
-          status: data.status
-        })
-      }
+      await response.json()
 
       // Close modal and drawer
       setIsDeactivateOpen(false)
       onClose()
+
+      // Refresh the bots list to reflect the deactivation
+      if (onRefresh) {
+        onRefresh()
+      }
     } catch (error) {
       console.error('Error deactivating bot:', error)
       setDeactivateError('An unexpected error occurred')
@@ -690,10 +687,11 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, fro
             <span style={{
               fontSize: '12px',
               fontWeight: '500',
-              color: bot.status === 'unfunded' ? '#6b7280' : (bot.status === 'liquidating' ? '#f59e0b' : (bot.status === 'completed' ? '#5f9ea0' : (bot.status === 'stopped' ? '#555' : (bot.status === 'funding_failed' ? '#E35B5B' : (bot.is_active ? colors.success : colors.text.secondary))))),
-              fontStyle: bot.status === 'liquidating' ? 'italic' : 'normal'
+              color: bot.status === 'unfunded' ? '#f59e0b' : (bot.status === 'liquidating' ? '#f59e0b' : (bot.status === 'deactivated' ? '#555' : (bot.status === 'completed' ? '#5f9ea0' : (bot.status === 'stopped' ? '#555' : (bot.status === 'funding_failed' ? '#E35B5B' : (bot.is_active ? colors.success : colors.text.secondary)))))),
+              animation: (bot.status === 'unfunded' || bot.status === 'liquidating') ? 'pulse 2s ease-in-out infinite' : 'none'
             }}>
-              {bot.status === 'unfunded' ? 'Confirming funds' : (bot.status === 'liquidating' ? 'Liquidating...' : (bot.status === 'completed' ? 'Completed' : (bot.status === 'stopped' ? 'Stopped' : (bot.status === 'funding_failed' ? 'Funding failed' : (bot.is_active ? 'Active' : 'Inactive')))))}
+              {(bot.status === 'unfunded' || bot.status === 'liquidating') && <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>}
+              {bot.status === 'unfunded' ? 'Confirming funds' : (bot.status === 'liquidating' ? 'Liquidating' : (bot.status === 'deactivated' ? 'Deactivated' : (bot.status === 'completed' ? 'Completed' : (bot.status === 'stopped' ? 'Stopped' : (bot.status === 'funding_failed' ? 'Funding failed' : (bot.is_active ? 'Active' : 'Inactive'))))))}
             </span>
             )}
           </div>

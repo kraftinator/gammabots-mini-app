@@ -190,7 +190,7 @@ export default function MyBotsPage() {
     loadBots()
   }, [userExists, authenticate, fetchBots, status])
 
-  // Auto-refresh when there are unfunded or liquidating bots
+  // Auto-refresh when there are transitional bots (unfunded, liquidating)
   useEffect(() => {
     const hasUnfundedBots = bots.some(bot => bot.status === 'unfunded')
     const hasLiquidatingBots = bots.some(bot => bot.status === 'liquidating')
@@ -534,10 +534,11 @@ export default function MyBotsPage() {
                       <span style={{
                         ...styles.myBotStatus,
                         whiteSpace: 'nowrap',
-                        color: bot.status === 'unfunded' ? '#6b7280' : (bot.status === 'liquidating' ? '#f59e0b' : (bot.status === 'completed' ? '#5f9ea0' : (bot.status === 'stopped' ? '#555' : (bot.status === 'funding_failed' ? '#E35B5B' : (bot.is_active ? colors.success : colors.text.secondary))))),
-                        fontStyle: bot.status === 'liquidating' ? 'italic' : 'normal'
+                        color: bot.status === 'unfunded' ? '#f59e0b' : (bot.status === 'liquidating' ? '#f59e0b' : (bot.status === 'deactivated' ? '#555' : (bot.status === 'completed' ? '#5f9ea0' : (bot.status === 'stopped' ? '#555' : (bot.status === 'funding_failed' ? '#E35B5B' : (bot.is_active ? colors.success : colors.text.secondary)))))),
+                        animation: (bot.status === 'unfunded' || bot.status === 'liquidating') ? 'pulse 2s ease-in-out infinite' : 'none'
                       }}>
-                        {bot.status === 'unfunded' ? 'Confirming funds' : (bot.status === 'liquidating' ? 'Liquidating...' : (bot.status === 'completed' ? 'Completed' : (bot.status === 'stopped' ? 'Stopped' : (bot.status === 'funding_failed' ? 'Funding failed' : (bot.is_active ? 'Active' : 'Inactive')))))}
+                        {(bot.status === 'unfunded' || bot.status === 'liquidating') && <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>}
+                        {bot.status === 'unfunded' ? 'Confirming funds' : (bot.status === 'liquidating' ? 'Liquidating' : (bot.status === 'deactivated' ? 'Deactivated' : (bot.status === 'completed' ? 'Completed' : (bot.status === 'stopped' ? 'Stopped' : (bot.status === 'funding_failed' ? 'Funding failed' : (bot.is_active ? 'Active' : 'Inactive'))))))}
                       </span>
                     </span>
                     <button
@@ -662,6 +663,12 @@ export default function MyBotsPage() {
         onClose={handleCloseModal}
         bot={selectedBot}
         onBotUpdated={handleBotUpdated}
+        onRefresh={async () => {
+          const token = await authenticate()
+          if (token) {
+            await fetchBots(token, status)
+          }
+        }}
       />
 
       <SignUpModal
