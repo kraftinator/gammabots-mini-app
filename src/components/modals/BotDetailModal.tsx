@@ -312,7 +312,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
         }
 
         const data = await response.json()
-        setTradesData(data.trades || [])
+        const completedTrades = (data.trades || []).filter((t: Trade) => t.status === 'completed')
+        setTradesData(completedTrades)
       } catch (error) {
         console.error('Error fetching trades:', error)
         setTradesError('Cannot load trades at this time.')

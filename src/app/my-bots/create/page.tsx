@@ -438,7 +438,33 @@ function CreateBotContent() {
               })
               
               console.log('Payment transaction successful:', result)
-            } catch (walletError) {
+            } catch (walletError: unknown) {
+              // Check if user rejected the transaction
+              const errorMessage = walletError instanceof Error ? walletError.message : String(walletError)
+              const isUserRejection = errorMessage.toLowerCase().includes('user rejected') ||
+                (walletError as { name?: string })?.name === 'UserRejectedRequestError'
+
+              if (isUserRejection) {
+                console.log('User cancelled wallet transaction')
+                // User cancelled the transaction - cancel the pending bot funding
+                console.log('User rejected transaction, cancelling funding for bot:', responseData.bot_id)
+                try {
+                  await fetch(`/api/bots/${responseData.bot_id}/cancel-funding`, {
+                    method: 'POST',
+                    headers: {
+                      'Authorization': `Bearer ${token}`,
+                      'Content-Type': 'application/json'
+                    }
+                  })
+                } catch (cancelError) {
+                  console.error('Failed to cancel funding:', cancelError)
+                }
+                // Silently redirect to My Bots
+                router.push('/my-bots')
+                return
+              }
+
+              // Log actual errors
               console.error('Wallet transaction error:', walletError)
               throw walletError
             }
