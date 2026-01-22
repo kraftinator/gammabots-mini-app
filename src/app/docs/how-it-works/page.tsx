@@ -86,6 +86,7 @@ const styles = {
     color: '#444',
     lineHeight: '1.6',
     marginBottom: '6px',
+    display: 'list-item',
   },
   strong: {
     fontWeight: '600' as const,
