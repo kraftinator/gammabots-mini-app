@@ -362,7 +362,7 @@ export default function WhatIsGammascriptPage() {
         </div>
       </div>
 
-      <BottomNavigation activeTab="" />
+      <BottomNavigation activeTab="home" />
     </div>
   )
 }
