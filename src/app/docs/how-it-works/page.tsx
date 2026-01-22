@@ -400,7 +400,7 @@ export default function HowItWorksPage() {
         </div>
       </div>
 
-      <BottomNavigation />
+      <BottomNavigation activeTab="" />
     </div>
   )
 }
