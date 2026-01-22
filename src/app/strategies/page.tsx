@@ -29,7 +29,7 @@ function StrategiesPageContent() {
   const [error, setError] = useState<string | null>(null)
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState('performance')
+  const [sortBy, setSortBy] = useState('bots')
   const [selectedStrategyId, setSelectedStrategyId] = useState<string | null>(null)
 
   // Sign up modal state
@@ -109,8 +109,6 @@ function StrategiesPageContent() {
     // Sort
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
-        case 'id':
-          return parseInt(a.strategy_id) - parseInt(b.strategy_id)
         case 'bots':
           return (Number(b.bots_count) || 0) - (Number(a.bots_count) || 0)
         case 'performance':
@@ -281,8 +279,7 @@ function StrategiesPageContent() {
             outline: 'none',
           }}
         >
-          <option value="id">Sort by ID</option>
-          <option value="bots"># of Bots</option>
+          <option value="bots">Bots</option>
           <option value="performance">Performance</option>
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
