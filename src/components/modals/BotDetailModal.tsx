@@ -534,8 +534,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to liquidate bot' }))
-        setLiquidateError(errorData.error || errorData.message || 'Failed to liquidate bot')
+        const errorData = await response.json().catch(() => ({ error: 'Failed to liquidate. Please contact support.' }))
+        setLiquidateError(errorData.error || errorData.message || 'Failed to liquidate. Please contact support.')
         setLiquidateLoading(false)
         return
       }
@@ -1803,7 +1803,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 </button>
                 <button
                   onClick={handleLiquidate}
-                  disabled={liquidateLoading}
+                  disabled={liquidateLoading || !!liquidateError}
                   style={{
                     flex: 1,
                     padding: '14px',
@@ -1813,8 +1813,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                     backgroundColor: '#ef4444',
                     border: 'none',
                     borderRadius: '10px',
-                    cursor: liquidateLoading ? 'not-allowed' : 'pointer',
-                    opacity: liquidateLoading ? 0.7 : 1,
+                    cursor: (liquidateLoading || liquidateError) ? 'not-allowed' : 'pointer',
+                    opacity: (liquidateLoading || liquidateError) ? 0.5 : 1,
                   }}
                 >
                   {liquidateLoading ? 'Liquidating...' : 'Confirm'}
@@ -1914,7 +1914,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 </button>
                 <button
                   onClick={handleDeactivate}
-                  disabled={deactivateLoading}
+                  disabled={deactivateLoading || !!deactivateError}
                   style={{
                     flex: 1,
                     padding: '14px',
@@ -1924,8 +1924,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                     backgroundColor: '#ef4444',
                     border: 'none',
                     borderRadius: '10px',
-                    cursor: deactivateLoading ? 'not-allowed' : 'pointer',
-                    opacity: deactivateLoading ? 0.7 : 1,
+                    cursor: (deactivateLoading || deactivateError) ? 'not-allowed' : 'pointer',
+                    opacity: (deactivateLoading || deactivateError) ? 0.5 : 1,
                   }}
                 >
                   {deactivateLoading ? 'Deactivating...' : 'Confirm'}
