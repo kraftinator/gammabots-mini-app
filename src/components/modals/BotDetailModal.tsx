@@ -56,7 +56,7 @@ const metricsCategories = [
   },
   {
     title: 'Prices',
-    keys: ['currentPrice', 'prevPrice', 'rollingHigh', 'creationPrice', 'highSinceCreate', 'lowSinceCreate', 'highInitBuy', 'lowInitBuy', 'highLastTrade', 'lowLastTrade', 'priceDiv']
+    keys: ['currentPrice', 'prevPrice', 'initBuyPrice', 'rollingHigh', 'creationPrice', 'highSinceCreate', 'lowSinceCreate', 'highInitBuy', 'lowInitBuy', 'highLastTrade', 'lowLastTrade', 'listedBuyPrice', 'priceDiv']
   },
   {
     title: 'Moving Averages',
@@ -888,6 +888,16 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
               <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Initial Value</span>
               <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
                 {bot.init ? `${parseFloat(Number(bot.init).toFixed(6))} ETH` : '0 ETH'}
+              </span>
+            </div>
+            )}
+
+            {/* Bot ID - Owner only */}
+            {isOwner && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
+              <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Bot ID</span>
+              <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
+                {bot.bot_id}
               </span>
             </div>
             )}
