@@ -875,7 +875,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
               </span>
               <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
                 {isOwner
-                  ? (bot.last_action ? formatDistanceToNow(new Date(bot.last_action), { addSuffix: true }) : 'N/A')
+                  ? (bot.last_action ? formatDistanceToNow(new Date(bot.last_action), { addSuffix: true }).replace('about ', '') : 'N/A')
                   : formatActiveTime(bot.active_seconds!)
                 }
               </span>

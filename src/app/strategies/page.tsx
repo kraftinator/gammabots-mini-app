@@ -167,7 +167,7 @@ function StrategiesPageContent() {
   // Format created date
   const formatCreatedDate = (dateString: string): string => {
     try {
-      return formatDistanceToNow(new Date(dateString), { addSuffix: true })
+      return formatDistanceToNow(new Date(dateString), { addSuffix: true }).replace('about ', '')
     } catch {
       return 'Unknown'
     }
