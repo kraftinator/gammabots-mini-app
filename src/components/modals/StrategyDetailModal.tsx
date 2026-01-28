@@ -432,6 +432,20 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                       </button>
                     </div>
 
+                    {/* Reference Link */}
+                    <div style={{ padding: '0 16px 8px 16px' }}>
+                      <a
+                        href="/docs/gammascript-reference"
+                        style={{
+                          fontSize: '13px',
+                          color: '#888',
+                          textDecoration: 'none',
+                        }}
+                      >
+                        → View Gammascript Reference
+                      </a>
+                    </div>
+
                     {/* Logic View */}
                     {strategyView === 'logic' && (
                       <div style={{
