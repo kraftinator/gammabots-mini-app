@@ -158,6 +158,18 @@ export default function BuilderPage() {
         }}>
           Visually build your trading strategy
         </p>
+        <span
+          onClick={() => router.push('/docs/gammascript-reference')}
+          style={{
+            fontSize: '13px',
+            color: '#14b8a6',
+            cursor: 'pointer',
+            marginTop: '8px',
+            display: 'inline-block',
+          }}
+        >
+          → View Gammascript Reference
+        </span>
       </div>
 
       {/* Strategy Builder */}

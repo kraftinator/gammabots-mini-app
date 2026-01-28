@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNavigation from '@/components/BottomNavigation'
+import Footer from '@/components/layout/Footer'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useMe } from '@/contexts/MeContext'
 import SignUpModal from '@/components/modals/SignUpModal'
@@ -207,6 +208,10 @@ export default function SettingsPage() {
         )}
       </div>
 
+      {/* Spacer to push footer to bottom */}
+      <div style={{ flex: 1 }} />
+
+      <Footer />
       <BottomNavigation activeTab="settings" />
 
       <SignUpModal

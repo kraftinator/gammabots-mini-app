@@ -216,6 +216,23 @@ function CreateStrategyPageContent() {
             Advanced users only
           </p>
         </button>
+
+        {/* Gammascript Reference Link */}
+        <div style={{
+          textAlign: 'center',
+          marginTop: '8px',
+        }}>
+          <span
+            onClick={() => router.push('/docs/gammascript-reference')}
+            style={{
+              fontSize: '14px',
+              color: '#14b8a6',
+              cursor: 'pointer',
+            }}
+          >
+            → View Gammascript Reference
+          </span>
+        </div>
       </div>
 
       <BottomNavigation activeTab="strategies" />
