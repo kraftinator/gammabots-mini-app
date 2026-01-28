@@ -434,16 +434,17 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
 
                     {/* Reference Link */}
                     <div style={{ padding: '0 16px 8px 16px' }}>
-                      <a
-                        href="/docs/gammascript-reference"
+                      <span
+                        onClick={() => router.push('/docs/gammascript-reference')}
                         style={{
                           fontSize: '13px',
                           color: '#888',
                           textDecoration: 'none',
+                          cursor: 'pointer',
                         }}
                       >
                         → View Gammascript Reference
-                      </a>
+                      </span>
                     </div>
 
                     {/* Logic View */}

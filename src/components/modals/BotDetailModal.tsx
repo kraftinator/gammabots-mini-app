@@ -1150,6 +1150,21 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
 
                 {!strategyLoading && !strategyError && strategyData && (
                   <div>
+                    {/* Reference Link */}
+                    <div style={{ padding: '12px 16px 0 16px' }}>
+                      <span
+                        onClick={() => router.push('/docs/gammascript-reference')}
+                        style={{
+                          fontSize: '13px',
+                          color: '#888',
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        → View Gammascript Reference
+                      </span>
+                    </div>
+
                     {/* Strategy Steps */}
                     <div style={{
                       padding: '12px 16px',
