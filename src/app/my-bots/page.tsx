@@ -636,7 +636,7 @@ export default function MyBotsPage() {
                       )}
                       <div style={styles.myBotDetailRow}>
                         <span style={styles.myBotDetailLabel}>Last Action:</span>
-                        <span style={styles.myBotDetailValue}>{bot.last_action ? formatDistanceToNow(new Date(bot.last_action), { addSuffix: true }) : 'N/A'}</span>
+                        <span style={styles.myBotDetailValue}>{bot.last_action ? formatDistanceToNow(new Date(bot.last_action), { addSuffix: true }).replace('about ', '') : 'N/A'}</span>
                       </div>
                       {(bot.status === 'completed' || bot.status === 'stopped') && (
                       <div style={styles.myBotDetailRow}>

@@ -56,7 +56,7 @@ const metricsCategories = [
   },
   {
     title: 'Prices',
-    keys: ['currentPrice', 'prevPrice', 'rollingHigh', 'creationPrice', 'highSinceCreate', 'lowSinceCreate', 'highInitBuy', 'lowInitBuy', 'highLastTrade', 'lowLastTrade', 'priceDiv']
+    keys: ['currentPrice', 'prevPrice', 'initBuyPrice', 'rollingHigh', 'creationPrice', 'highSinceCreate', 'lowSinceCreate', 'highInitBuy', 'lowInitBuy', 'highLastTrade', 'lowLastTrade', 'listedBuyPrice', 'priceDiv']
   },
   {
     title: 'Moving Averages',
@@ -534,8 +534,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
       })
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Failed to liquidate bot' }))
-        setLiquidateError(errorData.error || errorData.message || 'Failed to liquidate bot')
+        const errorData = await response.json().catch(() => ({ error: 'Failed to liquidate. Please contact support.' }))
+        setLiquidateError(errorData.error || errorData.message || 'Failed to liquidate. Please contact support.')
         setLiquidateLoading(false)
         return
       }
@@ -875,7 +875,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
               </span>
               <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
                 {isOwner
-                  ? (bot.last_action ? formatDistanceToNow(new Date(bot.last_action), { addSuffix: true }) : 'N/A')
+                  ? (bot.last_action ? formatDistanceToNow(new Date(bot.last_action), { addSuffix: true }).replace('about ', '') : 'N/A')
                   : formatActiveTime(bot.active_seconds!)
                 }
               </span>
@@ -888,6 +888,16 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
               <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Initial Value</span>
               <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
                 {bot.init ? `${parseFloat(Number(bot.init).toFixed(6))} ETH` : '0 ETH'}
+              </span>
+            </div>
+            )}
+
+            {/* Bot ID - Owner only */}
+            {isOwner && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
+              <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Bot ID</span>
+              <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
+                {bot.bot_id}
               </span>
             </div>
             )}
@@ -1793,7 +1803,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 </button>
                 <button
                   onClick={handleLiquidate}
-                  disabled={liquidateLoading}
+                  disabled={liquidateLoading || !!liquidateError}
                   style={{
                     flex: 1,
                     padding: '14px',
@@ -1803,8 +1813,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                     backgroundColor: '#ef4444',
                     border: 'none',
                     borderRadius: '10px',
-                    cursor: liquidateLoading ? 'not-allowed' : 'pointer',
-                    opacity: liquidateLoading ? 0.7 : 1,
+                    cursor: (liquidateLoading || liquidateError) ? 'not-allowed' : 'pointer',
+                    opacity: (liquidateLoading || liquidateError) ? 0.5 : 1,
                   }}
                 >
                   {liquidateLoading ? 'Liquidating...' : 'Confirm'}
@@ -1904,7 +1914,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 </button>
                 <button
                   onClick={handleDeactivate}
-                  disabled={deactivateLoading}
+                  disabled={deactivateLoading || !!deactivateError}
                   style={{
                     flex: 1,
                     padding: '14px',
@@ -1914,8 +1924,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                     backgroundColor: '#ef4444',
                     border: 'none',
                     borderRadius: '10px',
-                    cursor: deactivateLoading ? 'not-allowed' : 'pointer',
-                    opacity: deactivateLoading ? 0.7 : 1,
+                    cursor: (deactivateLoading || deactivateError) ? 'not-allowed' : 'pointer',
+                    opacity: (deactivateLoading || deactivateError) ? 0.5 : 1,
                   }}
                 >
                   {deactivateLoading ? 'Deactivating...' : 'Confirm'}
