@@ -1,12 +1,14 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import BottomNavigation from '@/components/BottomNavigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useMe } from '@/contexts/MeContext'
 import SignUpModal from '@/components/modals/SignUpModal'
 
 export default function SettingsPage() {
+  const router = useRouter()
   const { authenticate } = useQuickAuth()
   const { me, fetchMe } = useMe()
   const [loading, setLoading] = useState(true)
@@ -169,6 +171,38 @@ export default function SettingsPage() {
                 {copied ? 'Copied!' : 'Copy'}
               </button>
             </div>
+          </div>
+        )}
+
+        {/* Documentation */}
+        {!loading && !error && (
+          <div style={{
+            backgroundColor: '#fff',
+            borderRadius: '12px',
+            padding: '16px',
+            border: '1px solid #e5e5e5',
+            marginTop: '16px',
+          }}>
+            <div style={{
+              fontSize: '12px',
+              fontWeight: '500',
+              color: '#8e8e93',
+              marginBottom: '8px',
+              textTransform: 'uppercase',
+              letterSpacing: '0.5px',
+            }}>
+              Help & Documentation
+            </div>
+            <span
+              onClick={() => router.push('/docs')}
+              style={{
+                fontSize: '15px',
+                color: '#14b8a6',
+                cursor: 'pointer',
+              }}
+            >
+              → View Documentation
+            </span>
           </div>
         )}
       </div>
