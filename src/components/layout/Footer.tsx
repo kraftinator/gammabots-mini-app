@@ -1,11 +1,13 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 import TermsModal from '../modals/TermsModal'
 import PrivacyModal from '../modals/PrivacyModal'
 import SupportModal from '../modals/SupportModal'
 
 export default function Footer() {
+  const router = useRouter()
   const [termsModalOpen, setTermsModalOpen] = useState(false)
   const [privacyModalOpen, setPrivacyModalOpen] = useState(false)
   const [supportModalOpen, setSupportModalOpen] = useState(false)
@@ -39,6 +41,13 @@ export default function Footer() {
           style={{ cursor: 'pointer', textDecoration: 'none' }}
         >
           Support
+        </span>
+        {' · '}
+        <span
+          onClick={() => router.push('/docs')}
+          style={{ cursor: 'pointer', textDecoration: 'none' }}
+        >
+          Docs
         </span>
       </div>
 
