@@ -359,6 +359,10 @@ export default function WhatIsGammascriptPage() {
           <p style={styles.p}>
             If you want to see how Gammascript strategies are used in practice, explore the Strategy Builder or inspect existing strategies on the dashboard.
           </p>
+
+          <p style={{ ...styles.p, marginTop: '24px' }}>
+            <a href="/docs/gammascript-reference" style={styles.link}>→ View the Gammascript Reference</a>
+          </p>
         </div>
       </div>
 
