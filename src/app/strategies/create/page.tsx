@@ -217,7 +217,7 @@ function CreateStrategyPageContent() {
           </p>
         </button>
 
-        {/* Gammascript Reference Link */}
+        {/* GammaScript Reference Link */}
         <div style={{
           textAlign: 'center',
           marginTop: '8px',
@@ -230,7 +230,7 @@ function CreateStrategyPageContent() {
               cursor: 'pointer',
             }}
           >
-            → View Gammascript Reference
+            → View GammaScript Reference
           </span>
         </div>
       </div>

@@ -13,14 +13,19 @@ export default function DocsPage() {
       href: '/docs/how-it-works',
     },
     {
-      title: 'What is Gammascript?',
+      title: 'What is GammaScript?',
       description: 'Understand the language used to define trading strategies.',
       href: '/docs/what-is-gammascript',
     },
     {
-      title: 'Gammascript Reference',
-      description: 'A complete reference of all variables available in Gammascript.',
+      title: 'GammaScript Reference',
+      description: 'A complete reference of all variables available in GammaScript.',
       href: '/docs/gammascript-reference',
+    },
+    {
+      title: 'GammaScript for LLMs',
+      description: 'Copy this document to help an LLM write GammaScript for you.',
+      href: '/docs/gammascript-for-llms',
     },
   ]
 

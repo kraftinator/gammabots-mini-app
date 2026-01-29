@@ -108,7 +108,7 @@ const categories: Category[] = [
   }
 ]
 
-export default function GammascriptReferencePage() {
+export default function GammaScriptReferencePage() {
   const router = useRouter()
   const [expandedCategory, setExpandedCategory] = useState<string | null>(null)
 
@@ -157,7 +157,7 @@ export default function GammascriptReferencePage() {
           color: '#1a1a1a',
           margin: 0
         }}>
-          Gammascript Reference
+          GammaScript Reference
         </h1>
       </div>
 
@@ -169,7 +169,7 @@ export default function GammascriptReferencePage() {
           lineHeight: '1.6',
           margin: 0
         }}>
-          A complete reference of all variables available in Gammascript.
+          A complete reference of all variables available in GammaScript.
         </p>
       </div>
 
@@ -269,6 +269,20 @@ export default function GammascriptReferencePage() {
               )}
             </div>
           ))}
+        </div>
+
+        {/* LLM Link */}
+        <div style={{ marginTop: '16px' }}>
+          <span
+            onClick={() => router.push('/docs/gammascript-for-llms')}
+            style={{
+              fontSize: '14px',
+              color: '#14b8a6',
+              cursor: 'pointer',
+            }}
+          >
+            → GammaScript for LLMs
+          </span>
         </div>
       </div>
 

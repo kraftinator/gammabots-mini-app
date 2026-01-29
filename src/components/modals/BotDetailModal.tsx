@@ -1161,7 +1161,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                           cursor: 'pointer',
                         }}
                       >
-                        → View Gammascript Reference
+                        → View GammaScript Reference
                       </span>
                     </div>
 

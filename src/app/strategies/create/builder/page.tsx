@@ -168,7 +168,7 @@ export default function BuilderPage() {
             display: 'inline-block',
           }}
         >
-          → View Gammascript Reference
+          → View GammaScript Reference
         </span>
       </div>
 

@@ -111,7 +111,7 @@ const styles = {
   },
 }
 
-export default function WhatIsGammascriptPage() {
+export default function WhatIsGammaScriptPage() {
   const router = useRouter()
 
   return (
@@ -123,16 +123,16 @@ export default function WhatIsGammascriptPage() {
           </svg>
           Back
         </button>
-        <h1 style={styles.title}>What Is Gammascript?</h1>
+        <h1 style={styles.title}>What Is GammaScript?</h1>
       </div>
 
       <div style={styles.content}>
         <div style={styles.card}>
           <p style={styles.intro}>
-            Gammascript is the language used to define <strong style={styles.strong}>trading strategies</strong> on Gammabots.
+            GammaScript is the language used to define <strong style={styles.strong}>trading strategies</strong> on Gammabots.
           </p>
           <p style={styles.intro}>
-            A Gammascript strategy describes <strong style={styles.strong}>when a bot should buy, sell, wait, exit, or shut down</strong>, based on market conditions and the bot's current state.
+            A GammaScript strategy describes <strong style={styles.strong}>when a bot should buy, sell, wait, exit, or shut down</strong>, based on market conditions and the bot's current state.
           </p>
           <p style={styles.p}>It is designed to be:</p>
           <ul style={styles.ul}>
@@ -141,14 +141,14 @@ export default function WhatIsGammascriptPage() {
             <li style={styles.li}><strong style={styles.strong}>safe</strong> — bots can only act within a limited, predefined set of actions</li>
           </ul>
           <p style={styles.p}>
-            Every strategy on Gammabots runs using Gammascript.
+            Every strategy on Gammabots runs using GammaScript.
           </p>
 
           <hr style={styles.divider} />
 
-          <h2 style={styles.h2}>What Gammascript Does</h2>
+          <h2 style={styles.h2}>What GammaScript Does</h2>
           <p style={styles.p}>
-            At a high level, a Gammascript strategy is a <strong style={styles.strong}>set of rules</strong>.
+            At a high level, a GammaScript strategy is a <strong style={styles.strong}>set of rules</strong>.
           </p>
           <p style={styles.p}>Each rule consists of:</p>
           <ul style={styles.ul}>
@@ -191,7 +191,7 @@ export default function WhatIsGammascriptPage() {
             Conditions are evaluated continuously as market data updates.
           </p>
           <p style={styles.p}>
-            <strong style={styles.strong}>Gammascript does not support <code style={styles.code}>or</code>.</strong><br />
+            <strong style={styles.strong}>GammaScript does not support <code style={styles.code}>or</code>.</strong><br />
             Instead, rules are evaluated sequentially, and <strong style={styles.strong}>rule ordering</strong> is used to express branching or fallback logic.
           </p>
 
@@ -239,7 +239,7 @@ export default function WhatIsGammascriptPage() {
 
           <h2 style={styles.h2}>Strategy Execution</h2>
           <p style={styles.p}>
-            Gammascript strategies are executed by the Gammabots engine.
+            GammaScript strategies are executed by the Gammabots engine.
           </p>
           <p style={styles.p}>Important properties of execution:</p>
           <ul style={styles.ul}>
@@ -256,7 +256,7 @@ export default function WhatIsGammascriptPage() {
 
           <h2 style={styles.h2}>Strategy Variables</h2>
           <p style={styles.p}>
-            Gammascript exposes a fixed set of variables that represent:
+            GammaScript exposes a fixed set of variables that represent:
           </p>
           <ul style={styles.ul}>
             <li style={styles.li}>market prices</li>
@@ -271,19 +271,19 @@ export default function WhatIsGammascriptPage() {
             In the UI and Strategy Builder, these variables are displayed using <strong style={styles.strong}>human-readable names and labels</strong>.
           </p>
           <p style={styles.p}>
-            You do not need to memorize variable codes unless you are writing Gammascript directly.
+            You do not need to memorize variable codes unless you are writing GammaScript directly.
           </p>
 
           <hr style={styles.divider} />
 
           <h2 style={styles.h2}>Writing vs Building Strategies</h2>
           <p style={styles.p}>
-            You can create Gammascript strategies in two ways.
+            You can create GammaScript strategies in two ways.
           </p>
 
-          <h3 style={styles.h3}>Writing Gammascript Directly</h3>
+          <h3 style={styles.h3}>Writing GammaScript Directly</h3>
           <p style={styles.p}>
-            Advanced users can write strategies directly using Gammascript syntax.
+            Advanced users can write strategies directly using GammaScript syntax.
           </p>
           <p style={styles.p}>This offers:</p>
           <ul style={styles.ul}>
@@ -301,19 +301,19 @@ export default function WhatIsGammascriptPage() {
           </p>
           <p style={styles.p}>The builder:</p>
           <ul style={styles.ul}>
-            <li style={styles.li}>generates valid Gammascript automatically</li>
+            <li style={styles.li}>generates valid GammaScript automatically</li>
             <li style={styles.li}>prevents invalid conditions or actions</li>
             <li style={styles.li}>makes strategies easier to reason about visually</li>
           </ul>
           <p style={styles.p}>
-            Under the hood, the builder still produces Gammascript — you're just not required to write it yourself.
+            Under the hood, the builder still produces GammaScript — you're just not required to write it yourself.
           </p>
 
           <hr style={styles.divider} />
 
           <h2 style={styles.h2}>Strategies as NFTs</h2>
           <p style={styles.p}>
-            Every Gammascript strategy is minted as a <strong style={styles.strong}>Strategy NFT</strong>.
+            Every GammaScript strategy is minted as a <strong style={styles.strong}>Strategy NFT</strong>.
           </p>
           <p style={styles.p}>Key properties:</p>
           <ul style={styles.ul}>
@@ -333,9 +333,9 @@ export default function WhatIsGammascriptPage() {
 
           <hr style={styles.divider} />
 
-          <h2 style={styles.h2}>Why Gammascript Exists</h2>
+          <h2 style={styles.h2}>Why GammaScript Exists</h2>
           <p style={styles.p}>
-            Gammascript exists to strike a balance between:
+            GammaScript exists to strike a balance between:
           </p>
           <ul style={styles.ul}>
             <li style={styles.li}>expressiveness</li>
@@ -351,17 +351,20 @@ export default function WhatIsGammascriptPage() {
             <li style={styles.li}>ensure fair and consistent execution</li>
           </ul>
           <p style={styles.p}>
-            Gammascript is what makes Gammabots predictable, composable, and trustworthy.
+            GammaScript is what makes Gammabots predictable, composable, and trustworthy.
           </p>
 
           <hr style={styles.divider} />
 
           <p style={styles.p}>
-            If you want to see how Gammascript strategies are used in practice, explore the Strategy Builder or inspect existing strategies on the dashboard.
+            If you want to see how GammaScript strategies are used in practice, explore the Strategy Builder or inspect existing strategies on the dashboard.
           </p>
 
           <p style={{ ...styles.p, marginTop: '24px' }}>
-            <a href="/docs/gammascript-reference" style={styles.link}>→ View the Gammascript Reference</a>
+            <span onClick={() => router.push('/docs/gammascript-reference')} style={styles.link}>→ View the GammaScript Reference</span>
+          </p>
+          <p style={styles.p}>
+            <span onClick={() => router.push('/docs/gammascript-for-llms')} style={styles.link}>→ GammaScript for LLMs</span>
           </p>
         </div>
       </div>

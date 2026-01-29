@@ -181,11 +181,11 @@ export default function HowItWorksPage() {
             <li style={styles.li}>how it reacts to price movements</li>
           </ul>
           <p style={styles.p}>
-            All strategies on Gammabots are written in <strong style={styles.strong}>Gammascript</strong>, a purpose-built language for automated trading logic.
+            All strategies on Gammabots are written in <strong style={styles.strong}>GammaScript</strong>, a purpose-built language for automated trading logic.
           </p>
           <p style={styles.p}>You can create strategies in several ways:</p>
           <ul style={styles.ul}>
-            <li style={styles.li}><strong style={styles.strong}>Write Gammascript directly</strong> for full control</li>
+            <li style={styles.li}><strong style={styles.strong}>Write GammaScript directly</strong> for full control</li>
             <li style={styles.li}><strong style={styles.strong}>Use the Strategy Builder</strong> to construct strategies visually, without writing code</li>
             <li style={styles.li}><strong style={styles.strong}>Clone existing strategies</strong> and tweak their logic or parameters</li>
           </ul>
@@ -394,7 +394,7 @@ export default function HowItWorksPage() {
           <p style={styles.p}>
             To learn more about how strategies are written and shared, continue to{' '}
             <a onClick={() => router.push('/docs/what-is-gammascript')} style={styles.link}>
-              What is Gammascript?
+              What is GammaScript?
             </a>
           </p>
         </div>

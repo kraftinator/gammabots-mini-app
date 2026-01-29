@@ -228,7 +228,7 @@ function GammaScriptPageContent() {
           color: '#666',
           margin: '4px 0 0 0',
         }}>
-          Write or paste GammaScript JSON
+          Write or paste your GammaScript here
         </p>
         <span
           onClick={() => router.push('/docs/gammascript-reference')}
@@ -240,7 +240,20 @@ function GammaScriptPageContent() {
             display: 'inline-block',
           }}
         >
-          → View Gammascript Reference
+          → GammaScript Reference
+        </span>
+        <br />
+        <span
+          onClick={() => router.push('/docs/gammascript-for-llms')}
+          style={{
+            fontSize: '13px',
+            color: '#14b8a6',
+            cursor: 'pointer',
+            marginTop: '4px',
+            display: 'inline-block',
+          }}
+        >
+          → Generate with AI (copy prompt)
         </span>
       </div>
 

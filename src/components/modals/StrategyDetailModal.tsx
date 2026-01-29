@@ -443,7 +443,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                           cursor: 'pointer',
                         }}
                       >
-                        → View Gammascript Reference
+                        → View GammaScript Reference
                       </span>
                     </div>
 
