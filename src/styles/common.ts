@@ -660,8 +660,16 @@ export const getRankColor = (tailwindColor: string) => {
 }
 
 // Helper function to get profit color
-export const getProfitColor = (profit: number) => {
-  if (profit >= 2) return '#34c759'
-  if (profit <= -2) return '#ff3b30'
-  return '#8e8e93'
+export const getProfitColor = (profit: number, isActive: boolean = true) => {
+  if (isActive) {
+    // Active bots: 2% threshold
+    if (profit >= 2) return '#34c759'
+    if (profit <= -2) return '#ff3b30'
+    return '#8e8e93'
+  } else {
+    // Completed/inactive bots: 0% threshold
+    if (profit > 0) return '#34c759'
+    if (profit < 0) return '#ff3b30'
+    return '#8e8e93'
+  }
 }

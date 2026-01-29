@@ -765,7 +765,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
             <span style={{
               fontSize: '16px',
               fontWeight: '500',
-              color: getProfitColor(Number(bot.profit_percent) || 0)
+              color: getProfitColor(Number(bot.profit_percent) || 0, bot.status === 'active')
             }}>
               {Number(bot.profit_percent) > 0 ? '+' : ''}{Number(bot.profit_percent || 0).toFixed(2)}%
             </span>
