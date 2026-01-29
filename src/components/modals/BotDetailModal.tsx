@@ -207,6 +207,10 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
       if (key === 'botProfit' || key === 'profitLastCycle' || key === 'profitSecondCycle') {
         return value.toFixed(4)
       }
+      // Limit volatility & momentum fields to 6 decimals
+      if (key === 'mom' || key === 'vst' || key === 'vlt' || key === 'ssd' || key === 'lsd') {
+        return value.toFixed(6)
+      }
       // Check if it's a price-like value (has many decimals)
       const str = value.toString()
       if (str.includes('.') && str.split('.')[1].length > 10) {
@@ -224,6 +228,10 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
       // Limit profit fields to 4 decimals
       if ((key === 'botProfit' || key === 'profitLastCycle' || key === 'profitSecondCycle') && !isNaN(num)) {
         return num.toFixed(4)
+      }
+      // Limit volatility & momentum fields to 6 decimals
+      if ((key === 'mom' || key === 'vst' || key === 'vlt' || key === 'ssd' || key === 'lsd') && !isNaN(num)) {
+        return num.toFixed(6)
       }
       if (!isNaN(num) && value.includes('.') && value.split('.')[1].length > 10) {
         return num.toFixed(18)
