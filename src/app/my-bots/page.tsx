@@ -559,11 +559,11 @@ export default function MyBotsPage() {
                       <span style={{
                         ...styles.myBotStatus,
                         whiteSpace: 'nowrap',
-                        color: bot.status === 'unfunded' ? '#f59e0b' : (bot.status === 'liquidating' ? '#f59e0b' : (bot.status === 'deactivated' ? '#555' : (bot.status === 'completed' ? '#5f9ea0' : (bot.status === 'stopped' ? '#555' : (bot.status === 'funding_failed' ? '#E35B5B' : (bot.is_active ? colors.success : colors.text.secondary)))))),
+                        color: bot.status === 'unfunded' ? '#f59e0b' : (bot.status === 'liquidating' ? '#f59e0b' : (bot.status === 'deactivated' ? '#555' : (bot.status === 'completed' ? '#5f9ea0' : (bot.status === 'stopped' ? '#555' : (bot.status === 'funding_failed' ? '#E35B5B' : (bot.status === 'expired' ? '#E35B5B' : (bot.is_active ? colors.success : colors.text.secondary))))))),
                         animation: (bot.status === 'unfunded' || bot.status === 'liquidating') ? 'pulse 2s ease-in-out infinite' : 'none'
                       }}>
                         {(bot.status === 'unfunded' || bot.status === 'liquidating') && <style>{`@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.5; } }`}</style>}
-                        {bot.status === 'unfunded' ? 'Confirming funds' : (bot.status === 'liquidating' ? 'Liquidating' : (bot.status === 'deactivated' ? 'Deactivated' : (bot.status === 'completed' ? 'Completed' : (bot.status === 'stopped' ? 'Stopped' : (bot.status === 'funding_failed' ? 'Funding failed' : (bot.is_active ? 'Active' : 'Inactive'))))))}
+                        {bot.status === 'unfunded' ? 'Confirming funds' : (bot.status === 'liquidating' ? 'Liquidating' : (bot.status === 'deactivated' ? 'Deactivated' : (bot.status === 'completed' ? 'Completed' : (bot.status === 'stopped' ? 'Stopped' : (bot.status === 'funding_failed' ? 'Funding failed' : (bot.status === 'expired' ? 'Funding failed' : (bot.is_active ? 'Active' : 'Inactive')))))))}
                       </span>
                     </span>
                     <button
