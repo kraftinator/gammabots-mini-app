@@ -106,7 +106,7 @@ export function useMintStrategy(): UseMintStrategyResult {
           const inMiniApp = await sdk.isInMiniApp()
           if (!inMiniApp) {
             console.warn('Not in Mini App environment, skipping NFT minting')
-            router.push('/strategies')
+            router.push('/mini-app/strategies')
             return
           }
 
@@ -253,7 +253,7 @@ export function useMintStrategy(): UseMintStrategyResult {
               if (statusData.mint_status === 'confirmed' && statusData.nft_token_id) {
                 // Success - redirect to strategies with modal open (only if still mounted)
                 if (isMountedRef.current) {
-                  router.push(`/strategies?view=${statusData.nft_token_id}`)
+                  router.push(`/mini-app/strategies?view=${statusData.nft_token_id}`)
                 }
                 return
               }
@@ -272,7 +272,7 @@ export function useMintStrategy(): UseMintStrategyResult {
                 setSubmitWarning('Still confirming… check Strategies later')
                 setTimeout(() => {
                   if (isMountedRef.current) {
-                    router.push('/strategies')
+                    router.push('/mini-app/strategies')
                   }
                 }, 2000)
               }

@@ -21,7 +21,7 @@ export default function MiniApp() {
   const [sdkRef, setSdkRef] = useState<typeof import('@farcaster/miniapp-sdk').sdk | null>(null)
   const [username, setUsername] = useState<string>('guest') // Default fallback for development
   const [signUpModalOpen, setSignUpModalOpen] = useState(false)
-  const [signUpRedirectTo, setSignUpRedirectTo] = useState<string>('/my-bots')
+  const [signUpRedirectTo, setSignUpRedirectTo] = useState<string>('/mini-app/my-bots')
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
   const [isBotModalOpen, setIsBotModalOpen] = useState(false)
   const [dashboardLoading, setDashboardLoading] = useState(true)
@@ -257,9 +257,9 @@ export default function MiniApp() {
               style={styles.buttonPrimary}
               onClick={() => {
                 if (dashboardData.user_exists) {
-                  router.push('/my-bots/create')
+                  router.push('/mini-app/my-bots/create')
                 } else {
-                  setSignUpRedirectTo('/my-bots/create')
+                  setSignUpRedirectTo('/mini-app/my-bots/create')
                   setSignUpModalOpen(true)
                 }
               }}
@@ -277,7 +277,7 @@ export default function MiniApp() {
             ) : (
               <button
                 onClick={() => {
-                  setSignUpRedirectTo('/my-bots')
+                  setSignUpRedirectTo('/mini-app/my-bots')
                   setSignUpModalOpen(true)
                 }}
                 style={styles.buttonSecondary}
@@ -295,9 +295,9 @@ export default function MiniApp() {
               </p>
             )}
             <p style={{ fontSize: '12px', marginTop: dashboardData.user_exists ? '0' : '12px', marginBottom: '8px' }}>
-              <a onClick={() => router.push('/docs/how-it-works')} style={{ color: 'rgba(59, 130, 246, 0.8)', cursor: 'pointer' }}>How it works</a>
+              <a onClick={() => router.push('/mini-app/docs/how-it-works')} style={{ color: 'rgba(59, 130, 246, 0.8)', cursor: 'pointer' }}>How it works</a>
               <span style={{ color: '#6b7280', margin: '0 8px' }}>·</span>
-              <a onClick={() => router.push('/docs/what-is-gammascript')} style={{ color: 'rgba(59, 130, 246, 0.8)', cursor: 'pointer' }}>What is GammaScript?</a>
+              <a onClick={() => router.push('/mini-app/docs/what-is-gammascript')} style={{ color: 'rgba(59, 130, 246, 0.8)', cursor: 'pointer' }}>What is GammaScript?</a>
             </p>
           </div>
         </div>

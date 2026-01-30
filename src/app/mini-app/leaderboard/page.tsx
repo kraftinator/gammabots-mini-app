@@ -47,7 +47,7 @@ export default function LeaderboardPage() {
 
   // Sign up modal state
   const [signUpModalOpen, setSignUpModalOpen] = useState(false)
-  const [signUpRedirectTo, setSignUpRedirectTo] = useState<string>('/my-bots')
+  const [signUpRedirectTo, setSignUpRedirectTo] = useState<string>('/mini-app/my-bots')
 
   // Check if user exists (has signed up)
   const userExists = me?.user_exists === true
@@ -146,7 +146,7 @@ export default function LeaderboardPage() {
     if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
     if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
 
-    const redirectUrl = `/my-bots/create?${params.toString()}`
+    const redirectUrl = `/mini-app/my-bots/create?${params.toString()}`
 
     // If user hasn't signed up, show signup modal
     if (!userExists) {

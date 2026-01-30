@@ -122,7 +122,7 @@ export default function BuilderPage() {
         backgroundColor: '#fff',
       }}>
         <button
-          onClick={() => router.push('/strategies/create')}
+          onClick={() => router.push('/mini-app/strategies/create')}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -159,7 +159,7 @@ export default function BuilderPage() {
           Visually build your trading strategy
         </p>
         <span
-          onClick={() => router.push('/docs/gammascript-reference')}
+          onClick={() => router.push('/mini-app/docs/gammascript-reference')}
           style={{
             fontSize: '13px',
             color: '#14b8a6',
@@ -247,7 +247,7 @@ export default function BuilderPage() {
               fontSize: '13px',
             }}>
               <button
-                onClick={() => router.push(`/my-bots/create?strategy_id=${duplicateTokenId}&from=strategies`)}
+                onClick={() => router.push(`/mini-app/my-bots/create?strategy_id=${duplicateTokenId}&from=strategies`)}
                 style={{
                   padding: '8px 14px',
                   backgroundColor: '#14b8a6',
@@ -261,7 +261,7 @@ export default function BuilderPage() {
                 Use This Strategy
               </button>
               <button
-                onClick={() => router.push(`/strategies?view=${duplicateTokenId}`)}
+                onClick={() => router.push(`/mini-app/strategies?view=${duplicateTokenId}`)}
                 style={{
                   padding: '8px 0',
                   backgroundColor: 'transparent',

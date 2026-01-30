@@ -460,7 +460,7 @@ function CreateBotContent() {
                   console.error('Failed to cancel funding:', cancelError)
                 }
                 // Silently redirect to My Bots
-                router.push('/my-bots')
+                router.push('/mini-app/my-bots')
                 return
               }
 
@@ -490,8 +490,8 @@ function CreateBotContent() {
             // Continue to redirect even if payment fails - user can retry later
           }
         }
-        
-        router.push('/my-bots')
+
+        router.push('/mini-app/my-bots')
       } else {
         // Handle error response
         const responseText = await response.text()
@@ -533,10 +533,10 @@ function CreateBotContent() {
       <button
         onClick={() => {
           const from = searchParams.get('from')
-          if (from === 'strategies') router.push('/strategies')
-          else if (from === 'leaderboard') router.push('/leaderboard')
-          else if (from === 'dashboard') router.push('/')
-          else router.push('/my-bots')
+          if (from === 'strategies') router.push('/mini-app/strategies')
+          else if (from === 'leaderboard') router.push('/mini-app/leaderboard')
+          else if (from === 'dashboard') router.push('/mini-app')
+          else router.push('/mini-app/my-bots')
         }}
         style={{
           display: 'flex',

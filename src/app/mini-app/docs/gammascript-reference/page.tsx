@@ -274,7 +274,7 @@ export default function GammaScriptReferencePage() {
         {/* LLM Link */}
         <div style={{ marginTop: '16px' }}>
           <span
-            onClick={() => router.push('/docs/gammascript-for-llms')}
+            onClick={() => router.push('/mini-app/docs/gammascript-for-llms')}
             style={{
               fontSize: '14px',
               color: '#14b8a6',

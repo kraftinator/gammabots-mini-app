@@ -25,7 +25,7 @@ function CreateStrategyPageContent() {
   useEffect(() => {
     const strategy = searchParams.get('strategy')
     if (strategy) {
-      router.replace(`/strategies/create/gammascript?strategy=${encodeURIComponent(strategy)}`)
+      router.replace(`/mini-app/strategies/create/gammascript?strategy=${encodeURIComponent(strategy)}`)
     }
   }, [searchParams, router])
 
@@ -44,7 +44,7 @@ function CreateStrategyPageContent() {
       }}>
         {/* Back Link */}
         <button
-          onClick={() => router.push('/strategies')}
+          onClick={() => router.push('/mini-app/strategies')}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -116,7 +116,7 @@ function CreateStrategyPageContent() {
         `}</style>
         <button
           className="create-card create-card-builder"
-          onClick={() => router.push('/strategies/create/builder')}
+          onClick={() => router.push('/mini-app/strategies/create/builder')}
         >
           <div style={{
             display: 'flex',
@@ -169,7 +169,7 @@ function CreateStrategyPageContent() {
         {/* Write GammaScript Card */}
         <button
           className="create-card create-card-gammascript"
-          onClick={() => router.push('/strategies/create/gammascript')}
+          onClick={() => router.push('/mini-app/strategies/create/gammascript')}
         >
           <div style={{
             display: 'flex',
@@ -223,7 +223,7 @@ function CreateStrategyPageContent() {
           marginTop: '8px',
         }}>
           <span
-            onClick={() => router.push('/docs/gammascript-reference')}
+            onClick={() => router.push('/mini-app/docs/gammascript-reference')}
             style={{
               fontSize: '14px',
               color: '#14b8a6',

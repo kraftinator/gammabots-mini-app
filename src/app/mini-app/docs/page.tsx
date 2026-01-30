@@ -10,22 +10,22 @@ export default function DocsPage() {
     {
       title: 'How it Works',
       description: 'Learn how Gammabots works and how to get started.',
-      href: '/docs/how-it-works',
+      href: '/mini-app/docs/how-it-works',
     },
     {
       title: 'What is GammaScript?',
       description: 'Understand the language used to define trading strategies.',
-      href: '/docs/what-is-gammascript',
+      href: '/mini-app/docs/what-is-gammascript',
     },
     {
       title: 'GammaScript Reference',
       description: 'A complete reference of all variables available in GammaScript.',
-      href: '/docs/gammascript-reference',
+      href: '/mini-app/docs/gammascript-reference',
     },
     {
       title: 'GammaScript for LLMs',
       description: 'Copy this document to help an LLM write GammaScript for you.',
-      href: '/docs/gammascript-for-llms',
+      href: '/mini-app/docs/gammascript-for-llms',
     },
   ]
 

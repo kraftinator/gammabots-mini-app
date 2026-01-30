@@ -195,7 +195,7 @@ export default function SettingsPage() {
               Help & Documentation
             </div>
             <span
-              onClick={() => router.push('/docs')}
+              onClick={() => router.push('/mini-app/docs')}
               style={{
                 fontSize: '15px',
                 color: '#14b8a6',
@@ -223,7 +223,7 @@ export default function SettingsPage() {
             await fetchMe(token)
           }
         }}
-        redirectTo="/settings"
+        redirectTo="/mini-app/settings"
       />
     </div>
   )

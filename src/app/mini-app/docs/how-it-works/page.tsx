@@ -393,7 +393,7 @@ export default function HowItWorksPage() {
 
           <p style={styles.p}>
             To learn more about how strategies are written and shared, continue to{' '}
-            <a onClick={() => router.push('/docs/what-is-gammascript')} style={styles.link}>
+            <a onClick={() => router.push('/mini-app/docs/what-is-gammascript')} style={styles.link}>
               What is GammaScript?
             </a>
           </p>

@@ -58,7 +58,7 @@ export function useQuickAuth(): UseQuickAuthReturn {
   const navigateToMyBots = useCallback(async (): Promise<void> => {
     const token = await authenticate()
     if (token) {
-      router.push("/my-bots")
+      router.push("/mini-app/my-bots")
     }
   }, [authenticate, router])
 

@@ -59,7 +59,7 @@ export default function MyBotsPage() {
 
   // Sign up modal state
   const [signUpModalOpen, setSignUpModalOpen] = useState(false)
-  const [signUpRedirectTo, setSignUpRedirectTo] = useState('/my-bots')
+  const [signUpRedirectTo, setSignUpRedirectTo] = useState('/mini-app/my-bots')
 
   // Check if user exists (has signed up)
   const userExists = me?.user_exists === true
@@ -82,7 +82,7 @@ export default function MyBotsPage() {
 
   // Handle Create Bot button click
   const handleCreateBot = () => {
-    const redirectUrl = '/my-bots/create'
+    const redirectUrl = '/mini-app/my-bots/create'
 
     // If user hasn't signed up, show signup modal
     if (!userExists) {
@@ -266,7 +266,7 @@ export default function MyBotsPage() {
     if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
     if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
 
-    router.push(`/my-bots/create?${params.toString()}`)
+    router.push(`/mini-app/my-bots/create?${params.toString()}`)
   }
 
   const filteredAndSortedBots = useMemo(() => {

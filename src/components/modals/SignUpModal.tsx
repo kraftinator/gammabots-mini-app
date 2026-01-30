@@ -13,7 +13,7 @@ interface SignUpModalProps {
   redirectTo?: string
 }
 
-export default function SignUpModal({ isOpen, onClose, onSuccess, redirectTo = '/my-bots' }: SignUpModalProps) {
+export default function SignUpModal({ isOpen, onClose, onSuccess, redirectTo = '/mini-app/my-bots' }: SignUpModalProps) {
   const router = useRouter()
   const [agreedToTerms, setAgreedToTerms] = useState(false)
   const [currentView, setCurrentView] = useState<'signup' | 'terms' | 'privacy'>('signup')

@@ -44,7 +44,7 @@ export default function Footer() {
         </span>
         {' · '}
         <span
-          onClick={() => router.push('/docs')}
+          onClick={() => router.push('/mini-app/docs')}
           style={{ cursor: 'pointer', textDecoration: 'none' }}
         >
           Docs

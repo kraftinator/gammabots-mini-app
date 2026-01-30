@@ -361,10 +361,10 @@ export default function WhatIsGammaScriptPage() {
           </p>
 
           <p style={{ ...styles.p, marginTop: '24px' }}>
-            <span onClick={() => router.push('/docs/gammascript-reference')} style={styles.link}>→ View the GammaScript Reference</span>
+            <span onClick={() => router.push('/mini-app/docs/gammascript-reference')} style={styles.link}>→ View the GammaScript Reference</span>
           </p>
           <p style={styles.p}>
-            <span onClick={() => router.push('/docs/gammascript-for-llms')} style={styles.link}>→ GammaScript for LLMs</span>
+            <span onClick={() => router.push('/mini-app/docs/gammascript-for-llms')} style={styles.link}>→ GammaScript for LLMs</span>
           </p>
         </div>
       </div>

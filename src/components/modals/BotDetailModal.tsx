@@ -1161,7 +1161,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                     {/* Reference Link */}
                     <div style={{ padding: '12px 16px 0 16px' }}>
                       <span
-                        onClick={() => router.push('/docs/gammascript-reference')}
+                        onClick={() => router.push('/mini-app/docs/gammascript-reference')}
                         style={{
                           fontSize: '13px',
                           color: '#888',
@@ -1330,7 +1330,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
               if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
               if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
               if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
-              const redirectUrl = `/my-bots/create?${params.toString()}`
+              const redirectUrl = `/mini-app/my-bots/create?${params.toString()}`
               if (!userExists && onSignUpRequired) {
                 onSignUpRequired(redirectUrl)
                 onClose()
@@ -1431,7 +1431,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
               if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
               if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
               if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
-              router.push(`/my-bots/create?${params.toString()}`)
+              router.push(`/mini-app/my-bots/create?${params.toString()}`)
               onClose()
             }}
             style={{

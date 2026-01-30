@@ -34,7 +34,7 @@ function GammaScriptPageContent() {
       setStrategyData(decoded)
       setIsPrefilledUnmodified(true)
       // Clear the query parameter from URL
-      router.replace('/strategies/create/gammascript', { scroll: false })
+      router.replace('/mini-app/strategies/create/gammascript', { scroll: false })
     }
   }, [searchParams, router])
   const {
@@ -194,7 +194,7 @@ function GammaScriptPageContent() {
         backgroundColor: '#fff',
       }}>
         <button
-          onClick={() => router.push('/strategies/create')}
+          onClick={() => router.push('/mini-app/strategies/create')}
           style={{
             display: 'flex',
             alignItems: 'center',
@@ -231,7 +231,7 @@ function GammaScriptPageContent() {
           Write or paste your GammaScript here
         </p>
         <span
-          onClick={() => router.push('/docs/gammascript-reference')}
+          onClick={() => router.push('/mini-app/docs/gammascript-reference')}
           style={{
             fontSize: '13px',
             color: '#14b8a6',
@@ -244,7 +244,7 @@ function GammaScriptPageContent() {
         </span>
         <br />
         <span
-          onClick={() => router.push('/docs/gammascript-for-llms')}
+          onClick={() => router.push('/mini-app/docs/gammascript-for-llms')}
           style={{
             fontSize: '13px',
             color: '#14b8a6',
@@ -382,7 +382,7 @@ function GammaScriptPageContent() {
               fontSize: '13px',
             }}>
               <button
-                onClick={() => router.push(`/my-bots/create?strategy_id=${duplicateTokenId}&from=strategies`)}
+                onClick={() => router.push(`/mini-app/my-bots/create?strategy_id=${duplicateTokenId}&from=strategies`)}
                 style={{
                   padding: '8px 14px',
                   backgroundColor: '#14b8a6',
@@ -396,7 +396,7 @@ function GammaScriptPageContent() {
                 Use This Strategy
               </button>
               <button
-                onClick={() => router.push(`/strategies?view=${duplicateTokenId}`)}
+                onClick={() => router.push(`/mini-app/strategies?view=${duplicateTokenId}`)}
                 style={{
                   padding: '8px 0',
                   backgroundColor: 'transparent',
@@ -522,7 +522,7 @@ function GammaScriptPageContent() {
               fontSize: '13px',
             }}>
               <button
-                onClick={() => router.push(`/my-bots/create?strategy_id=${validationDuplicateId}&from=strategies`)}
+                onClick={() => router.push(`/mini-app/my-bots/create?strategy_id=${validationDuplicateId}&from=strategies`)}
                 style={{
                   padding: '8px 14px',
                   backgroundColor: '#14b8a6',
@@ -536,7 +536,7 @@ function GammaScriptPageContent() {
                 Use This Strategy
               </button>
               <button
-                onClick={() => router.push(`/strategies?view=${validationDuplicateId}`)}
+                onClick={() => router.push(`/mini-app/strategies?view=${validationDuplicateId}`)}
                 style={{
                   padding: '8px 0',
                   backgroundColor: 'transparent',

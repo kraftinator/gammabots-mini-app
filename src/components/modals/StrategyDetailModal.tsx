@@ -108,7 +108,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
 
   // Handle Create Bot - requires auth
   const handleCreateBot = async () => {
-    const redirectUrl = `/my-bots/create?strategy_id=${strategyId}&from=strategies`
+    const redirectUrl = `/mini-app/my-bots/create?strategy_id=${strategyId}&from=strategies`
 
     // If user hasn't signed up, show signup modal
     if (!userExists && onSignUpRequired) {
@@ -128,7 +128,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
   const handleCopyStrategy = async () => {
     if (!stats) return
 
-    const redirectUrl = `/strategies/create?strategy=${encodeURIComponent(stats.user_friendly_strategy)}`
+    const redirectUrl = `/mini-app/strategies/create?strategy=${encodeURIComponent(stats.user_friendly_strategy)}`
 
     // If user hasn't signed up, show signup modal
     if (!userExists && onSignUpRequired) {
@@ -435,7 +435,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                     {/* Reference Link */}
                     <div style={{ padding: '0 16px 8px 16px' }}>
                       <span
-                        onClick={() => router.push('/docs/gammascript-reference')}
+                        onClick={() => router.push('/mini-app/docs/gammascript-reference')}
                         style={{
                           fontSize: '13px',
                           color: '#888',

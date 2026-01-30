@@ -23,13 +23,13 @@ export default function BottomNavigation({ activeTab }: BottomNavigationProps) {
         label="Home"
         icon={Home}
         active={activeTab === 'home'}
-        href="/"
+        href="/mini-app"
       />
       <NavItem
         label="My Bots"
         icon={Bot}
         active={activeTab === 'my-bots'}
-        href="/my-bots"
+        href="/mini-app/my-bots"
         onClick={activeTab !== 'my-bots' ? handleMyBotsClick : undefined}
         loading={authLoading}
       />
@@ -37,19 +37,19 @@ export default function BottomNavigation({ activeTab }: BottomNavigationProps) {
         label="Leaderboard"
         icon={Trophy}
         active={activeTab === 'leaderboard'}
-        href="/leaderboard"
+        href="/mini-app/leaderboard"
       />
       <NavItem
         label="Strategies"
         icon={GitBranch}
         active={activeTab === 'strategies'}
-        href="/strategies"
+        href="/mini-app/strategies"
       />
       <NavItem
         label="Settings"
         icon={Settings}
         active={activeTab === 'settings'}
-        href="/settings"
+        href="/mini-app/settings"
       />
     </div>
   )

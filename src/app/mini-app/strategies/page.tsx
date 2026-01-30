@@ -34,7 +34,7 @@ function StrategiesPageContent() {
 
   // Sign up modal state
   const [signUpModalOpen, setSignUpModalOpen] = useState(false)
-  const [signUpRedirectTo, setSignUpRedirectTo] = useState<string>('/my-bots')
+  const [signUpRedirectTo, setSignUpRedirectTo] = useState<string>('/mini-app/my-bots')
 
   // Check if user exists (has signed up)
   const userExists = me?.user_exists === true
@@ -45,7 +45,7 @@ function StrategiesPageContent() {
     if (viewId) {
       setSelectedStrategyId(viewId)
       // Clear the query parameter from URL without navigation
-      router.replace('/strategies', { scroll: false })
+      router.replace('/mini-app/strategies', { scroll: false })
     }
   }, [searchParams, router])
 
@@ -127,7 +127,7 @@ function StrategiesPageContent() {
 
   // Handle Create Strategy - requires auth
   const handleCreateStrategy = async () => {
-    const redirectUrl = '/strategies/create'
+    const redirectUrl = '/mini-app/strategies/create'
 
     // If user hasn't signed up, show signup modal
     if (!userExists) {
@@ -147,7 +147,7 @@ function StrategiesPageContent() {
   const handleCreateBot = async (strategy: Strategy, e: React.MouseEvent) => {
     e.stopPropagation()
 
-    const redirectUrl = `/my-bots/create?strategy_id=${strategy.strategy_id}&from=strategies`
+    const redirectUrl = `/mini-app/my-bots/create?strategy_id=${strategy.strategy_id}&from=strategies`
 
     // If user hasn't signed up, show signup modal
     if (!userExists) {
