@@ -1,11 +1,12 @@
 {
   "miniapp": {
     "version": "1",
-    "name": "Gammabots - Trading Bot Platform",
-    "iconUrl": "https://gammabots-mini-app.vercel.app/icon.png",
-    "homeUrl": "https://gammabots-mini-app.vercel.app",
+    "name": "Gammabots",
+    "iconUrl": "https://gammabots.io/icon.png",
+    "imageUrl": "https://gammabots.io/preview-image.png",
+    "homeUrl": "https://gammabots.io/mini-app",
     "description": "Trading Bots Made Easy - Create and manage automated trading bots on Farcaster",
-    "splashImageUrl": "https://gammabots-mini-app.vercel.app/splash.png",
-    "splashBackgroundColor": "#8B5CF6"
+    "splashImageUrl": "https://gammabots.io/splash.png",
+    "splashBackgroundColor": "#2d3f54"
   }
 }

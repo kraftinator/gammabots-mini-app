@@ -19,15 +19,15 @@ export const metadata: Metadata = {
   other: {
     "fc:miniapp": JSON.stringify({
       version: "1",
-      imageUrl: "https://gammabots-mini-app.vercel.app/og-image.png",
+      imageUrl: "https://gammabots.io/preview-image.png",
       button: {
         title: "Launch Gammabots",
         action: {
           type: "launch_frame",
-          name: "Gammabots - Trading Bot Platform",
-          url: "https://gammabots-mini-app.vercel.app",
-          splashImageUrl: "https://gammabots-mini-app.vercel.app/splash.png",
-          splashBackgroundColor: "#8B5CF6"
+          name: "Gammabots",
+          url: "https://gammabots.io/mini-app",
+          splashImageUrl: "https://gammabots.io/splash.png",
+          splashBackgroundColor: "#2d3f54"
         }
       }
     })
