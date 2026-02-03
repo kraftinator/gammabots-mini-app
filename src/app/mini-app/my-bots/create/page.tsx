@@ -29,6 +29,10 @@ function CreateBotContent() {
   // Strategy options state
   const [strategyOptions, setStrategyOptions] = useState<Array<{ strategy_id: string; label: string; bot_count: number; creator_handle?: string }>>([])
   const [strategyOptionsLoading, setStrategyOptionsLoading] = useState(false)
+
+  // Gas reserve state
+  const [gasReserve, setGasReserve] = useState<string | null>(null)
+  const [botWalletAddress, setBotWalletAddress] = useState<string | null>(null)
   const [isStrategyPickerOpen, setIsStrategyPickerOpen] = useState(false)
   const [strategySearchQuery, setStrategySearchQuery] = useState('')
 
@@ -263,6 +267,32 @@ function CreateBotContent() {
     }
 
     fetchStrategyOptions()
+  }, [authenticate])
+
+  // Fetch gas reserve on page load
+  useEffect(() => {
+    const fetchGasReserve = async () => {
+      try {
+        const token = await authenticate()
+        if (!token) return
+
+        const response = await fetch('/api/bots/gas_reserve', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setGasReserve(data.needed_topup)
+          setBotWalletAddress(data.wallet_address)
+        }
+      } catch (error) {
+        console.error('Error fetching gas reserve:', error)
+      }
+    }
+
+    fetchGasReserve()
   }, [authenticate])
 
   useEffect(() => {
@@ -818,11 +848,19 @@ function CreateBotContent() {
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <span style={{ fontSize: '13px', color: '#888' }}>Address</span>
+                  <span style={{ fontSize: '13px', color: '#888' }}>Token Address</span>
                   <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e', fontFamily: 'ui-monospace, monospace' }}>
                     {formData.tokenAddress.slice(0, 6)}…{formData.tokenAddress.slice(-4)}
                   </span>
                 </div>
+                {botWalletAddress && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: '#888' }}>Bot Wallet</span>
+                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e', fontFamily: 'ui-monospace, monospace' }}>
+                      {botWalletAddress.slice(0, 6)}…{botWalletAddress.slice(-4)}
+                    </span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '13px', color: '#888' }}>Strategy</span>
                   <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e' }}>
@@ -837,11 +875,35 @@ function CreateBotContent() {
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '13px', color: '#888' }}>ETH Amount</span>
-                  <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e' }}>
-                    {formData.ethAmount} ETH
+                  <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e', fontFamily: 'ui-monospace, monospace' }}>
+                    {parseFloat(formData.ethAmount).toFixed(4)} ETH
                   </span>
                 </div>
+                {gasReserve && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: '#888' }}>Gas Reserve</span>
+                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e', fontFamily: 'ui-monospace, monospace' }}>
+                      {parseFloat(gasReserve) < 0.0001 ? '< 0.0001' : parseFloat(gasReserve).toFixed(4)} ETH
+                    </span>
+                  </div>
+                )}
               </div>
+            </div>
+          )}
+
+          {/* Total */}
+          {isFormValid && gasReserve && (
+            <div style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              marginBottom: '16px',
+              padding: '0 16px',
+            }}>
+              <span style={{ fontSize: '15px', fontWeight: '600', color: '#1c1c1e' }}>Total</span>
+              <span style={{ fontSize: '15px', fontWeight: '600', color: '#1c1c1e', fontFamily: 'ui-monospace, monospace' }}>
+                {(parseFloat(formData.ethAmount) + parseFloat(gasReserve)).toFixed(4)} ETH
+              </span>
             </div>
           )}
 
