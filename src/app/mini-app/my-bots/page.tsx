@@ -11,6 +11,7 @@ import BottomNavigation from '@/components/BottomNavigation'
 import BotDetailModal from '@/components/modals/BotDetailModal'
 import SignUpModal from '@/components/modals/SignUpModal'
 import { formatDistanceToNow } from 'date-fns'
+import { copyToClipboard } from '@/utils/clipboard'
 
 interface Bot {
   bot_id: string
@@ -74,9 +75,11 @@ export default function MyBotsPage() {
 
   const copyAddress = async () => {
     if (walletAddress) {
-      await navigator.clipboard.writeText(walletAddress)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      const success = await copyToClipboard(walletAddress)
+      if (success) {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
     }
   }
 

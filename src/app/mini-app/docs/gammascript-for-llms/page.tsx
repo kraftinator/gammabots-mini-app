@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import BottomNavigation from '@/components/BottomNavigation'
+import { copyToClipboard } from '@/utils/clipboard'
 
 const styles = {
   container: {
@@ -133,9 +134,11 @@ export default function GammaScriptForLLMsPage() {
 
   const handleCopy = async () => {
     if (content) {
-      await navigator.clipboard.writeText(content)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      const success = await copyToClipboard(content)
+      if (success) {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
     }
   }
 

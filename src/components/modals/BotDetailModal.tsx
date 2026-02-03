@@ -8,6 +8,7 @@ import { colors, getProfitColor } from '@/styles/common'
 import { formatTokenAmount, formatActiveTime } from '@/utils/formatters'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useMe } from '@/contexts/MeContext'
+import { copyToClipboard } from '@/utils/clipboard'
 
 export interface Bot {
   bot_id: string
@@ -1244,7 +1245,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                           {strategyData.creator_address.slice(0, 6)}...{strategyData.creator_address.slice(-4)}
                         </a>
                         <button
-                          onClick={() => navigator.clipboard.writeText(strategyData.creator_address)}
+                          onClick={() => copyToClipboard(strategyData.creator_address)}
                           style={{
                             background: 'none',
                             border: 'none',
@@ -1291,7 +1292,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                           {strategyData.owner_address.slice(0, 6)}...{strategyData.owner_address.slice(-4)}
                         </a>
                         <button
-                          onClick={() => navigator.clipboard.writeText(strategyData.owner_address)}
+                          onClick={() => copyToClipboard(strategyData.owner_address)}
                           style={{
                             background: 'none',
                             border: 'none',

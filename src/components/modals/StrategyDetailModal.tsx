@@ -6,6 +6,7 @@ import { formatDistanceToNow } from 'date-fns'
 import { GitBranch, ChevronDown, ChevronUp } from 'lucide-react'
 import { getProfitColor } from '@/styles/common'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
+import { copyToClipboard } from '@/utils/clipboard'
 
 interface StrategyStats {
   id: string
@@ -158,10 +159,6 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
     return `${address.slice(0, 6)}...${address.slice(-4)}`
   }
 
-  // Copy to clipboard
-  const copyToClipboard = (text: string) => {
-    navigator.clipboard.writeText(text)
-  }
 
   if (!isOpen) return null
 

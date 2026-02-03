@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect, useRef } from 'react'
+import { copyToClipboard } from '@/utils/clipboard'
 
 // Variable mappings (human-readable to abbreviated)
 const VAR_MAPPINGS: Record<string, string> = {
@@ -974,7 +975,7 @@ export default function StrategyBuilder({ onStrategyChange }: StrategyBuilderPro
               </span>
               {previewMode === 'raw' && (
                 <button
-                  onClick={() => navigator.clipboard?.writeText(gammaScript)}
+                  onClick={() => copyToClipboard(gammaScript)}
                   style={{ background: 'none', border: 'none', cursor: 'pointer', padding: '4px' }}
                 >
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">

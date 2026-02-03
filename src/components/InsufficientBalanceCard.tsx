@@ -1,6 +1,7 @@
 'use client'
 
 import { InsufficientBalanceInfo } from '@/hooks/useMintStrategy'
+import { copyToClipboard } from '@/utils/clipboard'
 
 interface InsufficientBalanceCardProps {
   info: InsufficientBalanceInfo
@@ -46,7 +47,7 @@ export default function InsufficientBalanceCard({ info }: InsufficientBalanceCar
           Token: {info.tokenAddress.slice(0, 6)}...{info.tokenAddress.slice(-4)}
         </span>
         <button
-          onClick={() => navigator.clipboard.writeText(info.tokenAddress)}
+          onClick={() => copyToClipboard(info.tokenAddress)}
           style={{
             padding: '4px 8px',
             fontSize: '11px',

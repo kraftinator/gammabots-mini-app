@@ -7,6 +7,7 @@ import Footer from '@/components/layout/Footer'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useMe } from '@/contexts/MeContext'
 import SignUpModal from '@/components/modals/SignUpModal'
+import { copyToClipboard } from '@/utils/clipboard'
 
 export default function SettingsPage() {
   const router = useRouter()
@@ -52,9 +53,11 @@ export default function SettingsPage() {
 
   const copyAddress = async () => {
     if (walletAddress) {
-      await navigator.clipboard.writeText(walletAddress)
-      setCopied(true)
-      setTimeout(() => setCopied(false), 2000)
+      const success = await copyToClipboard(walletAddress)
+      if (success) {
+        setCopied(true)
+        setTimeout(() => setCopied(false), 2000)
+      }
     }
   }
 
