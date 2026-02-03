@@ -10,6 +10,7 @@
     "subtitle": "Trading bots. Simplified.",
     "primaryCategory": "finance",
     "buttonTitle": "Launch Gammabots",
+    "tags": ["trading", "bots", "autotrading"],
     "iconUrl": "https://gammabots.io/icon.png",
     "imageUrl": "https://gammabots.io/preview-image.png",
     "homeUrl": "https://gammabots.io/mini-app",
