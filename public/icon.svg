@@ -10,7 +10,7 @@
   </defs>
 
   <!-- Robot Logo (centered and scaled) -->
-  <g transform="translate(252, 222) scale(4)">
+  <g transform="translate(155, 127) scale(5.5)">
     <!-- Antenna -->
     <rect x="61" y="0" width="8" height="25" rx="4" fill="url(#gammaGrad)"/>
     <circle cx="65" cy="0" r="10" fill="#22D3EE"/>
