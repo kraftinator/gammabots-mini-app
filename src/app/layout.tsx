@@ -10,11 +10,11 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "Gammabots - Trading Bot Platform",
-  description: "Trading Bots Made Easy - Create and manage automated trading bots on Farcaster",
+  title: "Gammabots",
+  description: "Deploy automated trading bots in seconds. Choose a strategy, fund your bot, and let it trade for you.",
   openGraph: {
-    title: "Gammabots - Trading Bot Platform",
-    description: "Trading Bots Made Easy - Create and manage automated trading bots on Farcaster",
+    title: "Gammabots",
+    description: "Deploy automated trading bots in seconds. Choose a strategy, fund your bot, and let it trade for you.",
   },
   other: {
     "fc:miniapp": JSON.stringify({

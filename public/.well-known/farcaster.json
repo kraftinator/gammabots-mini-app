@@ -2,10 +2,11 @@
   "miniapp": {
     "version": "1",
     "name": "Gammabots",
+    "subtitle": "Trading bots. Simplified.",
     "iconUrl": "https://gammabots.io/icon.png",
     "imageUrl": "https://gammabots.io/preview-image.png",
     "homeUrl": "https://gammabots.io/mini-app",
-    "description": "Trading Bots Made Easy - Create and manage automated trading bots on Farcaster",
+    "description": "Deploy automated trading bots in seconds. Choose a strategy, fund your bot, and let it trade for you.",
     "splashImageUrl": "https://gammabots.io/splash.png",
     "splashBackgroundColor": "#2d3f54"
   }
