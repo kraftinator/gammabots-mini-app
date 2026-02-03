@@ -1432,6 +1432,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
               if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
               if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
               if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
+              if (bot.init !== undefined) params.set('eth_amount', bot.init.toString())
               router.push(`/mini-app/my-bots/create?${params.toString()}`)
               onClose()
             }}

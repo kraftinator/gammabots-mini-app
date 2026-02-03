@@ -192,10 +192,11 @@ function CreateBotContent() {
     const movingAvg = searchParams.get('moving_avg')
     const profitShare = searchParams.get('profit_share')
     const profitThreshold = searchParams.get('profit_threshold')
+    const ethAmount = searchParams.get('eth_amount')
 
-    console.log('🔍 Create page params:', { tokenAddress, tokenSymbol, tokenName, strategyId, movingAvg, profitShare, profitThreshold })
+    console.log('🔍 Create page params:', { tokenAddress, tokenSymbol, tokenName, strategyId, movingAvg, profitShare, profitThreshold, ethAmount })
 
-    if (tokenAddress || strategyId || movingAvg || profitShare || profitThreshold) {
+    if (tokenAddress || strategyId || movingAvg || profitShare || profitThreshold || ethAmount) {
       const newMovingAvg = movingAvg || '6'
 
       setFormData(prev => ({
@@ -205,7 +206,7 @@ function CreateBotContent() {
         movingAverage: newMovingAvg,
         profitShare: profitShare || prev.profitShare,
         profitThreshold: profitThreshold || prev.profitThreshold,
-        // ETH amount stays empty for clones
+        ethAmount: ethAmount || prev.ethAmount,
       }))
 
       // Sync movingAvgInput with pre-populated value
