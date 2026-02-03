@@ -1,4 +1,9 @@
 {
+  "accountAssociation": {
+    "header": "eyJmaWQiOjI2MzE1OCwidHlwZSI6ImF1dGgiLCJrZXkiOiIweGZEMzY4QkZhRkY2ZjQzYTNDNDg5MjVjMGJDODkwM0QwMjc5NmJENzIifQ",
+    "payload": "eyJkb21haW4iOiJnYW1tYWJvdHMuaW8ifQ",
+    "signature": "tpp4sktGkA9BghW9GEaEeeporoQYUL2Iqz90WNnoNXAtEdXn/MQjTMQPaS3JMOtGS9N/SuzfRDrSF/pmCImHexs="
+  },
   "miniapp": {
     "version": "1",
     "name": "Gammabots",
