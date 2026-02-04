@@ -68,6 +68,10 @@ export default function MiniApp() {
       token_symbol: string;
       tvl_usd: string;
     }>,
+    trending_tokens: [] as Array<{
+      token_symbol: string;
+      volume_24h_usd: number;
+    }>,
     recent_activity: [] as Array<{
       action: string;
       amount: number;
@@ -360,6 +364,26 @@ export default function MiniApp() {
             })}
           </div>
         </div>
+
+        {/* Trending Tokens */}
+        {dashboardData.trending_tokens.length > 0 && (
+        <div style={{ marginBottom: "24px" }}>
+          <div style={{ fontSize: "18px", fontWeight: "700", color: "#1c1c1e", marginBottom: "16px", padding: "0 4px" }}>Trending Tokens (24h)</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+            {dashboardData.trending_tokens.map((token, index) => {
+              const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+              return (
+                <TokenCard
+                  key={token.token_symbol}
+                  name={token.token_symbol}
+                  tvl={`${formatCurrency(Number(token.volume_24h_usd))} VOL`}
+                  borderColor={colors[index % colors.length]}
+                />
+              );
+            })}
+          </div>
+        </div>
+        )}
 
         {/* Recent Activity */}
         <div style={{ marginBottom: "24px" }}>
