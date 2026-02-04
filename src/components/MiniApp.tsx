@@ -347,8 +347,8 @@ export default function MiniApp() {
           </div>
         )}
 
-        {/* Popular Tokens */}
-        <div style={{ marginBottom: "24px" }}>
+        {/* Popular Tokens - Hidden */}
+        {false && <div style={{ marginBottom: "24px" }}>
           <div style={{ fontSize: "18px", fontWeight: "700", color: "#1c1c1e", marginBottom: "16px", padding: "0 4px" }}>Popular Tokens</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             {dashboardData.popular_tokens.map((token, index) => {
@@ -363,12 +363,12 @@ export default function MiniApp() {
               );
             })}
           </div>
-        </div>
+        </div>}
 
         {/* Trending Tokens */}
         {dashboardData.trending_tokens.length > 0 && (
         <div style={{ marginBottom: "24px" }}>
-          <div style={{ fontSize: "18px", fontWeight: "700", color: "#1c1c1e", marginBottom: "16px", padding: "0 4px" }}>Trending Tokens (24h)</div>
+          <div style={{ fontSize: "18px", fontWeight: "700", color: "#1c1c1e", marginBottom: "16px", padding: "0 4px" }}>Trending Tokens</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
             {dashboardData.trending_tokens.map((token, index) => {
               const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
