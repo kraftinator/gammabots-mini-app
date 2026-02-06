@@ -39,7 +39,7 @@ export default function LeaderboardPage() {
 
   const [searchQuery, setSearchQuery] = useState('')
   const [filterType, setFilterType] = useState('all')
-  const [timePeriod, setTimePeriod] = useState('all_time')
+  const [timePeriod, setTimePeriod] = useState('7d')
 
   // Bot detail modal state
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null)

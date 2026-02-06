@@ -29,7 +29,7 @@ function StrategiesPageContent() {
   const [error, setError] = useState<string | null>(null)
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState('bots')
+  const [sortBy, setSortBy] = useState('performance')
   const [selectedStrategyId, setSelectedStrategyId] = useState<string | null>(null)
 
   // Sign up modal state
