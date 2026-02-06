@@ -101,7 +101,7 @@ function NavItem({
   // If there's an onClick handler, use a div with onClick
   if (onClick && !active) {
     return (
-      <div style={style} onClick={onClick}>
+      <div style={style} onClick={onClick} title={label}>
         {content}
       </div>
     )
@@ -110,7 +110,7 @@ function NavItem({
   // If there's a href and no onClick, use Link
   if (href && !active && !onClick) {
     return (
-      <Link href={href} style={style}>
+      <Link href={href} style={style} title={label}>
         {content}
       </Link>
     )
@@ -118,7 +118,7 @@ function NavItem({
 
   // Active tab or fallback
   return (
-    <div style={style}>
+    <div style={style} title={label}>
       {content}
     </div>
   )
