@@ -340,6 +340,23 @@ export default function MiniApp() {
                       })
                       setIsBotModalOpen(true)
                     }}
+                    onClone={(e) => {
+                      e.stopPropagation()
+                      const params = new URLSearchParams()
+                      params.set('from', 'dashboard')
+                      if (performer.token_address) params.set('token_address', performer.token_address)
+                      if (performer.token_symbol) params.set('token_symbol', performer.token_symbol)
+                      if (performer.token_name) params.set('token_name', performer.token_name)
+                      if (performer.strategy_id) params.set('strategy_id', performer.strategy_id)
+                      if (performer.moving_average) params.set('moving_avg', performer.moving_average.toString())
+                      const redirectUrl = `/mini-app/my-bots/create?${params.toString()}`
+                      if (dashboardData.user_exists) {
+                        router.push(redirectUrl)
+                      } else {
+                        setSignUpRedirectTo(redirectUrl)
+                        setSignUpModalOpen(true)
+                      }
+                    }}
                   />
                 );
               })}
@@ -667,7 +684,8 @@ function LeaderboardItem({
   strategyId,
   profit,
   avatarUrl,
-  onClick
+  onClick,
+  onClone
 }: {
   rank: number;
   rankColor: string;
@@ -678,6 +696,7 @@ function LeaderboardItem({
   profit: string;
   avatarUrl?: string;
   onClick?: () => void;
+  onClone?: (e: React.MouseEvent) => void;
 }) {
   // Use imported utility
   const backgroundColor = getRankColor(rankColor);
@@ -759,10 +778,45 @@ function LeaderboardItem({
         </div>
       </div>
       <div style={{
-        fontSize: "15px",
-        fontWeight: "700",
-        color: "#34c759"
-      }}>{profit}</div>
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "flex-end",
+        gap: "6px"
+      }}>
+        <div style={{
+          fontSize: "15px",
+          fontWeight: "700",
+          color: "#34c759"
+        }}>{profit}</div>
+        {onClone && (
+          <button
+            onClick={(e) => {
+              e.stopPropagation()
+              onClone(e)
+            }}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '5px',
+              background: '#f5f5f5',
+              border: '1px solid #e5e5e5',
+              fontSize: '11px',
+              color: '#666',
+              fontWeight: '500',
+              cursor: 'pointer',
+              padding: '3px 10px',
+              borderRadius: '14px',
+              opacity: 0.8,
+            }}
+          >
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+            </svg>
+            Clone
+          </button>
+        )}
+      </div>
     </div>
   )
 }
