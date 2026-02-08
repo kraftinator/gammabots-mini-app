@@ -21,6 +21,7 @@ interface StrategyStats {
   created_at: string
   bots_count: number
   performance_pct?: number
+  gamma_score?: number
   top_bot?: {
     bot_id: string
     token_symbol: string
@@ -281,6 +282,16 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                   padding: '16px',
                 }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    {/* GammaScore */}
+                    {stats.gamma_score != null && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
+                        <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>GammaScore</span>
+                        <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
+                          {stats.gamma_score}
+                        </span>
+                      </div>
+                    )}
+
                     {/* Bots */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
                       <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Bots</span>

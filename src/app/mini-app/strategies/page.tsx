@@ -17,6 +17,7 @@ interface Strategy {
   created_at: string
   bots_count: number
   performance_pct?: number
+  gamma_score?: number
 }
 
 function StrategiesPageContent() {
@@ -29,7 +30,7 @@ function StrategiesPageContent() {
   const [error, setError] = useState<string | null>(null)
 
   const [searchQuery, setSearchQuery] = useState('')
-  const [sortBy, setSortBy] = useState('performance')
+  const [sortBy, setSortBy] = useState('gammascore')
   const [selectedStrategyId, setSelectedStrategyId] = useState<string | null>(null)
 
   // Sign up modal state
@@ -109,10 +110,12 @@ function StrategiesPageContent() {
     // Sort
     return [...filtered].sort((a, b) => {
       switch (sortBy) {
-        case 'bots':
-          return (Number(b.bots_count) || 0) - (Number(a.bots_count) || 0)
+        case 'gammascore':
+          return (Number(b.gamma_score) || 0) - (Number(a.gamma_score) || 0)
         case 'performance':
           return (Number(b.performance_pct) || 0) - (Number(a.performance_pct) || 0)
+        case 'bots':
+          return (Number(b.bots_count) || 0) - (Number(a.bots_count) || 0)
         case 'newest':
           return new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         case 'oldest':
@@ -279,8 +282,9 @@ function StrategiesPageContent() {
             outline: 'none',
           }}
         >
-          <option value="bots">Bots</option>
+          <option value="gammascore">GammaScore</option>
           <option value="performance">Performance</option>
+          <option value="bots">Bots</option>
           <option value="newest">Newest</option>
           <option value="oldest">Oldest</option>
           <option value="creator">Creator</option>
@@ -382,17 +386,25 @@ function StrategiesPageContent() {
                   {/* Left side - details */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', fontSize: '13px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
-                      <span style={{ fontSize: '13px', color: '#adadad', width: '65px', fontWeight: '400', flexShrink: 0 }}>Bots:</span>
+                      <span style={{ fontSize: '13px', color: '#adadad', width: '85px', fontWeight: '400', flexShrink: 0 }}>Bots:</span>
                       <span style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1e' }}>
                         {Number(strategy.bots_count) || 0}
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
-                      <span style={{ fontSize: '13px', color: '#adadad', width: '65px', fontWeight: '400', flexShrink: 0 }}>Created:</span>
+                      <span style={{ fontSize: '13px', color: '#adadad', width: '85px', fontWeight: '400', flexShrink: 0 }}>Created:</span>
                       <span style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1e' }}>
                         {formatCreatedDate(strategy.created_at)}
                       </span>
                     </div>
+                    {strategy.gamma_score != null && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
+                        <span style={{ fontSize: '13px', color: '#adadad', width: '85px', fontWeight: '400', flexShrink: 0 }}>GammaScore:</span>
+                        <span style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1e' }}>
+                          {strategy.gamma_score}
+                        </span>
+                      </div>
+                    )}
                   </div>
 
                   {/* Right side - performance (only show if not null) */}
