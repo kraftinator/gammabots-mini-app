@@ -27,7 +27,7 @@ function CreateBotContent() {
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   // Strategy options state
-  const [strategyOptions, setStrategyOptions] = useState<Array<{ strategy_id: string; label: string; bot_count: number; creator_handle?: string }>>([])
+  const [strategyOptions, setStrategyOptions] = useState<Array<{ strategy_id: string; label: string; bot_count: number; creator_handle?: string; gamma_score?: number }>>([])
   const [strategyOptionsLoading, setStrategyOptionsLoading] = useState(false)
 
   // Gas reserve state
@@ -954,7 +954,7 @@ function CreateBotContent() {
               onClick={(e) => e.stopPropagation()}
               style={{
                 width: '100%',
-                maxHeight: '70vh',
+                height: '70vh',
                 backgroundColor: '#fff',
                 borderTopLeftRadius: '20px',
                 borderTopRightRadius: '20px',
@@ -1084,7 +1084,7 @@ function CreateBotContent() {
                             marginTop: '1px',
                             marginLeft: '8px',
                           }}>
-                            {option.creator_handle && <>by @{option.creator_handle}{option.bot_count > 0 && ' · '}</>}{option.bot_count > 0 && <>Used by <span style={{ color: '#777' }}>{option.bot_count}</span> bot{option.bot_count !== 1 ? 's' : ''}</>}
+                            {option.gamma_score != null && option.gamma_score > 0 && <>GammaScore: <span style={{ fontWeight: '600', color: '#333' }}>{option.gamma_score}</span></>}{option.bot_count > 0 && <>{option.gamma_score != null && option.gamma_score > 0 && ' · '}{option.bot_count} bot{option.bot_count !== 1 ? 's' : ''}</>}{option.creator_handle && <>{(option.gamma_score != null && option.gamma_score > 0) || option.bot_count > 0 ? ' · ' : ''}by @{option.creator_handle}</>}
                           </div>
                         </div>
                         {formData.strategyId === option.strategy_id && (
