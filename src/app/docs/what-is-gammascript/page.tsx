@@ -63,7 +63,7 @@ export default function WhatIsGammaScriptPage() {
           A GammaScript strategy describes <strong>when a bot should buy, sell, wait, exit, or shut down</strong>, based on market conditions and the bot's current state.
         </p>
         <p style={{ fontSize: '16px', color: '#444', lineHeight: '1.6', marginBottom: '8px' }}>It is designed to be:</p>
-        <ul style={{ margin: '0 0 12px 0', paddingLeft: '24px', fontSize: '16px', color: '#444', lineHeight: '1.7' }}>
+        <ul style={{ margin: '0 0 12px 0', paddingLeft: '24px', fontSize: '16px', color: '#444', lineHeight: '1.7', listStyleType: 'disc' }}>
           <li style={{ marginBottom: '6px' }}><strong style={{ color: '#1a1a1a' }}>deterministic</strong> — the same inputs always produce the same behavior</li>
           <li style={{ marginBottom: '6px' }}><strong style={{ color: '#1a1a1a' }}>transparent</strong> — strategies can be inspected and understood</li>
           <li style={{ marginBottom: '6px' }}><strong style={{ color: '#1a1a1a' }}>safe</strong> — bots can only act within a limited, predefined set of actions</li>
@@ -276,9 +276,15 @@ function Section({ title, children }: { title: string; children: React.ReactNode
           div :global(p) {
             margin-bottom: 12px;
           }
-          div :global(ul), div :global(ol) {
+          div :global(ul) {
             margin: 0 0 12px 0;
             padding-left: 24px;
+            list-style-type: disc;
+          }
+          div :global(ol) {
+            margin: 0 0 12px 0;
+            padding-left: 24px;
+            list-style-type: decimal;
           }
           div :global(li) {
             margin-bottom: 6px;

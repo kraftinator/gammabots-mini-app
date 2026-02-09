@@ -298,6 +298,7 @@ function Section({ title, children }: { title: string; children: React.ReactNode
           div :global(ul) {
             margin: 0 0 12px 0;
             padding-left: 24px;
+            list-style-type: disc;
           }
           div :global(li) {
             margin-bottom: 6px;

@@ -269,7 +269,7 @@ export default function Home() {
                       {performer.display_name}
                     </div>
                     <div style={{ fontSize: '11px', color: '#8e8e93' }}>
-                      @{performer.owner_username} · #{performer.strategy_id}
+                      by @{performer.owner_username} · Strategy #{performer.strategy_id}
                     </div>
                   </div>
                   <div style={{

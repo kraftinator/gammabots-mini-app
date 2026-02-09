@@ -13,7 +13,7 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch(`${apiUrl}/dashboard_metrics`, {
+    const response = await fetch(`${apiUrl}/public/dashboard`, {
       method: 'GET',
       headers: {
         'Content-Type': 'application/json',
