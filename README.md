@@ -1,66 +1,36 @@
-# Gammabots Mini App
+# Gammabots
 
-A Farcaster Mini App built with Next.js, TypeScript, and the Farcaster Mini App SDK for the Gammabots ecosystem.
+A Farcaster mini app for deploying automated trading bots in seconds — without managing infrastructure or watching charts all day.
 
-## Features
+## How It Works
 
-- 🤖 Gammabots integration and functionality
-- 🎯 Detects Farcaster Mini App environment vs regular browser
-- ⚡ Built with Next.js 15 and Turbopack for fast development
-- 🎨 Styled with Tailwind CSS
-- 📱 Responsive design
-- 🔧 TypeScript for type safety
+Each bot follows a simple, transparent lifecycle:
 
-## Getting Started
+1. **Choose a Token** — Pick the token you want to trade. All bots trade token/ETH pairs on Base.
 
-First, install dependencies:
+2. **Choose a Strategy** — Strategies define how the bot trades: when it buys, when it sells, and how it reacts to price movements. All strategies are written in GammaScript, a purpose-built language for automated trading logic.
 
-```bash
-npm install
-```
+3. **Configure & Fund** — Set your ETH amount and parameters, then fund the bot from your wallet.
 
-Then run the development server:
+4. **Bot Trades Automatically** — Once funded, the bot runs continuously, executing trades when conditions are met.
 
-```bash
-npm run dev
-```
+## Strategies Are NFTs
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+Each strategy is minted as an NFT and is immutable once created. This guarantees that every bot using a strategy is running the exact same code. Strategies are fully transparent and inspectable — you can always see exactly what a strategy does before using it.
 
-## Farcaster Mini App Integration
+## Fees
 
-This app includes:
+Gammabots charges a 0.3% fee on sell trades:
+- 75% goes to the Gammabots protocol
+- 25% goes to the Strategy NFT owner
 
-- **SDK Integration**: Uses `@farcaster/miniapp-sdk` for Farcaster-specific functionality
-- **Manifest File**: Configured at `public/.well-known/farcaster.json`
-- **Embed Metadata**: Includes `fc:miniapp` meta tags for social sharing
-- **Environment Detection**: Handles both Mini App and browser environments
+Strategy creators earn ETH when their strategies are used.
 
-### Key Files
+## Links
 
-- `src/components/MiniApp.tsx` - Main Mini App component that calls `sdk.actions.ready()`
-- `src/app/layout.tsx` - Contains Farcaster embed metadata
-- `public/.well-known/farcaster.json` - Farcaster manifest configuration
+- **Website:** [gammabots.io](https://gammabots.io)
+- **Mini App:** [Gammabots on Farcaster](https://farcaster.xyz/miniapps/S8DW4VMywzs_/gammabots)
 
-## Development
+## Network Support
 
-The app automatically detects if it's running in a Farcaster Mini App environment and calls `sdk.actions.ready()` to hide the splash screen when ready.
-
-This Mini App is specifically designed for the Gammabots ecosystem and includes all necessary Farcaster Mini App configurations.
-
-For testing in the Farcaster environment, you'll need to:
-1. Deploy your app to a public URL
-2. Configure the manifest with your actual domain
-3. Use the Farcaster Mini App preview tools
-
-## Learn More
-
-- [Farcaster Mini Apps Documentation](https://miniapps.farcaster.xyz/)
-- [Next.js Documentation](https://nextjs.org/docs)
-- [Farcaster SDK](https://github.com/farcasterxyz/miniapps)
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Gammabots currently supports the **Base** network.
