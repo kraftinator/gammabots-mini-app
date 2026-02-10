@@ -87,6 +87,48 @@ export default function Home() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+      <style jsx global>{`
+        .metrics-grid {
+          display: grid;
+          grid-template-columns: repeat(3, 1fr);
+          gap: 16px;
+        }
+        .two-column-grid {
+          display: grid;
+          grid-template-columns: 1fr 1fr;
+          gap: 24px;
+        }
+        .trending-grid {
+          display: grid;
+          grid-template-columns: repeat(2, 1fr);
+          gap: 12px;
+        }
+        .desktop-nav {
+          display: flex;
+          align-items: center;
+          gap: 24px;
+        }
+        .mobile-cta {
+          display: none;
+        }
+        @media (max-width: 768px) {
+          .metrics-grid {
+            grid-template-columns: repeat(2, 1fr);
+          }
+          .two-column-grid {
+            grid-template-columns: 1fr;
+          }
+          .trending-grid {
+            grid-template-columns: 1fr 1fr;
+          }
+          .desktop-nav {
+            display: none;
+          }
+          .mobile-cta {
+            display: block;
+          }
+        }
+      `}</style>
       {/* Header */}
       <header style={{
         backgroundColor: '#2d3f54',
@@ -101,7 +143,7 @@ export default function Home() {
             GAMMABOTS
           </span>
         </div>
-        <nav style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+        <nav className="desktop-nav">
           <Link href="/docs/how-it-works" style={{ color: '#cbd5e1', fontSize: '14px', textDecoration: 'none' }}>
             How it Works
           </Link>
@@ -125,6 +167,23 @@ export default function Home() {
             Open Mini App
           </a>
         </nav>
+        <a
+          className="mobile-cta"
+          href="https://farcaster.xyz/miniapps/S8DW4VMywzs_/gammabots"
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{
+            backgroundColor: '#14b8a6',
+            color: 'white',
+            padding: '8px 16px',
+            borderRadius: '8px',
+            fontSize: '14px',
+            fontWeight: '600',
+            textDecoration: 'none',
+          }}
+        >
+          Open App
+        </a>
       </header>
 
       {/* Hero Section */}
@@ -180,19 +239,17 @@ export default function Home() {
           <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1c1c1e', marginBottom: '16px' }}>
             Platform Stats
           </h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px', marginBottom: '16px' }}>
+          <div className="metrics-grid">
             <MetricCard label="Active Bots" value={dashboardData.active_bots.toLocaleString()} change={formatPercentageChange(dashboardData.active_bots_change_24h)} loading={dashboardLoading} getChangeColor={getChangeColor} />
             <MetricCard label="TVL" value={formatCurrency(dashboardData.tvl)} change={formatPercentageChange(dashboardData.tvl_change_24h)} loading={dashboardLoading} getChangeColor={getChangeColor} />
             <MetricCard label="24h Volume" value={formatCurrency(dashboardData.volume_24h)} change={formatPercentageChange(dashboardData.volume_24h_change_24h)} loading={dashboardLoading} getChangeColor={getChangeColor} />
-          </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '16px' }}>
             <MetricCard label="Strategies" value={dashboardData.strategies.toLocaleString()} loading={dashboardLoading} getChangeColor={getChangeColor} />
             <MetricCard label="Total Profits" value={formatCurrency(dashboardData.total_profits)} loading={dashboardLoading} getChangeColor={getChangeColor} />
             <MetricCard label="Total Trades" value={dashboardData.trades_executed.toLocaleString()} loading={dashboardLoading} getChangeColor={getChangeColor} />
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
+        <div className="two-column-grid">
           {/* Top Performers */}
           <div>
             <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1c1c1e', marginBottom: '16px' }}>
@@ -287,6 +344,48 @@ export default function Home() {
                 </div>
               )}
             </div>
+
+            {/* Trending Tokens */}
+            {dashboardData.trending_tokens.length > 0 && (
+              <div style={{ marginTop: '24px' }}>
+                <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1c1c1e', marginBottom: '16px' }}>
+                  Trending Tokens
+                </h2>
+                <div className="trending-grid">
+                  {dashboardData.trending_tokens.slice(0, 4).map((token, index) => {
+                    const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
+                    return (
+                      <div
+                        key={token.token_symbol}
+                        style={{
+                          backgroundColor: 'white',
+                          borderRadius: '12px',
+                          padding: '16px',
+                          textAlign: 'center',
+                          border: `2px solid ${colors[index % colors.length]}`,
+                          boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                        }}
+                      >
+                        <div style={{
+                          fontSize: '14px',
+                          fontWeight: '700',
+                          color: '#1c1c1e',
+                          marginBottom: '4px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                        }}>
+                          {token.token_symbol.length > 15 ? `${token.token_symbol.slice(0, 15)}...` : token.token_symbol}
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#8e8e93' }}>
+                          {formatCurrency(Number(token.volume_24h_usd))} VOL
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Recent Activity */}
@@ -300,7 +399,7 @@ export default function Home() {
               boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
               overflow: 'hidden',
             }}>
-              {dashboardData.recent_activity.slice(0, 5).map((activity, index) => (
+              {dashboardData.recent_activity.slice(0, 10).map((activity, index, arr) => (
                 <div
                   key={index}
                   style={{
@@ -308,7 +407,7 @@ export default function Home() {
                     alignItems: 'center',
                     padding: '12px 16px',
                     gap: '12px',
-                    borderBottom: index < 4 ? '1px solid #f2f2f7' : 'none',
+                    borderBottom: index < Math.min(arr.length, 10) - 1 ? '1px solid #f2f2f7' : 'none',
                   }}
                 >
                   <div style={{
@@ -361,48 +460,6 @@ export default function Home() {
             </div>
           </div>
         </div>
-
-        {/* Trending Tokens */}
-        {dashboardData.trending_tokens.length > 0 && (
-          <div style={{ marginTop: '32px' }}>
-            <h2 style={{ fontSize: '20px', fontWeight: '700', color: '#1c1c1e', marginBottom: '16px' }}>
-              Trending Tokens
-            </h2>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
-              {dashboardData.trending_tokens.slice(0, 4).map((token, index) => {
-                const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
-                return (
-                  <div
-                    key={token.token_symbol}
-                    style={{
-                      backgroundColor: 'white',
-                      borderRadius: '12px',
-                      padding: '16px',
-                      textAlign: 'center',
-                      border: `2px solid ${colors[index % colors.length]}`,
-                      boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
-                    }}
-                  >
-                    <div style={{
-                      fontSize: '14px',
-                      fontWeight: '700',
-                      color: '#1c1c1e',
-                      marginBottom: '4px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                    }}>
-                      {token.token_symbol.length > 15 ? `${token.token_symbol.slice(0, 15)}...` : token.token_symbol}
-                    </div>
-                    <div style={{ fontSize: '12px', color: '#8e8e93' }}>
-                      {formatCurrency(Number(token.volume_24h_usd))} VOL
-                    </div>
-                  </div>
-                )
-              })}
-            </div>
-          </div>
-        )}
 
         {/* CTA */}
         <div style={{
