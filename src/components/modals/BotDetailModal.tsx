@@ -65,7 +65,7 @@ const metricsCategories = [
   },
   {
     title: 'Volatility & Momentum',
-    keys: ['mom', 'vst', 'vlt', 'ssd', 'lsd']
+    keys: ['mom', 'trendConc', 'vst', 'vlt', 'ssd', 'lsd']
   },
   {
     title: 'Profitability',
@@ -209,7 +209,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
         return value.toFixed(4)
       }
       // Limit volatility & momentum fields to 6 decimals
-      if (key === 'mom' || key === 'vst' || key === 'vlt' || key === 'ssd' || key === 'lsd') {
+      if (key === 'mom' || key === 'trendConc' || key === 'vst' || key === 'vlt' || key === 'ssd' || key === 'lsd') {
         return value.toFixed(6)
       }
       // Check if it's a price-like value (has many decimals)
@@ -231,7 +231,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
         return num.toFixed(4)
       }
       // Limit volatility & momentum fields to 6 decimals
-      if ((key === 'mom' || key === 'vst' || key === 'vlt' || key === 'ssd' || key === 'lsd') && !isNaN(num)) {
+      if ((key === 'mom' || key === 'trendConc' || key === 'vst' || key === 'vlt' || key === 'ssd' || key === 'lsd') && !isNaN(num)) {
         return num.toFixed(6)
       }
       if (!isNaN(num) && value.includes('.') && value.split('.')[1].length > 10) {

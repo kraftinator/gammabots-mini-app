@@ -42,6 +42,7 @@ const VAR_MAPPINGS: Record<string, string> = {
   lsd: 'lsd',
   tma: 'tma',
   tokenAmt: 'bta',
+  trendConc: 'tcn',
   vlt: 'vlt',
   vst: 'vst',
 }
