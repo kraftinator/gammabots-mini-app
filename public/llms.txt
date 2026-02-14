@@ -34,6 +34,8 @@ You are a specialized AI assistant for **GammaScript**, a domain-specific langua
 
 ### Indicators (0.0 to 1.0 scale)
 * `mom`: Momentum. Ratio of price-increasing minutes in the window. `1.0` is purely bullish.
+* `trendConc`: Trend Concentration. Measures how evenly distributed price gains are. Values near 0 indicate gains spread across many minutes; values near 1 indicate most upward movement came from 1-2 price jumps.
+* `flatRatio`: Flat Ratio. Proportion of minutes with <0.01% price change. Values near 0 indicate consistent activity; values near 1 indicate low liquidity with only occasional trades.
 * `priceDiv`: Price Diversity. Ratio of unique price points over the window.
 * `vst` / `vlt`: Range-based Volatility `(max - min) / min`. `vst` is short-term; `vlt` is long-term.
 * `ssd` / `lsd`: Standard Deviation of minute-to-minute returns.
