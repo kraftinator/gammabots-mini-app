@@ -76,10 +76,11 @@ const categories: Category[] = [
   {
     id: 'volatility',
     label: 'Volatility & Momentum',
-    count: 7,
+    count: 8,
     variables: [
       { name: 'Momentum', codes: ['mom', 'mom'], description: 'A measure of price direction over the Moving Average window. Returns a value between 0 and 1, representing the proportion of minutes where price increased compared to the previous minute. A value of 1 means every price in the window is higher than the previous price.' },
       { name: 'Trend Concentration', codes: ['trendConc', 'tcn'], description: 'A measure of how evenly distributed price gains are across the Moving Average window. Calculated as the sum of the largest minute-over-minute returns (determined by the candles parameter, default 2) divided by the total positive returns in the window. Values near 0 indicate gains are spread across many minutes; values near 1 indicate most of the upward movement came from just 1-2 price jumps.' },
+      { name: 'Flat Ratio', codes: ['flatRatio', 'frt'], description: 'A measure of trading inactivity within the Moving Average window. Calculated as the proportion of minutes where the absolute price change was less than 0.01%. Values near 0 indicate consistent trading activity across every minute; values near 1 indicate the token is mostly inactive with only occasional trades. High values suggest low liquidity where price movements may not be sustainable.' },
       { name: 'Price Diversity', codes: ['priceDiv', 'pdi'], description: 'A measure of price variation over the Moving Average window. Returns a value between 0 and 1, representing the proportion of unique price values. Higher values indicate more price diversity; lower values indicate prices are repeating or stable.' },
       { name: 'Volatility (Short)', codes: ['vst', 'vst'], description: 'A measure of price swing over the Moving Average window. Calculated as the difference between the highest and lowest prices, divided by the lowest price. Higher values indicate greater volatility.' },
       { name: 'Volatility (Long)', codes: ['vlt', 'vlt'], description: 'A measure of price swing over twice the Moving Average window. Calculated as the difference between the highest and lowest prices, divided by the lowest price. Higher values indicate greater volatility.' },

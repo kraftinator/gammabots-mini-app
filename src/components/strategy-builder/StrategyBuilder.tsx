@@ -40,6 +40,7 @@ const VAR_MAPPINGS: Record<string, string> = {
   sellCount: 'scn',
   ssd: 'ssd',
   lsd: 'lsd',
+  flatRatio: 'frt',
   tma: 'tma',
   tokenAmt: 'bta',
   trendConc: 'tcn',
