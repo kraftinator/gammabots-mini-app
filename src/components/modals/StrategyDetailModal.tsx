@@ -21,6 +21,8 @@ interface StrategyStats {
   created_at: string
   bots_count: number
   performance_pct?: number
+  total_profit_pct?: number
+  win_rate_pct?: number
   gamma_score?: number
   top_bot?: {
     bot_id: string
@@ -300,17 +302,51 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                       </span>
                     </div>
 
-                    {/* Avg Performance */}
+                    {/* Avg Return */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
-                      <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Avg Performance</span>
+                      <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Avg Return (30D)</span>
                       {stats.performance_pct != null ? (
                         <span style={{
                           fontSize: '13px',
                           fontWeight: '500',
                           lineHeight: '1.5',
-                          color: getProfitColor(Number(stats.performance_pct) || 0),
+                          color: getProfitColor(Number(stats.performance_pct) || 0, false),
                         }}>
                           {Number(stats.performance_pct) > 0 ? '+' : ''}{Number(stats.performance_pct || 0).toFixed(2)}%
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#adadad', lineHeight: '1.5' }}>N/A</span>
+                      )}
+                    </div>
+
+                    {/* Total Return */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
+                      <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Total Return (30D)</span>
+                      {stats.total_profit_pct != null ? (
+                        <span style={{
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          lineHeight: '1.5',
+                          color: getProfitColor(Number(stats.total_profit_pct) || 0, false),
+                        }}>
+                          {Number(stats.total_profit_pct) > 0 ? '+' : ''}{Number(stats.total_profit_pct || 0).toFixed(2)}%
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#adadad', lineHeight: '1.5' }}>N/A</span>
+                      )}
+                    </div>
+
+                    {/* Win Rate */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
+                      <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Win Rate (30D)</span>
+                      {stats.win_rate_pct != null ? (
+                        <span style={{
+                          fontSize: '13px',
+                          fontWeight: '500',
+                          lineHeight: '1.5',
+                          color: getProfitColor(Number(stats.win_rate_pct) || 0, false),
+                        }}>
+                          {Number(stats.win_rate_pct || 0).toFixed(1)}%
                         </span>
                       ) : (
                         <span style={{ fontSize: '13px', fontWeight: '500', color: '#adadad', lineHeight: '1.5' }}>N/A</span>
