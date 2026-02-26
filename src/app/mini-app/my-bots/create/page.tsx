@@ -1084,7 +1084,7 @@ function CreateBotContent() {
                             marginTop: '1px',
                             marginLeft: '8px',
                           }}>
-                            {option.gamma_score != null && option.gamma_score > 0 && <>GammaScore: <span style={{ fontWeight: '600', color: '#333' }}>{option.gamma_score}</span></>}{option.bot_count > 0 && <>{option.gamma_score != null && option.gamma_score > 0 && ' · '}Bots: {option.bot_count}</>}{option.creator_handle && <>{(option.gamma_score != null && option.gamma_score > 0) || option.bot_count > 0 ? ' · ' : ''}by @{option.creator_handle}</>}
+                            {option.gamma_score != null && option.gamma_score > 0 && <>GammaScore: <span style={{ fontWeight: '600', color: '#333' }}>{(Number(option.gamma_score) / 100).toFixed(2)}</span></>}{option.bot_count > 0 && <>{option.gamma_score != null && option.gamma_score > 0 && ' · '}Bots: {option.bot_count}</>}{option.creator_handle && <>{(option.gamma_score != null && option.gamma_score > 0) || option.bot_count > 0 ? ' · ' : ''}by @{option.creator_handle}</>}
                           </div>
                         </div>
                         {formData.strategyId === option.strategy_id && (
