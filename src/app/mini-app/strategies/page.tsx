@@ -385,18 +385,6 @@ function StrategiesPageContent() {
                 <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                   {/* Left side - details */}
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1px', fontSize: '13px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
-                      <span style={{ fontSize: '13px', color: '#adadad', width: '85px', fontWeight: '400', flexShrink: 0 }}>Bots:</span>
-                      <span style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1e' }}>
-                        {Number(strategy.bots_count) || 0}
-                      </span>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
-                      <span style={{ fontSize: '13px', color: '#adadad', width: '85px', fontWeight: '400', flexShrink: 0 }}>Created:</span>
-                      <span style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1e' }}>
-                        {formatCreatedDate(strategy.created_at)}
-                      </span>
-                    </div>
                     {strategy.gamma_score != null && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
                         <span style={{ fontSize: '13px', color: '#adadad', width: '85px', fontWeight: '400', flexShrink: 0 }}>GammaScore:</span>
@@ -405,6 +393,12 @@ function StrategiesPageContent() {
                         </span>
                       </div>
                     )}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
+                      <span style={{ fontSize: '13px', color: '#adadad', width: '85px', fontWeight: '400', flexShrink: 0 }}>Total Bots:</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1e' }}>
+                        {Number(strategy.bots_count) || 0}
+                      </span>
+                    </div>
                   </div>
 
                   {/* Right side - performance (only show if not null) */}
