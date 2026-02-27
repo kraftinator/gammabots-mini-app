@@ -45,6 +45,7 @@ export default function LeaderboardPage() {
   const [strategies, setStrategies] = useState<{ strategy_id: string; gamma_score?: number }[]>([])
   const [selectedStrategyId, setSelectedStrategyId] = useState('')
   const [strategiesLoading, setStrategiesLoading] = useState(false)
+  const [selectedMovingAvg, setSelectedMovingAvg] = useState('all')
 
   // Bot detail modal state
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
@@ -76,6 +77,9 @@ export default function LeaderboardPage() {
   }, [])
 
   useEffect(() => {
+    // Don't fetch general leaderboard when in "By Strategy" mode
+    if (filterType === 'strategy') return
+
     const fetchLeaderboard = async () => {
       try {
         setLoading(true)
@@ -98,7 +102,7 @@ export default function LeaderboardPage() {
     }
 
     fetchLeaderboard()
-  }, [timePeriod])
+  }, [timePeriod, filterType])
 
   // Fetch strategies when "By Strategy" is selected
   useEffect(() => {
@@ -156,17 +160,36 @@ export default function LeaderboardPage() {
     fetchStrategyBots()
   }, [filterType, selectedStrategyId, timePeriod])
 
-  // Client-side search filtering
-  const filteredBots = useMemo(() => {
-    if (!searchQuery.trim()) return bots
+  // Unique moving averages from current bots
+  const availableMovingAvgs = useMemo(() => {
+    const avgs = [...new Set(bots.map(b => b.moving_average).filter(Boolean))] as number[]
+    return avgs.sort((a, b) => a - b)
+  }, [bots])
 
-    const query = searchQuery.toLowerCase()
-    return bots.filter(bot =>
-      bot.display_name?.toLowerCase().includes(query) ||
-      bot.token_symbol?.toLowerCase().includes(query) ||
-      bot.owner_farcaster_username?.toLowerCase().includes(query)
-    )
-  }, [bots, searchQuery])
+  // Reset moving avg filter when bots change
+  useEffect(() => {
+    setSelectedMovingAvg('all')
+  }, [selectedStrategyId])
+
+  // Client-side filtering (search + moving avg)
+  const filteredBots = useMemo(() => {
+    let filtered = bots
+
+    if (selectedMovingAvg !== 'all') {
+      filtered = filtered.filter(bot => bot.moving_average === Number(selectedMovingAvg))
+    }
+
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase()
+      filtered = filtered.filter(bot =>
+        bot.display_name?.toLowerCase().includes(query) ||
+        bot.token_symbol?.toLowerCase().includes(query) ||
+        bot.owner_farcaster_username?.toLowerCase().includes(query)
+      )
+    }
+
+    return filtered
+  }, [bots, searchQuery, selectedMovingAvg])
 
   // Handle bot click to show details (public view only)
   const handleBotClick = (bot: LeaderboardBot) => {
@@ -321,15 +344,15 @@ export default function LeaderboardPage() {
           </select>
         </div>
 
-        {/* Strategy Dropdown - shown when "By Strategy" is selected */}
+        {/* Strategy + Moving Avg Dropdowns - shown when "By Strategy" is selected */}
         {filterType === 'strategy' && (
-          <div style={{ marginTop: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px', marginTop: '12px' }}>
             <select
               value={selectedStrategyId}
               onChange={(e) => setSelectedStrategyId(e.target.value)}
               disabled={strategiesLoading}
               style={{
-                width: '100%',
+                flex: 1,
                 padding: '10px 12px',
                 fontSize: '13px',
                 fontWeight: '500',
@@ -341,11 +364,33 @@ export default function LeaderboardPage() {
                 outline: 'none',
               }}
             >
-              <option value="">{strategiesLoading ? 'Loading...' : 'Select a strategy'}</option>
+              <option value="" disabled={!!selectedStrategyId}>{strategiesLoading ? 'Loading...' : 'Select a strategy'}</option>
               {strategies.map((s) => (
                 <option key={s.strategy_id} value={s.strategy_id}>
                   Strategy #{s.strategy_id}
                 </option>
+              ))}
+            </select>
+            <select
+              value={selectedMovingAvg}
+              onChange={(e) => setSelectedMovingAvg(e.target.value)}
+              disabled={!selectedStrategyId}
+              style={{
+                flex: 1,
+                padding: '10px 12px',
+                fontSize: '13px',
+                fontWeight: '500',
+                color: selectedStrategyId ? '#333' : '#888',
+                backgroundColor: selectedStrategyId ? '#fff' : '#f5f5f5',
+                border: '1px solid #e5e5e5',
+                borderRadius: '8px',
+                cursor: selectedStrategyId ? 'pointer' : 'not-allowed',
+                outline: 'none',
+              }}
+            >
+              <option value="all">{selectedStrategyId ? 'All Moving Avgs' : 'By Moving Avg'}</option>
+              {availableMovingAvgs.map((avg) => (
+                <option key={avg} value={avg}>{avg}</option>
               ))}
             </select>
           </div>
