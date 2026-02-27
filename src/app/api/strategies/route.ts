@@ -16,7 +16,9 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const url = `${apiUrl}/strategies`
+    // Forward query parameters to the backend
+    const searchParams = request.nextUrl.searchParams.toString()
+    const url = `${apiUrl}/strategies${searchParams ? `?${searchParams}` : ''}`
 
     const response = await fetch(url, {
       method: 'GET',

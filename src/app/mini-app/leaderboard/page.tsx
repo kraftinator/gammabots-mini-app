@@ -41,6 +41,11 @@ export default function LeaderboardPage() {
   const [filterType, setFilterType] = useState('all')
   const [timePeriod, setTimePeriod] = useState('7d')
 
+  // Strategy filter state
+  const [strategies, setStrategies] = useState<{ strategy_id: string; gamma_score?: number }[]>([])
+  const [selectedStrategyId, setSelectedStrategyId] = useState('')
+  const [strategiesLoading, setStrategiesLoading] = useState(false)
+
   // Bot detail modal state
   const [selectedBot, setSelectedBot] = useState<Bot | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
@@ -94,6 +99,62 @@ export default function LeaderboardPage() {
 
     fetchLeaderboard()
   }, [timePeriod])
+
+  // Fetch strategies when "By Strategy" is selected
+  useEffect(() => {
+    if (filterType !== 'strategy') {
+      setSelectedStrategyId('')
+      return
+    }
+
+    const fetchStrategies = async () => {
+      setStrategiesLoading(true)
+      try {
+        const response = await fetch('/api/strategies?has_bots=true')
+        if (response.ok) {
+          const data = await response.json()
+          const list = Array.isArray(data) ? data : data.strategies || []
+          list.sort((a: { gamma_score?: number }, b: { gamma_score?: number }) =>
+            (Number(b.gamma_score) || 0) - (Number(a.gamma_score) || 0)
+          )
+          setStrategies(list)
+        }
+      } catch (err) {
+        console.error('Error fetching strategies:', err)
+      } finally {
+        setStrategiesLoading(false)
+      }
+    }
+    fetchStrategies()
+  }, [filterType])
+
+  // Fetch bots when a strategy is selected
+  useEffect(() => {
+    if (filterType !== 'strategy' || !selectedStrategyId) return
+
+    const fetchStrategyBots = async () => {
+      try {
+        setLoading(true)
+        setError(null)
+        const response = await fetch(`/api/strategies/${selectedStrategyId}/bots?timeframe=${timePeriod}`)
+        if (!response.ok) throw new Error('Failed to fetch strategy bots')
+        const data = await response.json()
+        const botsData = Array.isArray(data) ? data : data.bots || []
+        const strategyId = data.strategy_id || selectedStrategyId
+        // Sort by performance and add rank
+        const sorted = botsData
+          .sort((a: LeaderboardBot, b: LeaderboardBot) => (Number(b.performance_pct) || 0) - (Number(a.performance_pct) || 0))
+          .map((bot: LeaderboardBot, i: number) => ({ ...bot, rank: i + 1, strategy_id: bot.strategy_id || strategyId }))
+        setBots(sorted)
+      } catch (err) {
+        console.error('Error fetching strategy bots:', err)
+        setError('Failed to load bots')
+      } finally {
+        setLoading(false)
+      }
+    }
+    fetchStrategyBots()
+  }, [filterType, selectedStrategyId, timePeriod])
 
   // Client-side search filtering
   const filteredBots = useMemo(() => {
@@ -235,7 +296,7 @@ export default function LeaderboardPage() {
             }}
           >
             <option value="all">All Bots</option>
-            <option value="strategy" disabled>By Strategy</option>
+            <option value="strategy">By Strategy</option>
             <option value="token" disabled>By Token</option>
           </select>
           <select
@@ -259,6 +320,36 @@ export default function LeaderboardPage() {
             <option value="30d">Last 30 days</option>
           </select>
         </div>
+
+        {/* Strategy Dropdown - shown when "By Strategy" is selected */}
+        {filterType === 'strategy' && (
+          <div style={{ marginTop: '12px' }}>
+            <select
+              value={selectedStrategyId}
+              onChange={(e) => setSelectedStrategyId(e.target.value)}
+              disabled={strategiesLoading}
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                fontSize: '13px',
+                fontWeight: '500',
+                color: selectedStrategyId ? '#333' : '#888',
+                backgroundColor: '#fff',
+                border: '1px solid #e5e5e5',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                outline: 'none',
+              }}
+            >
+              <option value="">{strategiesLoading ? 'Loading...' : 'Select a strategy'}</option>
+              {strategies.map((s) => (
+                <option key={s.strategy_id} value={s.strategy_id}>
+                  Strategy #{s.strategy_id}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
       </div>
 
       {/* Bot List */}
@@ -407,6 +498,12 @@ export default function LeaderboardPage() {
                         lineHeight: '18px',
                       }}>
                         #{bot.strategy_id}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
+                      <span style={{ fontSize: '13px', color: '#adadad', width: '80px', fontWeight: '400', flexShrink: 0 }}>Moving Avg:</span>
+                      <span style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1e' }}>
+                        {bot.moving_average || '—'}
                       </span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
