@@ -319,23 +319,6 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                       )}
                     </div>
 
-                    {/* Total Return */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
-                      <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Total Return (30d)</span>
-                      {stats.total_profit_pct != null ? (
-                        <span style={{
-                          fontSize: '13px',
-                          fontWeight: '500',
-                          lineHeight: '1.5',
-                          color: getProfitColor(Number(stats.total_profit_pct) || 0, false),
-                        }}>
-                          {Number(stats.total_profit_pct) > 0 ? '+' : ''}{Number(stats.total_profit_pct || 0).toFixed(2)}%
-                        </span>
-                      ) : (
-                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#adadad', lineHeight: '1.5' }}>N/A</span>
-                      )}
-                    </div>
-
                     {/* Win Rate */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
                       <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Win Rate (30d)</span>
