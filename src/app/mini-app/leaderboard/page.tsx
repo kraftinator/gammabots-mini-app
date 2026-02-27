@@ -367,7 +367,7 @@ export default function LeaderboardPage() {
               <option value="" disabled={!!selectedStrategyId}>{strategiesLoading ? 'Loading...' : 'Select a strategy'}</option>
               {strategies.map((s) => (
                 <option key={s.strategy_id} value={s.strategy_id}>
-                  Strategy #{s.strategy_id}
+                  Strategy #{s.strategy_id}{s.gamma_score != null && ` (${(Number(s.gamma_score) / 100).toFixed(2)})`}
                 </option>
               ))}
             </select>
