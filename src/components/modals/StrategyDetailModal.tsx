@@ -298,11 +298,17 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
                       <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Bots</span>
                       <span
-                        onClick={() => {
+                        onClick={Number(stats.bots_count) > 0 ? () => {
                           router.push(`/mini-app/leaderboard?filter=strategy&strategy_id=${stats.strategy_id}`)
                           onClose()
+                        } : undefined}
+                        style={{
+                          fontSize: '13px',
+                          color: Number(stats.bots_count) > 0 ? '#14b8a6' : '#1c1c1e',
+                          fontWeight: '500',
+                          lineHeight: '1.5',
+                          cursor: Number(stats.bots_count) > 0 ? 'pointer' : 'default',
                         }}
-                        style={{ fontSize: '13px', color: '#14b8a6', fontWeight: '500', lineHeight: '1.5', cursor: 'pointer' }}
                       >
                         {Number(stats.bots_count) || 0}
                       </span>
