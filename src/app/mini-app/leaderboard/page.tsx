@@ -98,6 +98,8 @@ function LeaderboardPageContent() {
   useEffect(() => {
     // Don't fetch general leaderboard when in "By Strategy" mode
     if (filterType === 'strategy') return
+    // Also skip if URL params indicate strategy mode (before state is updated)
+    if (searchParams.get('filter') === 'strategy') return
 
     const fetchLeaderboard = async () => {
       try {
