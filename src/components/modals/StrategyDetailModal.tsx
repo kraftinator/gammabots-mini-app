@@ -327,7 +327,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                           fontSize: '13px',
                           fontWeight: '500',
                           lineHeight: '1.5',
-                          color: getProfitColor(Number(stats.win_rate_pct) || 0, false),
+                          color: Number(stats.win_rate_pct) > 50 ? '#34c759' : Number(stats.win_rate_pct) < 50 ? '#ff3b30' : '#1c1c1e',
                         }}>
                           {Number(stats.win_rate_pct || 0).toFixed(1)}%
                         </span>
