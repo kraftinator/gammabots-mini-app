@@ -119,10 +119,7 @@ function LeaderboardPageContent() {
 
   // Fetch strategies when "By Strategy" is selected
   useEffect(() => {
-    if (filterType !== 'strategy') {
-      setSelectedStrategyId('')
-      return
-    }
+    if (filterType !== 'strategy') return
 
     const fetchStrategies = async () => {
       setStrategiesLoading(true)
@@ -317,7 +314,13 @@ function LeaderboardPageContent() {
         <div style={{ display: 'flex', gap: '8px' }}>
           <select
             value={filterType}
-            onChange={(e) => setFilterType(e.target.value)}
+            onChange={(e) => {
+              const newValue = e.target.value
+              if (newValue !== 'strategy') {
+                setSelectedStrategyId('')
+              }
+              setFilterType(newValue)
+            }}
             style={{
               flex: 1,
               padding: '10px 12px',
