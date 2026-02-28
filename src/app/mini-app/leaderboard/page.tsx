@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useMemo, Suspense } from 'react'
+import { useEffect, useState, useMemo, Suspense, useRef } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useMe } from '@/contexts/MeContext'
@@ -59,11 +59,17 @@ function LeaderboardPageContent() {
   // Check if user exists (has signed up)
   const userExists = me?.user_exists === true
 
+  // Track if we've processed URL params
+  const urlParamsProcessed = useRef(false)
+
   // Read URL params on mount to set initial filter state
   useEffect(() => {
+    if (urlParamsProcessed.current) return
+
     const filter = searchParams.get('filter')
     const strategyId = searchParams.get('strategy_id')
     if (filter === 'strategy' && strategyId) {
+      urlParamsProcessed.current = true
       setFilterType('strategy')
       setSelectedStrategyId(strategyId)
       // Clear the query params from URL
