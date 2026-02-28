@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useState, useMemo } from 'react'
-import { useRouter } from 'next/navigation'
+import { useEffect, useState, useMemo, Suspense } from 'react'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useMe } from '@/contexts/MeContext'
 import { getProfitColor } from '@/styles/common'
@@ -29,8 +29,9 @@ interface LeaderboardBot {
   display_name: string
 }
 
-export default function LeaderboardPage() {
+function LeaderboardPageContent() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const { authenticate } = useQuickAuth()
   const { me, fetchMe } = useMe()
   const [bots, setBots] = useState<LeaderboardBot[]>([])
@@ -57,6 +58,18 @@ export default function LeaderboardPage() {
 
   // Check if user exists (has signed up)
   const userExists = me?.user_exists === true
+
+  // Read URL params on mount to set initial filter state
+  useEffect(() => {
+    const filter = searchParams.get('filter')
+    const strategyId = searchParams.get('strategy_id')
+    if (filter === 'strategy' && strategyId) {
+      setFilterType('strategy')
+      setSelectedStrategyId(strategyId)
+      // Clear the query params from URL
+      router.replace('/mini-app/leaderboard', { scroll: false })
+    }
+  }, [searchParams, router])
 
   useEffect(() => {
     const initSdk = async () => {
@@ -608,5 +621,23 @@ export default function LeaderboardPage() {
         redirectTo={signUpRedirectTo}
       />
     </div>
+  )
+}
+
+export default function LeaderboardPage() {
+  return (
+    <Suspense fallback={
+      <div style={{
+        minHeight: '100vh',
+        backgroundColor: '#f5f5f5',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+      }}>
+        <span style={{ color: '#888' }}>Loading...</span>
+      </div>
+    }>
+      <LeaderboardPageContent />
+    </Suspense>
   )
 }
