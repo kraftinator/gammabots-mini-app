@@ -335,12 +335,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
                       <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Win Rate (30d)</span>
                       {stats.win_rate_pct != null ? (
-                        <span style={{
-                          fontSize: '13px',
-                          fontWeight: '500',
-                          lineHeight: '1.5',
-                          color: Number(stats.win_rate_pct) > 50 ? '#34c759' : Number(stats.win_rate_pct) < 50 ? '#ff3b30' : '#1c1c1e',
-                        }}>
+                        <span style={{ fontSize: '13px', fontWeight: '500', lineHeight: '1.5', color: '#1c1c1e' }}>
                           {Number(stats.win_rate_pct || 0).toFixed(1)}%
                         </span>
                       ) : (
