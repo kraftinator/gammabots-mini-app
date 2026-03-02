@@ -348,14 +348,6 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                       )}
                     </div>
 
-                    {/* Created */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
-                      <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Created</span>
-                      <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                        {formatCreatedDate(stats.created_at)}
-                      </span>
-                    </div>
-
                     {/* Top Bot (only show if exists) */}
                     {stats.top_bot && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', minHeight: '20px' }}>
