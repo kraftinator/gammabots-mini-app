@@ -397,11 +397,7 @@ function StrategiesPageContent() {
                     {strategy.win_rate_pct != null && (
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minHeight: '20px' }}>
                         <span style={{ fontSize: '13px', color: '#adadad', width: '85px', fontWeight: '400', flexShrink: 0 }}>Win Rate:</span>
-                        <span style={{
-                          fontSize: '13px',
-                          fontWeight: '600',
-                          color: Number(strategy.win_rate_pct) > 50 ? '#34c759' : Number(strategy.win_rate_pct) < 50 ? '#ff3b30' : '#1c1c1e'
-                        }}>
+                        <span style={{ fontSize: '13px', fontWeight: '600', color: '#1c1c1e' }}>
                           {Number(strategy.win_rate_pct).toFixed(1)}%
                         </span>
                       </div>
