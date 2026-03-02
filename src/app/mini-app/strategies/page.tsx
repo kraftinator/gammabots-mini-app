@@ -420,7 +420,7 @@ function StrategiesPageContent() {
                       <span style={{
                         fontSize: '14px',
                         fontWeight: '500',
-                        color: getProfitColor(Number(strategy.performance_pct) || 0),
+                        color: getProfitColor(Number(strategy.performance_pct) || 0, false),
                       }}>
                         {Number(strategy.performance_pct) > 0 ? '+' : ''}{Number(strategy.performance_pct || 0).toFixed(2)}%
                       </span>
