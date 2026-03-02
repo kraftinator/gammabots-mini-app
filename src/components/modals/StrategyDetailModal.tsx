@@ -24,6 +24,8 @@ interface StrategyStats {
   total_profit_pct?: number
   win_rate_pct?: number
   gamma_score?: number
+  description?: string
+  risk_level?: string
   top_bot?: {
     bot_id: string
     token_symbol: string
@@ -274,6 +276,18 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                     by @{stats.creator_handle || 'unknown'}
                   </span>
                 </div>
+
+                {/* Description */}
+                {stats.description && (
+                  <p style={{
+                    fontSize: '13px',
+                    color: '#8e8e93',
+                    margin: '12px 0 0 0',
+                    lineHeight: '1.5',
+                  }}>
+                    {stats.description}
+                  </p>
+                )}
               </div>
 
               {/* Stats Card */}
