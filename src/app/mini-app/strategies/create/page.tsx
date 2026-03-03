@@ -90,7 +90,6 @@ function CreateStrategyPageContent() {
         flexDirection: 'column',
         gap: '16px',
       }}>
-        {/* Use Builder Card */}
         <style>{`
           .create-card {
             background-color: #fff;
@@ -114,57 +113,6 @@ function CreateStrategyPageContent() {
             border-color: #8b5cf6;
           }
         `}</style>
-        <button
-          className="create-card create-card-builder"
-          onClick={() => router.push('/mini-app/strategies/create/builder')}
-        >
-          <div style={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: '12px',
-            marginBottom: '8px',
-          }}>
-            <div style={{
-              width: '40px',
-              height: '40px',
-              borderRadius: '10px',
-              backgroundColor: '#e0f7f5',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}>
-              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" strokeWidth="2">
-                <rect x="3" y="3" width="7" height="7" rx="1" />
-                <rect x="14" y="3" width="7" height="7" rx="1" />
-                <rect x="3" y="14" width="7" height="7" rx="1" />
-                <rect x="14" y="14" width="7" height="7" rx="1" />
-              </svg>
-            </div>
-            <h2 style={{
-              fontSize: '18px',
-              fontWeight: '700',
-              color: '#1a1a1a',
-              margin: 0,
-            }}>
-              Use Builder
-            </h2>
-          </div>
-          <p style={{
-            fontSize: '14px',
-            color: '#666',
-            margin: '0 0 4px 0',
-          }}>
-            Visually build your trading strategy
-          </p>
-          <p style={{
-            fontSize: '13px',
-            color: '#14b8a6',
-            fontWeight: '600',
-            margin: 0,
-          }}>
-            Best for most users
-          </p>
-        </button>
 
         {/* Write GammaScript Card */}
         <button
@@ -203,17 +151,54 @@ function CreateStrategyPageContent() {
           <p style={{
             fontSize: '14px',
             color: '#666',
-            margin: '0 0 4px 0',
-          }}>
-            Write or paste GammaScript JSON
-          </p>
-          <p style={{
-            fontSize: '13px',
-            color: '#8b5cf6',
-            fontWeight: '600',
             margin: 0,
           }}>
-            Advanced users only
+            Write or paste GammaScript
+          </p>
+        </button>
+
+        {/* Use Builder Card */}
+        <button
+          className="create-card create-card-builder"
+          onClick={() => router.push('/mini-app/strategies/create/builder')}
+        >
+          <div style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '12px',
+            marginBottom: '8px',
+          }}>
+            <div style={{
+              width: '40px',
+              height: '40px',
+              borderRadius: '10px',
+              backgroundColor: '#e0f7f5',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}>
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" strokeWidth="2">
+                <rect x="3" y="3" width="7" height="7" rx="1" />
+                <rect x="14" y="3" width="7" height="7" rx="1" />
+                <rect x="3" y="14" width="7" height="7" rx="1" />
+                <rect x="14" y="14" width="7" height="7" rx="1" />
+              </svg>
+            </div>
+            <h2 style={{
+              fontSize: '18px',
+              fontWeight: '700',
+              color: '#1a1a1a',
+              margin: 0,
+            }}>
+              Use Builder
+            </h2>
+          </div>
+          <p style={{
+            fontSize: '14px',
+            color: '#666',
+            margin: 0,
+          }}>
+            Visually build your trading strategy
           </p>
         </button>
 
