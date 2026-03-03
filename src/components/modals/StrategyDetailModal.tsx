@@ -281,7 +281,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                 {stats.description && (
                   <p style={{
                     fontSize: '13px',
-                    color: '#8e8e93',
+                    color: '#4b5563',
                     margin: '12px 0 0 0',
                     lineHeight: '1.5',
                   }}>
