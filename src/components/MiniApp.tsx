@@ -240,7 +240,7 @@ export default function MiniApp() {
           </div>
           <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "12px" }}>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
-              <MetricCard label="Strategies" value={dashboardData.strategies.toLocaleString()} change="" loading={dashboardLoading} />
+              <MetricCard label="Strategies" value={dashboardData.strategies.toLocaleString()} change="" loading={dashboardLoading} onClick={() => router.push('/mini-app/strategies')} />
             </div>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
               <MetricCard label="Total Profits" value={formatCurrency(dashboardData.total_profits)} change="" loading={dashboardLoading} />
@@ -360,6 +360,14 @@ export default function MiniApp() {
                   />
                 );
               })}
+              <div style={{ padding: "12px 20px 16px", textAlign: "right" }}>
+                <span
+                  onClick={() => router.push('/mini-app/leaderboard')}
+                  style={{ fontSize: "13px", fontWeight: "500", color: "#14b8a6", cursor: "pointer" }}
+                >
+                  View All Strategies ›
+                </span>
+              </div>
             </ActivityCard>
           </div>
         )}
@@ -489,10 +497,15 @@ export default function MiniApp() {
 }
 
 // Component helpers
-function MetricCard({ label, value, change, loading }: { label: string; value: string; change?: string; loading?: boolean }) {
+function MetricCard({ label, value, change, loading, onClick }: { label: string; value: string; change?: string; loading?: boolean; onClick?: () => void }) {
   return (
-    <div style={styles.metricCard}>
+    <div style={{ ...styles.metricCard, cursor: onClick ? "pointer" : "default", position: "relative" }} onClick={onClick}>
       <div style={styles.textSmall}>{label}</div>
+      {onClick && (
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2.5" style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)" }}>
+          <path d="M9 18l6-6-6-6" />
+        </svg>
+      )}
       {loading ? (
         <div style={{
           height: "20px",
