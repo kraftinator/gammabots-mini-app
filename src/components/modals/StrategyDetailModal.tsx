@@ -485,21 +485,6 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                       </button>
                     </div>
 
-                    {/* Reference Link */}
-                    <div style={{ padding: '0 16px 8px 16px' }}>
-                      <span
-                        onClick={() => router.push('/mini-app/docs/gammascript-reference')}
-                        style={{
-                          fontSize: '13px',
-                          color: '#888',
-                          textDecoration: 'none',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        → View GammaScript Reference
-                      </span>
-                    </div>
-
                     {/* Logic View */}
                     {strategyView === 'logic' && (
                       <div style={{
@@ -617,6 +602,21 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                         </div>
                       </div>
                     )}
+
+                    {/* Reference Link */}
+                    <div style={{ padding: '8px 16px 0 16px' }}>
+                      <span
+                        onClick={() => router.push('/mini-app/docs/gammascript-reference')}
+                        style={{
+                          fontSize: '13px',
+                          color: '#14b8a6',
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        → View GammaScript Reference
+                      </span>
+                    </div>
 
                     {/* Creator */}
                     <div style={{

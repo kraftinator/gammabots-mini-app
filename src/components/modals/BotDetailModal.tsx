@@ -104,6 +104,7 @@ interface StrategyData {
   compressed_strategy: string
   user_friendly_strategy: string
   created_at: string
+  description?: string
 }
 
 export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onRefresh, from, userExists = true, onSignUpRequired }: BotDetailModalProps) {
@@ -1198,20 +1199,18 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                       </button>
                     </div>
 
-                    {/* Reference Link */}
-                    <div style={{ padding: '0 16px 8px 16px' }}>
-                      <span
-                        onClick={() => router.push('/mini-app/docs/gammascript-reference')}
-                        style={{
-                          fontSize: '13px',
-                          color: '#888',
-                          textDecoration: 'none',
-                          cursor: 'pointer',
-                        }}
-                      >
-                        → View GammaScript Reference
-                      </span>
-                    </div>
+                    {/* Description */}
+                    {strategyData.description && (
+                      <p style={{
+                        fontSize: '13px',
+                        color: '#888',
+                        fontStyle: 'italic',
+                        margin: '0',
+                        padding: '4px 16px 8px 16px',
+                      }}>
+                        {strategyData.description}
+                      </p>
+                    )}
 
                     {/* Readable View */}
                     {strategyView === 'logic' && (
@@ -1329,6 +1328,21 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                         </div>
                       </div>
                     )}
+
+                    {/* Reference Link */}
+                    <div style={{ padding: '8px 16px' }}>
+                      <span
+                        onClick={() => router.push('/mini-app/docs/gammascript-reference')}
+                        style={{
+                          fontSize: '13px',
+                          color: '#14b8a6',
+                          textDecoration: 'none',
+                          cursor: 'pointer',
+                        }}
+                      >
+                        → View GammaScript Reference
+                      </span>
+                    </div>
 
                     {/* Creator */}
                     <div style={{
