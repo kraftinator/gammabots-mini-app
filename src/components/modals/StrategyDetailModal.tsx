@@ -14,6 +14,7 @@ interface StrategyStats {
   creator_address: string
   creator_handle?: string
   owner_address: string
+  owner_handle?: string
   compressed_strategy: string
   user_friendly_strategy: string
   mint_status: string
@@ -627,28 +628,36 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                     }}>
                       <span style={{ fontSize: '13px', color: '#888' }}>Creator</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <a
-                          href={`https://basescan.org/address/${stats.creator_address}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ fontSize: '13px', fontFamily: 'ui-monospace, monospace', color: '#14b8a6', textDecoration: 'none' }}
-                        >
-                          {formatAddress(stats.creator_address)}
-                        </a>
-                        <button
-                          onClick={() => copyToClipboard(stats.creator_address)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '2px',
-                          }}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                          </svg>
-                        </button>
+                        {stats.creator_handle ? (
+                          <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500' }}>
+                            @{stats.creator_handle}
+                          </span>
+                        ) : (
+                          <>
+                            <a
+                              href={`https://basescan.org/address/${stats.creator_address}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ fontSize: '13px', fontFamily: 'ui-monospace, monospace', color: '#14b8a6', textDecoration: 'none' }}
+                            >
+                              {formatAddress(stats.creator_address)}
+                            </a>
+                            <button
+                              onClick={() => copyToClipboard(stats.creator_address)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: '2px',
+                              }}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                              </svg>
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
 
@@ -661,28 +670,36 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                     }}>
                       <span style={{ fontSize: '13px', color: '#888' }}>Owner</span>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <a
-                          href={`https://basescan.org/address/${stats.owner_address}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          style={{ fontSize: '13px', fontFamily: 'ui-monospace, monospace', color: '#14b8a6', textDecoration: 'none' }}
-                        >
-                          {formatAddress(stats.owner_address)}
-                        </a>
-                        <button
-                          onClick={() => copyToClipboard(stats.owner_address)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            padding: '2px',
-                          }}
-                        >
-                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
-                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
-                          </svg>
-                        </button>
+                        {stats.owner_handle ? (
+                          <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500' }}>
+                            @{stats.owner_handle}
+                          </span>
+                        ) : (
+                          <>
+                            <a
+                              href={`https://basescan.org/address/${stats.owner_address}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              style={{ fontSize: '13px', fontFamily: 'ui-monospace, monospace', color: '#14b8a6', textDecoration: 'none' }}
+                            >
+                              {formatAddress(stats.owner_address)}
+                            </a>
+                            <button
+                              onClick={() => copyToClipboard(stats.owner_address)}
+                              style={{
+                                background: 'none',
+                                border: 'none',
+                                cursor: 'pointer',
+                                padding: '2px',
+                              }}
+                            >
+                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+                                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                                <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                              </svg>
+                            </button>
+                          </>
+                        )}
                       </div>
                     </div>
 
