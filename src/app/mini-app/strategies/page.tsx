@@ -19,6 +19,7 @@ interface Strategy {
   performance_pct?: number
   gamma_score?: number
   win_rate_pct?: number
+  risk_level?: string
 }
 
 function StrategiesPageContent() {
@@ -338,20 +339,35 @@ function StrategiesPageContent() {
                   marginBottom: '12px',
                 }}>
                   <div>
-                    {/* Strategy ID Pill */}
-                    <span style={{
-                      backgroundColor: '#e0f7f5',
-                      color: '#14b8a6',
-                      fontWeight: '700',
-                      padding: '4px 10px',
-                      borderRadius: '6px',
-                      fontSize: '14px',
-                      minWidth: '76px',
-                      textAlign: 'center',
-                      display: 'inline-block',
-                    }}>
-                      #{strategy.strategy_id}
-                    </span>
+                    {/* Strategy ID Pill + Risk Level Pill */}
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{
+                        backgroundColor: '#e0f7f5',
+                        color: '#14b8a6',
+                        fontWeight: '700',
+                        padding: '4px 10px',
+                        borderRadius: '6px',
+                        fontSize: '14px',
+                        minWidth: '76px',
+                        textAlign: 'center',
+                        display: 'inline-block',
+                      }}>
+                        #{strategy.strategy_id}
+                      </span>
+                      {(['Conservative', 'Moderate', 'Aggressive'].includes(strategy.risk_level || '')) && (
+                        <span style={{
+                          backgroundColor: strategy.risk_level === 'Conservative' ? '#dcfce7' : strategy.risk_level === 'Moderate' ? '#fef3c7' : '#fee2e2',
+                          color: strategy.risk_level === 'Conservative' ? '#166534' : strategy.risk_level === 'Moderate' ? '#92400e' : '#991b1b',
+                          fontWeight: '400',
+                          padding: '2px 7px',
+                          borderRadius: '4px',
+                          fontSize: '11px',
+                          display: 'inline-block',
+                        }}>
+                          {strategy.risk_level}
+                        </span>
+                      )}
+                    </div>
                     {/* Creator */}
                     <div style={{ fontSize: '13px', color: '#666', marginTop: '6px' }}>
                       by @{strategy.creator_handle || 'unknown'}
