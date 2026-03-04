@@ -124,6 +124,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null)
 
   const [isStrategyExpanded, setIsStrategyExpanded] = useState(false)
+  const [strategyView, setStrategyView] = useState<'logic' | 'gammascript'>('logic')
   const [strategyData, setStrategyData] = useState<StrategyData | null>(null)
   const [strategyLoading, setStrategyLoading] = useState(false)
   const [strategyError, setStrategyError] = useState<string | null>(null)
@@ -1159,8 +1160,46 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
 
                 {!strategyLoading && !strategyError && strategyData && (
                   <div>
+                    {/* View Toggle */}
+                    <div style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      padding: '12px 16px',
+                    }}>
+                      <button
+                        onClick={() => setStrategyView('logic')}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          fontSize: '13px',
+                          fontWeight: strategyView === 'logic' ? '600' : '400',
+                          color: strategyView === 'logic' ? '#8b5cf6' : '#888',
+                          cursor: 'pointer',
+                          padding: '0',
+                        }}
+                      >
+                        Readable
+                      </button>
+                      <span style={{ fontSize: '13px', color: '#ccc' }}>|</span>
+                      <button
+                        onClick={() => setStrategyView('gammascript')}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          fontSize: '13px',
+                          fontWeight: strategyView === 'gammascript' ? '600' : '400',
+                          color: strategyView === 'gammascript' ? '#8b5cf6' : '#888',
+                          cursor: 'pointer',
+                          padding: '0',
+                        }}
+                      >
+                        Raw
+                      </button>
+                    </div>
+
                     {/* Reference Link */}
-                    <div style={{ padding: '12px 16px 0 16px' }}>
+                    <div style={{ padding: '0 16px 8px 16px' }}>
                       <span
                         onClick={() => router.push('/mini-app/docs/gammascript-reference')}
                         style={{
@@ -1174,48 +1213,122 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                       </span>
                     </div>
 
-                    {/* Strategy Steps */}
-                    <div style={{
-                      padding: '12px 16px',
-                      fontFamily: 'ui-monospace, monospace',
-                      fontSize: '12px',
-                      color: '#333',
-                    }}>
-                      {(() => {
-                        // Format condition string with spaces around operators
-                        const formatCondition = (c: string): string => {
-                          return c
-                            .replace(/&&/g, ' && ')
-                            .replace(/([<>!=]=?)/g, ' $1 ')
-                            .replace(/\*/g, ' * ')
-                            .replace(/\s+/g, ' ')
-                            .trim()
-                        }
-                        try {
-                          const steps: StrategyStep[] = JSON.parse(strategyData.user_friendly_strategy)
-                          return (
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                              {steps.map((step, index) => (
-                                <div key={index}>
-                                  <div style={{ display: 'flex', fontSize: '12px' }}>
-                                    <span style={{ flexShrink: 0, color: '#9ca3af', fontSize: '13px' }}>{index + 1}&nbsp;&nbsp;</span>
-                                    <span style={{ flexShrink: 0, color: 'rgba(139, 92, 246, 0.7)' }}>c:&nbsp;</span>
-                                    <span style={{ wordBreak: 'break-word' }}>{formatCondition(step.c)}</span>
+                    {/* Readable View */}
+                    {strategyView === 'logic' && (
+                      <div style={{
+                        padding: '12px 16px',
+                        fontFamily: 'ui-monospace, monospace',
+                        fontSize: '12px',
+                        color: '#333',
+                      }}>
+                        {(() => {
+                          const formatCondition = (c: string): string => {
+                            return c
+                              .replace(/&&/g, ' && ')
+                              .replace(/([<>!=]=?)/g, ' $1 ')
+                              .replace(/\*/g, ' * ')
+                              .replace(/\s+/g, ' ')
+                              .trim()
+                          }
+                          try {
+                            const steps: StrategyStep[] = JSON.parse(strategyData.user_friendly_strategy)
+                            return (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                                {steps.map((step, index) => (
+                                  <div key={index}>
+                                    <div style={{ display: 'flex', fontSize: '12px' }}>
+                                      <span style={{ flexShrink: 0, color: '#9ca3af', fontSize: '13px' }}>{index + 1}&nbsp;&nbsp;</span>
+                                      <span style={{ flexShrink: 0, color: 'rgba(139, 92, 246, 0.7)' }}>c:&nbsp;</span>
+                                      <span style={{ wordBreak: 'break-word' }}>{formatCondition(step.c)}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', marginTop: '-2px', fontSize: '12px' }}>
+                                      <span style={{ flexShrink: 0, color: '#9ca3af', fontSize: '13px' }}>&nbsp;&nbsp;&nbsp;</span>
+                                      <span style={{ flexShrink: 0, color: 'rgba(139, 92, 246, 0.7)' }}>a:&nbsp;</span>
+                                      <span>{step.a.map(a => a === 'sell 1' ? 'sell all' : a).join(', ')}</span>
+                                    </div>
                                   </div>
-                                  <div style={{ display: 'flex', marginTop: '-2px', fontSize: '12px' }}>
-                                    <span style={{ flexShrink: 0, color: '#9ca3af', fontSize: '13px' }}>&nbsp;&nbsp;&nbsp;</span>
-                                    <span style={{ flexShrink: 0, color: 'rgba(139, 92, 246, 0.7)' }}>a:&nbsp;</span>
-                                    <span>{step.a.map(a => a === 'sell 1' ? 'sell all' : a).join(', ')}</span>
-                                  </div>
-                                </div>
-                              ))}
-                            </div>
-                          )
-                        } catch {
-                          return <div style={{ padding: '12px', color: '#6b7280', fontSize: '13px' }}>Unable to parse strategy</div>
-                        }
-                      })()}
-                    </div>
+                                ))}
+                              </div>
+                            )
+                          } catch {
+                            return <div style={{ padding: '12px', color: '#6b7280', fontSize: '13px' }}>Unable to parse strategy</div>
+                          }
+                        })()}
+                      </div>
+                    )}
+
+                    {/* Raw View */}
+                    {strategyView === 'gammascript' && (
+                      <div style={{
+                        backgroundColor: '#f0f0f0',
+                        margin: '0 16px 16px 16px',
+                        borderRadius: '8px',
+                        padding: '12px',
+                        position: 'relative',
+                      }}>
+                        <button
+                          onClick={() => {
+                            try {
+                              const parsed = JSON.parse(strategyData.user_friendly_strategy)
+                              const formatted = '[\n' + parsed.map((r: StrategyStep) => {
+                                const formattedC = r.c
+                                  .replace(/&&/g, ' && ')
+                                  .replace(/([<>!=]=?)/g, ' $1 ')
+                                  .replace(/\*/g, ' * ')
+                                  .replace(/\s+/g, ' ')
+                                  .trim()
+                                const actionsStr = JSON.stringify(r.a)
+                                return `  {\n    "c": "${formattedC}",\n    "a": ${actionsStr}\n  }`
+                              }).join(',\n') + '\n]'
+                              copyToClipboard(formatted)
+                            } catch {
+                              copyToClipboard(strategyData.user_friendly_strategy)
+                            }
+                          }}
+                          style={{
+                            position: 'absolute',
+                            top: '10px',
+                            right: '10px',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                            padding: '2px',
+                          }}
+                        >
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+                            <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+                            <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+                          </svg>
+                        </button>
+                        <div style={{
+                          fontFamily: 'ui-monospace, monospace',
+                          fontSize: '12px',
+                          color: '#333',
+                          whiteSpace: 'pre',
+                          overflowX: 'auto',
+                          paddingRight: '24px',
+                        }}>
+                          {(() => {
+                            try {
+                              const parsed = JSON.parse(strategyData.user_friendly_strategy)
+                              const lines = parsed.map((r: StrategyStep) => {
+                                const formattedC = r.c
+                                  .replace(/&&/g, ' && ')
+                                  .replace(/([<>!=]=?)/g, ' $1 ')
+                                  .replace(/\*/g, ' * ')
+                                  .replace(/\s+/g, ' ')
+                                  .trim()
+                                const actionsStr = JSON.stringify(r.a)
+                                return `  {\n    "c": "${formattedC}",\n    "a": ${actionsStr}\n  }`
+                              })
+                              return `[\n${lines.join(',\n')}\n]`
+                            } catch {
+                              return strategyData.user_friendly_strategy
+                            }
+                          })()}
+                        </div>
+                      </div>
+                    )}
 
                     {/* Creator */}
                     <div style={{
