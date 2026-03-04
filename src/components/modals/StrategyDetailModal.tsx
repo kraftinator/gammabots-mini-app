@@ -272,6 +272,19 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                   }}>
                     #{stats.strategy_id}
                   </span>
+                  {(['Conservative', 'Moderate', 'Aggressive'].includes(stats.risk_level || '')) && (
+                    <span style={{
+                      backgroundColor: stats.risk_level === 'Conservative' ? '#dcfce7' : stats.risk_level === 'Moderate' ? '#fef3c7' : '#fee2e2',
+                      color: stats.risk_level === 'Conservative' ? '#166534' : stats.risk_level === 'Moderate' ? '#92400e' : '#991b1b',
+                      fontWeight: '400',
+                      padding: '2px 7px',
+                      borderRadius: '4px',
+                      fontSize: '11px',
+                      display: 'inline-block',
+                    }}>
+                      {stats.risk_level}
+                    </span>
+                  )}
                   <span style={{ fontSize: '13px', color: '#666' }}>
                     by @{stats.creator_handle || 'unknown'}
                   </span>
@@ -304,16 +317,6 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                         <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>GammaScore</span>
                         <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
                           {(Number(stats.gamma_score) / 100).toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-
-                    {/* Risk Level */}
-                    {stats.risk_level && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
-                        <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Risk Level</span>
-                        <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                          {stats.risk_level}
                         </span>
                       </div>
                     )}
@@ -351,7 +354,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                           {Number(stats.performance_pct) > 0 ? '+' : ''}{Number(stats.performance_pct || 0).toFixed(2)}%
                         </span>
                       ) : (
-                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#adadad', lineHeight: '1.5' }}>N/A</span>
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#adadad', lineHeight: '1.5' }}>--</span>
                       )}
                     </div>
 
@@ -363,7 +366,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                           {Number(stats.win_rate_pct || 0).toFixed(1)}%
                         </span>
                       ) : (
-                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#adadad', lineHeight: '1.5' }}>N/A</span>
+                        <span style={{ fontSize: '13px', fontWeight: '500', color: '#adadad', lineHeight: '1.5' }}>--</span>
                       )}
                     </div>
 
