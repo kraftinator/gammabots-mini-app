@@ -13,12 +13,12 @@
     "tags": ["trading", "bots", "autotrading"],
     "tagline": "Trading bots. Simplified.",
     "ogTitle": "Gammabots",
-    "ogDescription": "Deploy automated trading bots in seconds.",
+    "ogDescription": "Deploy trading bots in seconds.",
     "heroImageUrl": "https://gammabots.io/hero-image.png",
     "iconUrl": "https://gammabots.io/icon.png",
     "imageUrl": "https://gammabots.io/preview-image.png",
     "homeUrl": "https://gammabots.io/mini-app",
-    "description": "Deploy automated trading bots in seconds. Choose a strategy, fund your bot, and let it trade for you.",
+    "description": "Deploy trading bots in seconds. Choose a strategy, fund your bot, and let it trade for you.",
     "splashImageUrl": "https://gammabots.io/splash.png",
     "splashBackgroundColor": "#2d3f54"
   }
