@@ -1,5 +1,6 @@
 // Helper function to format token amounts with compacting (K, M)
 export const formatTokenAmount = (value: number): string => {
+  value = Number(value) || 0
   if (value >= 1000000) {
     return `${(value / 1000000).toFixed(1).replace(/\.0$/, '')}M`
   } else if (value >= 10000) {
@@ -7,7 +8,7 @@ export const formatTokenAmount = (value: number): string => {
   } else if (value >= 100) {
     return Math.floor(value).toLocaleString()
   } else if (value >= 1) {
-    return value.toFixed(2).replace(/\.?0+$/, '')
+    return Number(value).toFixed(2).replace(/\.?0+$/, '')
   } else {
     return Number(value).toFixed(2)
   }
