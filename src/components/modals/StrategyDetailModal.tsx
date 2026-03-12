@@ -273,19 +273,6 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
                   }}>
                     #{stats.strategy_id}
                   </span>
-                  {(['Conservative', 'Moderate', 'Aggressive'].includes(stats.risk_level || '')) && (
-                    <span style={{
-                      backgroundColor: stats.risk_level === 'Conservative' ? '#dcfce7' : stats.risk_level === 'Moderate' ? '#fef3c7' : '#fee2e2',
-                      color: stats.risk_level === 'Conservative' ? '#166534' : stats.risk_level === 'Moderate' ? '#92400e' : '#991b1b',
-                      fontWeight: '400',
-                      padding: '2px 7px',
-                      borderRadius: '4px',
-                      fontSize: '11px',
-                      display: 'inline-block',
-                    }}>
-                      {stats.risk_level}
-                    </span>
-                  )}
                   <span style={{ fontSize: '13px', color: '#666' }}>
                     by @{stats.creator_handle || 'unknown'}
                   </span>
