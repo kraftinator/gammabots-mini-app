@@ -17,7 +17,7 @@ function CreateBotContent() {
     return {
       tokenAddress: '',
       ethAmount: '0.001',
-      movingAverage: '6',
+      movingAverage: '10',
       strategyId: '',
       profitShare: '50',
       profitThreshold: '15'
@@ -27,7 +27,7 @@ function CreateBotContent() {
   const [submitError, setSubmitError] = useState<string | null>(null)
 
   // Strategy options state
-  const [strategyOptions, setStrategyOptions] = useState<Array<{ strategy_id: string; label: string; bot_count: number; creator_handle?: string; gamma_score?: number }>>([])
+  const [strategyOptions, setStrategyOptions] = useState<Array<{ strategy_id: string; label: string; description?: string; bot_count: number; creator_handle?: string; gamma_score?: number }>>([])
   const [strategyOptionsLoading, setStrategyOptionsLoading] = useState(false)
 
   // Gas reserve state
@@ -37,7 +37,8 @@ function CreateBotContent() {
   const [strategySearchQuery, setStrategySearchQuery] = useState('')
 
   // Moving Average state - separate input state for typing
-  const [movingAvgInput, setMovingAvgInput] = useState('6')
+  const [movingAvgInput, setMovingAvgInput] = useState('10')
+  const [showAdvanced, setShowAdvanced] = useState(false)
 
   // Token validation state
   const [tokenValidation, setTokenValidation] = useState<{
@@ -197,7 +198,7 @@ function CreateBotContent() {
     console.log('🔍 Create page params:', { tokenAddress, tokenSymbol, tokenName, strategyId, movingAvg, profitShare, profitThreshold, ethAmount })
 
     if (tokenAddress || strategyId || movingAvg || profitShare || profitThreshold || ethAmount) {
-      const newMovingAvg = movingAvg || '6'
+      const newMovingAvg = movingAvg || '10'
 
       setFormData(prev => ({
         ...prev,
@@ -560,6 +561,12 @@ function CreateBotContent() {
 
   return (
     <div style={styles.formContainer}>
+      <style>{`
+        @keyframes fadeSlideDown {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+      `}</style>
       {/* Back Link */}
       <button
         onClick={() => {
@@ -649,6 +656,47 @@ function CreateBotContent() {
       {/* Form */}
       {!authError && (
         <form onSubmit={handleSubmit}>
+          {/* Strategy */}
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>
+              Strategy
+            </label>
+            <div
+              onClick={() => setIsStrategyPickerOpen(true)}
+              style={{
+                ...styles.formInput,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span style={{ color: formData.strategyId ? colors.text.primary : '#9ca3af' }}>
+                {formData.strategyId ? `#${formData.strategyId}` : 'Select...'}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+            {formData.strategyId && (() => {
+              const desc = strategyOptions.find(s => s.strategy_id === formData.strategyId)?.description
+              return desc ? (
+                <p
+                  key={formData.strategyId}
+                  style={{
+                    fontSize: '13px',
+                    color: '#888',
+                    marginTop: '6px',
+                    lineHeight: '1.35',
+                    animation: 'fadeSlideDown 0.6s ease-out',
+                  }}
+                >
+                  {desc}
+                </p>
+              ) : null
+            })()}
+          </div>
+
           {/* Token Address */}
           <div style={styles.formGroup}>
             <label style={styles.formLabel}>
@@ -669,7 +717,7 @@ function CreateBotContent() {
                 fontSize: '14px',
                 borderColor: tokenValidation.status === 'found' ? '#22c55e' :
                              tokenValidation.status === 'not_found' ? '#ef4444' :
-                             undefined
+                             '#e5e7eb'
               }}
             />
             {/* Token validation status */}
@@ -679,7 +727,7 @@ function CreateBotContent() {
                 color: colors.text.secondary,
                 fontSize: '14px'
               }}>
-                The Base contract address of the token
+                Must be on Base.
               </p>
             )}
             {tokenValidation.status === 'invalid_format' && (
@@ -750,72 +798,87 @@ function CreateBotContent() {
             />
           </div>
 
-          {/* Strategy */}
-          <div style={styles.formGroup}>
-            <label style={styles.formLabel}>
-              Strategy
-            </label>
-            <div
-              onClick={() => setIsStrategyPickerOpen(true)}
-              style={{
-                ...styles.formInput,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
+          {/* Advanced Toggle */}
+          <div
+            onClick={() => setShowAdvanced(!showAdvanced)}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: '6px',
+              cursor: 'pointer',
+              padding: '12px 0',
+              marginBottom: showAdvanced ? '0' : '4px',
+              borderTop: '1px solid #f0f0f0',
+            }}
+          >
+            <span style={{ fontSize: '13px', color: '#14b8a6', fontWeight: '500' }}>
+              {showAdvanced ? 'Hide advanced' : 'Show advanced'}
+            </span>
+            <svg
+              width="12"
+              height="12"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="#14b8a6"
+              strokeWidth="2.5"
+              style={{ transform: showAdvanced ? 'rotate(180deg)' : 'none', transition: 'transform 0.15s' }}
             >
-              <span style={{ color: formData.strategyId ? colors.text.primary : '#9ca3af' }}>
-                {formData.strategyId ? `#${formData.strategyId}` : 'Select...'}
-              </span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </div>
+              <path d="M6 9l6 6 6-6" />
+            </svg>
           </div>
 
           {/* Moving Average */}
-          <div style={styles.formGroup}>
-            <label style={styles.formLabel}>
-              Moving Average (minutes)
-            </label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <input
-                type="range"
-                min="1"
-                max="20"
-                step="1"
-                value={Math.min(20, Math.max(1, parseInt(formData.movingAverage) || 6))}
-                onChange={(e) => handleMovingAvgSliderChange(e.target.value)}
-                style={{
-                  flex: 1,
-                  height: '4px',
-                  cursor: 'pointer',
-                  accentColor: colors.primary,
-                }}
-              />
-              <input
-                type="text"
-                inputMode="numeric"
-                value={movingAvgInput}
-                onChange={(e) => handleMovingAvgInputChange(e.target.value)}
-                onBlur={handleMovingAvgInputCommit}
-                onKeyDown={handleMovingAvgInputKeyDown}
-                style={{
-                  width: '48px',
-                  padding: '8px',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  textAlign: 'center',
-                  border: '1px solid #e5e7eb',
-                  borderRadius: '8px',
-                  backgroundColor: colors.background.card,
-                  color: colors.text.primary,
-                  outline: 'none',
-                }}
-              />
+          {showAdvanced && (
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>
+                Moving Average (minutes)
+              </label>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <input
+                  type="range"
+                  min="1"
+                  max="20"
+                  step="1"
+                  value={Math.min(20, Math.max(1, parseInt(formData.movingAverage) || 6))}
+                  onChange={(e) => handleMovingAvgSliderChange(e.target.value)}
+                  style={{
+                    flex: 1,
+                    height: '4px',
+                    cursor: 'pointer',
+                    accentColor: colors.primary,
+                  }}
+                />
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={movingAvgInput}
+                  onChange={(e) => handleMovingAvgInputChange(e.target.value)}
+                  onBlur={handleMovingAvgInputCommit}
+                  onKeyDown={handleMovingAvgInputKeyDown}
+                  style={{
+                    width: '48px',
+                    padding: '8px',
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    textAlign: 'center',
+                    border: '1px solid #e5e7eb',
+                    borderRadius: '8px',
+                    backgroundColor: colors.background.card,
+                    color: colors.text.primary,
+                    outline: 'none',
+                  }}
+                />
+              </div>
+              <p style={{
+                margin: '4px 0 0 0',
+                color: colors.text.secondary,
+                fontSize: '14px',
+              }}>
+                How many minutes of price data the strategy uses to detect trends.
+              </p>
             </div>
-          </div>
+          )}
 
           {/* Review Box - only shown when form is valid */}
           {isFormValid && (
@@ -1038,10 +1101,12 @@ function CreateBotContent() {
                   </div>
                 ) : (
                   (() => {
-                    const filteredOptions = strategyOptions.filter(option =>
-                      option.label.toLowerCase().includes(strategySearchQuery.toLowerCase()) ||
-                      option.strategy_id.includes(strategySearchQuery)
-                    )
+                    const filteredOptions = strategyOptions.filter(option => {
+                      const query = strategySearchQuery.toLowerCase()
+                      return option.label.toLowerCase().includes(query) ||
+                        option.strategy_id.includes(strategySearchQuery) ||
+                        option.description?.toLowerCase().includes(query)
+                    })
 
                     if (filteredOptions.length === 0) {
                       return (
@@ -1060,31 +1125,47 @@ function CreateBotContent() {
                           setStrategySearchQuery('')
                         }}
                         style={{
-                          padding: '10px 16px',
+                          padding: '10px 14px',
                           cursor: 'pointer',
-                          backgroundColor: formData.strategyId === option.strategy_id ? '#e0f7fa' : 'transparent',
+                          backgroundColor: formData.strategyId === option.strategy_id ? '#e0f7fa' : '#f9f9f9',
+                          borderRadius: '10px',
+                          marginBottom: index < filteredOptions.length - 1 ? '8px' : '0',
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'space-between',
-                          borderBottom: index < filteredOptions.length - 1 ? '1px solid #eee' : 'none',
                         }}
                       >
                         <div>
                           <span style={{
                             fontSize: '15px',
-                            fontWeight: formData.strategyId === option.strategy_id ? '600' : '400',
+                            fontWeight: formData.strategyId === option.strategy_id ? '600' : '500',
                             color: formData.strategyId === option.strategy_id ? '#0097a7' : '#1c1c1e',
                           }}>
                             {option.label}
                           </span>
+                          {option.description && (
+                            <div style={{
+                              fontSize: '13px',
+                              color: '#666',
+                              fontWeight: '400',
+                              marginTop: '3px',
+                              lineHeight: '1.35',
+                              display: '-webkit-box',
+                              WebkitLineClamp: 2,
+                              WebkitBoxOrient: 'vertical' as const,
+                              overflow: 'hidden',
+                            }}>
+                              {option.description}
+                            </div>
+                          )}
                           <div style={{
-                            fontSize: '13px',
-                            color: '#999',
+                            fontSize: '11px',
+                            color: '#aaa',
                             fontWeight: '400',
-                            marginTop: '1px',
-                            marginLeft: '8px',
+                            marginTop: '4px',
+                            letterSpacing: '0.2px',
                           }}>
-                            {option.gamma_score != null && option.gamma_score > 0 && <>GammaScore: <span style={{ fontWeight: '600', color: '#333' }}>{(Number(option.gamma_score) / 100).toFixed(2)}</span></>}{option.bot_count > 0 && <>{option.gamma_score != null && option.gamma_score > 0 && ' · '}Bots: {option.bot_count}</>}{option.creator_handle && <>{(option.gamma_score != null && option.gamma_score > 0) || option.bot_count > 0 ? ' · ' : ''}by @{option.creator_handle}</>}
+                            GammaScore: <span style={{ fontWeight: '600', color: '#555' }}>{(Number(option.gamma_score || 0) / 100).toFixed(2)}</span>{option.bot_count > 0 && <> · Bots: {option.bot_count}</>}{option.creator_handle && <> · by @{option.creator_handle}</>}
                           </div>
                         </div>
                         {formData.strategyId === option.strategy_id && (
