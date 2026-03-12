@@ -620,14 +620,14 @@ export default function MyBotsPage() {
                             const symbol = bot.token_symbol || '';
                             const displaySymbol = symbol.length > 8 ? 'tokens' : symbol;
 
-                            if (tokensNum >= 1 && ethDisplay > 0) {
+                            if (tokensNum > 0 && ethDisplay > 0) {
                               return (
                                 <>
                                   <div>{formatTokenAmount(tokensNum)} <span style={{ color: '#8e8e93', fontWeight: '500' }}>{displaySymbol}</span></div>
                                   <div>{parseFloat(ethDisplay.toFixed(6))} <span style={{ color: '#8e8e93', fontWeight: '500' }}>ETH</span></div>
                                 </>
                               );
-                            } else if (tokensNum >= 1) {
+                            } else if (tokensNum > 0) {
                               return <span>{formatTokenAmount(tokensNum)} <span style={{ color: '#8e8e93', fontWeight: '500' }}>{displaySymbol}</span></span>;
                             } else if (ethDisplay > 0) {
                               return <span>{parseFloat(ethDisplay.toFixed(6))} <span style={{ color: '#8e8e93', fontWeight: '500' }}>ETH</span></span>;
