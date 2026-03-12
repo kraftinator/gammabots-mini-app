@@ -4,8 +4,10 @@ export const formatTokenAmount = (value: number): string => {
     return `${(value / 1000000).toFixed(1).replace(/\.0$/, '')}M`
   } else if (value >= 10000) {
     return `${(value / 1000).toFixed(0)}K`
-  } else if (value >= 1) {
+  } else if (value >= 100) {
     return Math.floor(value).toLocaleString()
+  } else if (value >= 1) {
+    return value.toFixed(2).replace(/\.?0+$/, '')
   } else {
     return Number(value).toFixed(2)
   }
