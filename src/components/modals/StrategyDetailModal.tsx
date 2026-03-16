@@ -331,7 +331,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
 
                     {/* Avg Return */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
-                      <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Avg Return (30d)</span>
+                      <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Avg Return</span>
                       {stats.performance_pct != null ? (
                         <span style={{
                           fontSize: '13px',
@@ -348,7 +348,7 @@ export default function StrategyDetailModal({ isOpen, onClose, strategyId, userE
 
                     {/* Win Rate */}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
-                      <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Win Rate (30d)</span>
+                      <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Win Rate</span>
                       {stats.win_rate_pct != null ? (
                         <span style={{ fontSize: '13px', fontWeight: '500', lineHeight: '1.5', color: '#1c1c1e' }}>
                           {Number(stats.win_rate_pct || 0).toFixed(1)}%
