@@ -57,7 +57,7 @@ const metricsCategories = [
   },
   {
     title: 'Prices',
-    keys: ['currentPrice', 'prevPrice', 'initBuyPrice', 'rollingHigh', 'creationPrice', 'highSinceCreate', 'lowSinceCreate', 'highInitBuy', 'lowInitBuy', 'highLastTrade', 'lowLastTrade', 'listedBuyPrice', 'priceDiv']
+    keys: ['currentPrice', 'prevPrice', 'initBuyPrice', 'highInitBuy', 'lowInitBuy', 'rollingHigh', 'creationPrice', 'highSinceCreate', 'lowSinceCreate', 'highLastTrade', 'lowLastTrade', 'listedBuyPrice']
   },
   {
     title: 'Moving Averages',
@@ -65,7 +65,7 @@ const metricsCategories = [
   },
   {
     title: 'Volatility & Momentum',
-    keys: ['mom', 'trendConc', 'flatRatio', 'vst', 'vlt', 'ssd', 'lsd']
+    keys: ['priceDiv', 'mom', 'trendConc', 'flatRatio', 'vst', 'vlt', 'ssd', 'lsd']
   },
   {
     title: 'Profitability',
