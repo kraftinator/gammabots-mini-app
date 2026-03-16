@@ -806,7 +806,7 @@ function CreateBotContent() {
           </div>
 
           {/* Advanced Toggle */}
-          <div
+          {/*<div
             onClick={() => setShowAdvanced(!showAdvanced)}
             style={{
               display: 'flex',
@@ -833,10 +833,9 @@ function CreateBotContent() {
             >
               <path d="M6 9l6 6 6-6" />
             </svg>
-          </div>
+          </div>*/}
 
           {/* Moving Average */}
-          {showAdvanced && (
             <div style={styles.formGroup}>
               <label style={styles.formLabel}>
                 Moving Average (minutes)
@@ -885,7 +884,6 @@ function CreateBotContent() {
                 How many minutes of price data the strategy uses to detect trends.
               </p>
             </div>
-          )}
 
           {/* Review Box - only shown when form is valid */}
           {isFormValid && (
