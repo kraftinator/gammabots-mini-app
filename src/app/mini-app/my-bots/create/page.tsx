@@ -796,6 +796,13 @@ function CreateBotContent() {
               min="0.001"
               style={styles.formInput}
             />
+            <p style={{
+              margin: '4px 0 0 0',
+              color: colors.text.secondary,
+              fontSize: '14px',
+            }}>
+              You can withdraw anytime.
+            </p>
           </div>
 
           {/* Advanced Toggle */}
