@@ -6,6 +6,35 @@ import BottomNavigation from '@/components/BottomNavigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors } from '@/styles/common'
 
+const RECOMMENDED_STRATEGIES = process.env.NODE_ENV === 'development' ? [
+  {
+    id: 14,
+    name: "Simple Profit Exit",
+    description: "Buys and sells when it hits +20% profit. No stop loss."
+  },
+  {
+    id: 15,
+    name: "Profit Exit + Stop Loss",
+    description: "Same, but cuts losses automatically if the trade goes against you."
+  }
+] : [
+  {
+    id: 2,
+    name: "Simple Profit Exit",
+    description: "Buys on the first price increase. Sells once you're up 20%. No stop loss — holds until the target is hit."
+  },
+  {
+    id: 5,
+    name: "Profit Exit + Stop Loss",
+    description: "Buys on the first price increase. Sells at +20% profit. Cuts the loss if the price drops 15% below your entry."
+  },
+  {
+    id: 89,
+    name: "Surge Catcher",
+    description: "Only enters when momentum and volatility align. Locks in profits dynamically as the trade peaks, with tight stops to limit downside."
+  }
+]
+
 function CreateBotContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -1100,13 +1129,93 @@ function CreateBotContent() {
                 overflowY: 'auto',
                 padding: '0 20px 12px 20px',
               }}>
+                {/* Recommended Section */}
+                {!strategySearchQuery && !strategyOptionsLoading && (() => {
+                  const recommendedCards = RECOMMENDED_STRATEGIES.map(rec => {
+                    const match = strategyOptions.find(s => s.strategy_id === String(rec.id))
+                    if (!match) return null
+                    return { ...match, customName: rec.name, customDescription: rec.description }
+                  }).filter(Boolean) as Array<typeof strategyOptions[number] & { customName: string; customDescription: string }>
+
+                  if (recommendedCards.length === 0) return null
+
+                  return (
+                    <>
+                      <div style={{ fontSize: '11px', fontWeight: '600', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+                        Recommended
+                      </div>
+                      {recommendedCards.map((option) => (
+                        <div
+                          key={`rec-${option.strategy_id}`}
+                          onClick={() => {
+                            setFormData(prev => ({ ...prev, strategyId: option.strategy_id }))
+                            setIsStrategyPickerOpen(false)
+                            setStrategySearchQuery('')
+                          }}
+                          style={{
+                            padding: '10px 14px',
+                            cursor: 'pointer',
+                            backgroundColor: formData.strategyId === option.strategy_id ? '#e0f7fa' : '#f9f9f9',
+                            borderRadius: '0 10px 10px 0',
+                            borderLeft: '3px solid #1D9E75',
+                            marginBottom: '8px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                          }}
+                        >
+                          <div>
+                            <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+                              <span style={{
+                                fontSize: '15px',
+                                fontWeight: formData.strategyId === option.strategy_id ? '600' : '500',
+                                color: formData.strategyId === option.strategy_id ? '#0097a7' : '#1c1c1e',
+                              }}>
+                                {option.customName}
+                              </span>
+                              <span style={{ fontSize: '10px', color: '#999', backgroundColor: '#eee', padding: '1px 6px', borderRadius: '6px', fontWeight: '500' }}>#{option.strategy_id}</span>
+                            </div>
+                            <div style={{
+                              fontSize: '13px',
+                              color: '#666',
+                              fontWeight: '400',
+                              marginTop: '3px',
+                              lineHeight: '1.35',
+                            }}>
+                              {option.customDescription}
+                            </div>
+                            <div style={{
+                              fontSize: '11px',
+                              color: '#aaa',
+                              fontWeight: '400',
+                              marginTop: '4px',
+                              letterSpacing: '0.2px',
+                            }}>
+                              GammaScore: <span style={{ fontWeight: '600', color: '#555' }}>{(Number(option.gamma_score || 0) / 100).toFixed(2)}</span>{option.bot_count > 0 && <> · Bots: {option.bot_count}</>}{option.creator_handle && <> · by @{option.creator_handle}</>}
+                            </div>
+                          </div>
+                          {formData.strategyId === option.strategy_id && (
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0097a7" strokeWidth="2.5">
+                              <polyline points="20 6 9 17 4 12" />
+                            </svg>
+                          )}
+                        </div>
+                      ))}
+                      <div style={{ fontSize: '11px', fontWeight: '600', color: '#aaa', textTransform: 'uppercase', letterSpacing: '0.5px', margin: '12px 0 8px 0' }}>
+                        All Strategies
+                      </div>
+                    </>
+                  )
+                })()}
                 {strategyOptionsLoading ? (
                   <div style={{ textAlign: 'center', padding: '20px', color: '#888' }}>
                     Loading...
                   </div>
                 ) : (
                   (() => {
+                    const recommendedIds = new Set(RECOMMENDED_STRATEGIES.map(r => String(r.id)))
                     const filteredOptions = strategyOptions.filter(option => {
+                      if (!strategySearchQuery && recommendedIds.has(option.strategy_id)) return false
                       const query = strategySearchQuery.toLowerCase()
                       return option.label.toLowerCase().includes(query) ||
                         option.strategy_id.includes(strategySearchQuery) ||
