@@ -24,7 +24,7 @@ const RECOMMENDED_STRATEGIES = process.env.NODE_ENV === 'development' ? [
     description: "Buys on the first price increase. Sells once you're up 20%. No stop loss — holds until the target is hit."
   },
   {
-    id: 5,
+    id: 90,
     name: "Profit Exit + Stop Loss",
     description: "Buys on the first price increase. Sells at +20% profit. Cuts the loss if the price drops 15% below your entry."
   },
