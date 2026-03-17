@@ -126,6 +126,10 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   const [tradesLoading, setTradesLoading] = useState(false)
   const [tradesError, setTradesError] = useState<string | null>(null)
   const [selectedTrade, setSelectedTrade] = useState<Trade | null>(null)
+  const [tradeDetailTab, setTradeDetailTab] = useState<'trade' | 'metrics'>('trade')
+  const [tradeMetricsData, setTradeMetricsData] = useState<Record<string, string | number | boolean> | null>(null)
+  const [tradeMetricsLoading, setTradeMetricsLoading] = useState(false)
+  const [tradeMetricsError, setTradeMetricsError] = useState<string | null>(null)
 
   const [isStrategyExpanded, setIsStrategyExpanded] = useState(false)
   const [strategyView, setStrategyView] = useState<'logic' | 'gammascript'>('logic')
@@ -168,6 +172,13 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
     setIsDeactivateOpen(false)
     setDeactivateError(null)
   }, [bot?.bot_id])
+
+  // Reset trade metrics state when selected trade changes
+  useEffect(() => {
+    setTradeDetailTab('trade')
+    setTradeMetricsData(null)
+    setTradeMetricsError(null)
+  }, [selectedTrade?.id])
 
   // Lock body scroll and hide scrollbar when modal is open
   useEffect(() => {
@@ -298,6 +309,45 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
 
     fetchMetrics()
   }, [isMetricsExpanded, metricsData, metricsLoading, authenticate, bot])
+
+  // Fetch trade metrics when metrics tab is selected
+  useEffect(() => {
+    const fetchTradeMetrics = async () => {
+      if (tradeDetailTab !== 'metrics' || tradeMetricsData || tradeMetricsLoading || !bot || !selectedTrade) return
+
+      try {
+        setTradeMetricsLoading(true)
+        setTradeMetricsError(null)
+
+        const token = await authenticate()
+        if (!token) {
+          setTradeMetricsError('Cannot load metrics at this time.')
+          return
+        }
+
+        const response = await fetch(`/api/bots/${bot.bot_id}/trades/${selectedTrade.id}/metrics`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          setTradeMetricsError('Cannot load metrics at this time.')
+          return
+        }
+
+        const data = await response.json()
+        setTradeMetricsData(data.metrics || data)
+      } catch (error) {
+        console.error('Error fetching trade metrics:', error)
+        setTradeMetricsError('Cannot load metrics at this time.')
+      } finally {
+        setTradeMetricsLoading(false)
+      }
+    }
+
+    fetchTradeMetrics()
+  }, [tradeDetailTab, tradeMetricsData, tradeMetricsLoading, authenticate, bot, selectedTrade])
 
   // Fetch trades when expanded
   useEffect(() => {
@@ -1636,7 +1686,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
               </div>
 
               {/* Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                   <span style={{ fontSize: '18px', fontWeight: '700', color: selectedTrade.side.toLowerCase() === 'buy' ? '#14b8a6' : '#f97316' }}>
                     {selectedTrade.side.toUpperCase()}
@@ -1663,59 +1713,159 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 </button>
               </div>
 
+              {/* Tab Toggle */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                marginBottom: '16px',
+              }}>
+                <button
+                  onClick={() => setTradeDetailTab('trade')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '13px',
+                    fontWeight: tradeDetailTab === 'trade' ? '600' : '400',
+                    color: tradeDetailTab === 'trade' ? '#14b8a6' : '#888',
+                    cursor: 'pointer',
+                    padding: '0',
+                  }}
+                >
+                  Trade
+                </button>
+                <span style={{ fontSize: '13px', color: '#ccc' }}>|</span>
+                <button
+                  onClick={() => setTradeDetailTab('metrics')}
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '13px',
+                    fontWeight: tradeDetailTab === 'metrics' ? '600' : '400',
+                    color: tradeDetailTab === 'metrics' ? '#14b8a6' : '#888',
+                    cursor: 'pointer',
+                    padding: '0',
+                  }}
+                >
+                  Metrics
+                </button>
+              </div>
+
               {/* Content */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px', color: '#888' }}>Timestamp</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#333', fontFamily: 'ui-monospace, monospace' }}>
-                    {formatTradeDetailTime(selectedTrade.executed_at)}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px', color: '#888' }}>Price</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#14b8a6', fontFamily: 'ui-monospace, monospace' }}>
-                    {parseFloat(selectedTrade.price).toFixed(12)}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px', color: '#888' }}>Token In</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#333', fontFamily: 'ui-monospace, monospace' }}>
-                    {selectedTrade.side.toLowerCase() === 'buy'
-                      ? `${formatTradeEth(selectedTrade.amount_in)} ETH`
-                      : `${formatTradeTokenAmount(selectedTrade.amount_in)} ${bot.token_symbol}`}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px', color: '#888' }}>Token Out</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#333', fontFamily: 'ui-monospace, monospace' }}>
-                    {selectedTrade.side.toLowerCase() === 'buy'
-                      ? `${formatTradeTokenAmount(selectedTrade.amount_out)} ${bot.token_symbol}`
-                      : `${formatTradeEth(selectedTrade.amount_out)} ETH`}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px', color: '#888' }}>Strategy</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
-                    {selectedTrade.strategy ?? '--'}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px', color: '#888' }}>Strategy Step</span>
-                  <span style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
-                    {selectedTrade.step ?? '--'}
-                  </span>
-                </div>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span style={{ fontSize: '14px', color: '#888' }}>Tx Hash</span>
-                  <a
-                    href={`https://basescan.org/tx/${selectedTrade.tx_hash}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ fontSize: '14px', fontWeight: '500', color: '#14b8a6', fontFamily: 'ui-monospace, monospace', textDecoration: 'none' }}
-                  >
-                    {selectedTrade.tx_hash.slice(0, 6)}...{selectedTrade.tx_hash.slice(-4)}
-                  </a>
-                </div>
+              <div style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: '8px' }}>
+                {tradeDetailTab === 'trade' && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', color: '#888' }}>Timestamp</span>
+                      <span style={{ fontSize: '14px', fontWeight: '500', color: '#333', fontFamily: 'ui-monospace, monospace' }}>
+                        {formatTradeDetailTime(selectedTrade.executed_at)}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', color: '#888' }}>Price</span>
+                      <span style={{ fontSize: '14px', fontWeight: '500', color: '#14b8a6', fontFamily: 'ui-monospace, monospace' }}>
+                        {parseFloat(selectedTrade.price).toFixed(12)}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', color: '#888' }}>Token In</span>
+                      <span style={{ fontSize: '14px', fontWeight: '500', color: '#333', fontFamily: 'ui-monospace, monospace' }}>
+                        {selectedTrade.side.toLowerCase() === 'buy'
+                          ? `${formatTradeEth(selectedTrade.amount_in)} ETH`
+                          : `${formatTradeTokenAmount(selectedTrade.amount_in)} ${bot.token_symbol}`}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', color: '#888' }}>Token Out</span>
+                      <span style={{ fontSize: '14px', fontWeight: '500', color: '#333', fontFamily: 'ui-monospace, monospace' }}>
+                        {selectedTrade.side.toLowerCase() === 'buy'
+                          ? `${formatTradeTokenAmount(selectedTrade.amount_out)} ${bot.token_symbol}`
+                          : `${formatTradeEth(selectedTrade.amount_out)} ETH`}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', color: '#888' }}>Strategy</span>
+                      <span style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                        {selectedTrade.strategy ?? '--'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', color: '#888' }}>Strategy Step</span>
+                      <span style={{ fontSize: '14px', fontWeight: '500', color: '#333' }}>
+                        {selectedTrade.step ?? '--'}
+                      </span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between' }}>
+                      <span style={{ fontSize: '14px', color: '#888' }}>Tx Hash</span>
+                      <a
+                        href={`https://basescan.org/tx/${selectedTrade.tx_hash}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{ fontSize: '14px', fontWeight: '500', color: '#14b8a6', fontFamily: 'ui-monospace, monospace', textDecoration: 'none' }}
+                      >
+                        {selectedTrade.tx_hash.slice(0, 6)}...{selectedTrade.tx_hash.slice(-4)}
+                      </a>
+                    </div>
+                  </div>
+                )}
+
+                {tradeDetailTab === 'metrics' && (
+                  <div>
+                    {tradeMetricsLoading && (
+                      <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
+                        <Loader2 style={{ width: '20px', height: '20px', color: '#14b8a6', animation: 'spin 1s linear infinite' }} />
+                      </div>
+                    )}
+
+                    {tradeMetricsError && (
+                      <div style={{ color: '#6b7280', fontSize: '13px', padding: '10px 0', textAlign: 'center' }}>
+                        {tradeMetricsError}
+                      </div>
+                    )}
+
+                    {!tradeMetricsLoading && !tradeMetricsError && !tradeMetricsData && (
+                      <div style={{ color: '#6b7280', fontSize: '13px', padding: '10px 0', textAlign: 'center' }}>
+                        No metrics available
+                      </div>
+                    )}
+
+                    {!tradeMetricsLoading && !tradeMetricsError && tradeMetricsData && (
+                      <>
+                        {metricsCategories.filter(c => c.title !== 'Position & Trades').map((category, categoryIndex) => {
+                          const availableKeys = category.keys.filter(key => key in tradeMetricsData)
+                          if (availableKeys.length === 0) return null
+
+                          return (
+                            <div key={category.title}>
+                              <div style={{
+                                color: '#14b8a6',
+                                fontSize: '11px',
+                                fontWeight: '700',
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.5px',
+                                paddingTop: categoryIndex === 0 ? '4px' : '16px',
+                                paddingBottom: '8px',
+                                borderBottom: '1px solid #e5e7eb',
+                                marginBottom: '4px'
+                              }}>
+                                {category.title}
+                              </div>
+
+                              {availableKeys.map(key => (
+                                <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0' }}>
+                                  <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: '400' }}>{key}</span>
+                                  <span style={{ color: '#0891b2', fontSize: '13px', fontFamily: 'monospace', fontWeight: '500' }}>
+                                    {formatMetricValue(tradeMetricsData[key], key)}
+                                  </span>
+                                </div>
+                              ))}
+                            </div>
+                          )
+                        })}
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             </div>
           </div>
