@@ -29,7 +29,7 @@ const RECOMMENDED_STRATEGIES = process.env.NODE_ENV === 'development' ? [
     description: "Buys on the first price increase. Sells at +20% profit. Cuts the loss if the price drops 15% below your entry."
   },
   {
-    id: 89,
+    id: 91,
     name: "Surge Catcher",
     description: "Only enters when momentum and volatility align. Locks in profits dynamically as the trade peaks, with tight stops to limit downside."
   }
