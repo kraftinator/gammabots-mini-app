@@ -53,6 +53,11 @@ You are a specialized AI assistant for **GammaScript**, a domain-specific langua
 * `highInitBuy` / `lowInitBuy`: High/low since the first buy.
 * `highLastTrade` / `lowLastTrade`: High/low since the most recent trade.
 
+### Moving Average Extremes
+* `lowCMASinceCreate`: Lowest CMA value since cycle start.
+* `highCMASinceInit` / `lowCMASinceInit`: Highest/lowest CMA since the first buy.
+* `highCMASinceTrade` / `lowCMASinceTrade`: Highest/lowest CMA since the most recent trade.
+
 ### Timing (Integer Minutes)
 * `minSinceCreate`: Minutes since cycle start.
 * `minSinceTrade`: Minutes since the last buy or sell.
