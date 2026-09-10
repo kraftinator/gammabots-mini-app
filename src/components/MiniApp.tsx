@@ -360,14 +360,6 @@ export default function MiniApp() {
                   />
                 );
               })}
-              <div style={{ padding: "12px 20px 16px", textAlign: "right" }}>
-                <span
-                  onClick={() => router.push('/mini-app/strategies')}
-                  style={{ fontSize: "13px", fontWeight: "500", color: "#14b8a6", cursor: "pointer" }}
-                >
-                  View All Strategies ›
-                </span>
-              </div>
             </ActivityCard>
           </div>
         )}
