@@ -116,7 +116,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   const router = useRouter()
   const { authenticate } = useQuickAuth()
   const { me } = useMe()
-  const { explorerTxUrl } = useChains()
+  const { getChain, explorerTxUrl } = useChains()
+  const chainLabel = getChain(bot?.chain)?.display_name
   const isOwner = me?.id != null && bot?.bot_owner_id != null && String(me.id) === String(bot.bot_owner_id)
 
   const [isMetricsExpanded, setIsMetricsExpanded] = useState(false)
@@ -843,6 +844,16 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
             flexDirection: 'column',
             gap: '0px'
           }}>
+            {/* Chain */}
+            {chainLabel && (
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
+              <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Chain</span>
+              <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
+                {chainLabel}
+              </span>
+            </div>
+            )}
+
             {/* Strategy */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
               <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Strategy</span>
