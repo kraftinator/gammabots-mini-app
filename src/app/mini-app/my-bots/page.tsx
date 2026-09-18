@@ -5,9 +5,11 @@ import { useRouter } from 'next/navigation'
 import { Search, RefreshCw } from 'lucide-react'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useMe } from '@/contexts/MeContext'
+import { useChains } from '@/contexts/ChainContext'
 import { styles, colors, getProfitColor } from '@/styles/common'
 import { formatTokenAmount } from '@/utils/formatters'
 import BottomNavigation from '@/components/BottomNavigation'
+import ChainIcon from '@/components/ChainIcon'
 import BotDetailModal from '@/components/modals/BotDetailModal'
 import SignUpModal from '@/components/modals/SignUpModal'
 import { formatDistanceToNow } from 'date-fns'
@@ -43,6 +45,7 @@ export default function MyBotsPage() {
   const router = useRouter()
   const { authLoading, authError, authenticate } = useQuickAuth()
   const { me, fetchMe } = useMe()
+  const { getChain, fetchChains } = useChains()
   const [isReady, setIsReady] = useState(false)
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [username, setUsername] = useState<string>('kraft')
@@ -166,7 +169,10 @@ export default function MyBotsPage() {
           const token = await authenticate()
           if (token) {
             // Fetch user data to check if signed up
-            await fetchMe(token)
+            await Promise.all([
+              fetchMe(token),
+              fetchChains(token)
+            ])
           }
         } else {
           console.log('Not running in Mini App environment')
@@ -179,7 +185,7 @@ export default function MyBotsPage() {
     }
 
     initializePage()
-  }, [authenticate, fetchMe])
+  }, [authenticate, fetchMe, fetchChains])
 
   // Fetch bots when user exists
   useEffect(() => {
@@ -556,6 +562,7 @@ export default function MyBotsPage() {
                     alignItems: 'center'
                   }}>
                     <span style={styles.myBotTokenInfo}>
+                      <ChainIcon chain={bot.chain} label={getChain(bot.chain)?.display_name} />
                       <span style={{ whiteSpace: 'nowrap' }}>
                         {(() => {
                           const name = bot.display_name || `${bot.token_symbol} #${bot.bot_id}`;

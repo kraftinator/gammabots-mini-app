@@ -9,6 +9,7 @@ import { formatTokenAmount, formatActiveTime } from '@/utils/formatters'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useMe } from '@/contexts/MeContext'
 import { useChains, DEFAULT_CHAIN_NAME } from '@/contexts/ChainContext'
+import ChainIcon from '@/components/ChainIcon'
 import { copyToClipboard } from '@/utils/clipboard'
 
 export interface Bot {
@@ -742,6 +743,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
           position: 'relative'
         }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '4px' }}>
+            <ChainIcon chain={bot.chain} label={chainLabel} />
             <span style={{
               fontSize: '15px',
               fontWeight: '700',
@@ -844,16 +846,6 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
             flexDirection: 'column',
             gap: '0px'
           }}>
-            {/* Chain */}
-            {chainLabel && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
-              <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Chain</span>
-              <span style={{ fontSize: '13px', color: '#1c1c1e', fontWeight: '500', lineHeight: '1.5' }}>
-                {chainLabel}
-              </span>
-            </div>
-            )}
-
             {/* Strategy */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', minHeight: '20px' }}>
               <span style={{ fontSize: '13px', color: '#adadad', fontWeight: '400', lineHeight: '1.5' }}>Strategy</span>
