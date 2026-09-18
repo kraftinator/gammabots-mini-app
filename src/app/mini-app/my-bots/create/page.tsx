@@ -6,6 +6,7 @@ import BottomNavigation from '@/components/BottomNavigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useChains, DEFAULT_CHAIN_NAME } from '@/contexts/ChainContext'
 import { styles, colors } from '@/styles/common'
+import { copyToClipboard } from '@/utils/clipboard'
 
 const RECOMMENDED_STRATEGIES = process.env.NODE_ENV === 'development' ? [
   {
@@ -55,6 +56,7 @@ function CreateBotContent() {
       profitThreshold: '15'
     }
   })
+  const [copiedField, setCopiedField] = useState<string | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
 
@@ -112,12 +114,6 @@ function CreateBotContent() {
   const selectedChainLabel = useMemo(() => {
     return chains.find(c => c.name === selectedChain)?.display_name
   }, [chains, selectedChain])
-
-  // Get selected strategy label for review box
-  const selectedStrategyLabel = useMemo(() => {
-    const strategy = strategyOptions.find(s => s.strategy_id === formData.strategyId)
-    return strategy?.label || `#${formData.strategyId}`
-  }, [strategyOptions, formData.strategyId])
 
   // Token lookup function
   const lookupToken = useCallback(async (address: string) => {
@@ -187,6 +183,14 @@ function CreateBotContent() {
       })
     }
   }, [authenticate, selectedChain])
+
+  const handleCopyAddress = useCallback(async (field: string, value: string) => {
+    const ok = await copyToClipboard(value)
+    if (ok) {
+      setCopiedField(field)
+      setTimeout(() => setCopiedField(prev => (prev === field ? null : prev)), 2000)
+    }
+  }, [])
 
   // Switching chain clears the token: the same address is a different token
   // (or no token at all) on the other chain.
@@ -786,47 +790,6 @@ function CreateBotContent() {
             </div>
           )}
 
-          {/* Strategy */}
-          <div style={styles.formGroup}>
-            <label style={styles.formLabel}>
-              Strategy
-            </label>
-            <div
-              onClick={() => setIsStrategyPickerOpen(true)}
-              style={{
-                ...styles.formInput,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-              }}
-            >
-              <span style={{ color: formData.strategyId ? colors.text.primary : '#9ca3af' }}>
-                {formData.strategyId ? `#${formData.strategyId}` : 'Select...'}
-              </span>
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
-                <path d="M6 9l6 6 6-6" />
-              </svg>
-            </div>
-            {formData.strategyId && (() => {
-              const desc = strategyOptions.find(s => s.strategy_id === formData.strategyId)?.description
-              return desc ? (
-                <p
-                  key={formData.strategyId}
-                  style={{
-                    fontSize: '13px',
-                    color: '#888',
-                    marginTop: '6px',
-                    lineHeight: '1.35',
-                    animation: 'fadeSlideDown 0.6s ease-out',
-                  }}
-                >
-                  {desc}
-                </p>
-              ) : null
-            })()}
-          </div>
-
           {/* Token Address */}
           <div style={styles.formGroup}>
             <label style={styles.formLabel}>
@@ -851,15 +814,6 @@ function CreateBotContent() {
               }}
             />
             {/* Token validation status */}
-            {tokenValidation.status === 'empty' && (
-              <p style={{
-                margin: '4px 0 0 0',
-                color: colors.text.secondary,
-                fontSize: '14px'
-              }}>
-                Must be on Base.
-              </p>
-            )}
             {tokenValidation.status === 'invalid_format' && (
               <p style={{
                 margin: '4px 0 0 0',
@@ -933,6 +887,47 @@ function CreateBotContent() {
             }}>
               You can withdraw anytime.
             </p>
+          </div>
+
+          {/* Strategy */}
+          <div style={styles.formGroup}>
+            <label style={styles.formLabel}>
+              Strategy
+            </label>
+            <div
+              onClick={() => setIsStrategyPickerOpen(true)}
+              style={{
+                ...styles.formInput,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+              }}
+            >
+              <span style={{ color: formData.strategyId ? colors.text.primary : '#9ca3af' }}>
+                {formData.strategyId ? `#${formData.strategyId}` : 'Select...'}
+              </span>
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2">
+                <path d="M6 9l6 6 6-6" />
+              </svg>
+            </div>
+            {formData.strategyId && (() => {
+              const desc = strategyOptions.find(s => s.strategy_id === formData.strategyId)?.description
+              return desc ? (
+                <p
+                  key={formData.strategyId}
+                  style={{
+                    fontSize: '13px',
+                    color: '#888',
+                    marginTop: '6px',
+                    lineHeight: '1.35',
+                    animation: 'fadeSlideDown 0.6s ease-out',
+                  }}
+                >
+                  {desc}
+                </p>
+              ) : null
+            })()}
           </div>
 
           {/* Advanced Toggle */}
@@ -1051,27 +1046,38 @@ function CreateBotContent() {
                   <span style={{ fontSize: '13px', color: '#888' }}>Token</span>
                   <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e' }}>
                     {tokenValidation.symbol}
-                    {tokenValidation.chain && <span style={{ color: '#888', fontWeight: '400' }}> · {tokenValidation.chain}</span>}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '13px', color: '#888' }}>Token Address</span>
-                  <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e', fontFamily: 'ui-monospace, monospace' }}>
-                    {formData.tokenAddress.slice(0, 6)}…{formData.tokenAddress.slice(-4)}
+                  <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <CopyAddressButton
+                      copied={copiedField === 'token'}
+                      onCopy={() => handleCopyAddress('token', formData.tokenAddress)}
+                    />
+                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e', fontFamily: 'ui-monospace, monospace' }}>
+                      {formData.tokenAddress.slice(0, 6)}…{formData.tokenAddress.slice(-4)}
+                    </span>
                   </span>
                 </div>
                 {botWalletAddress && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <span style={{ fontSize: '13px', color: '#888' }}>Bot Wallet</span>
-                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e', fontFamily: 'ui-monospace, monospace' }}>
-                      {botWalletAddress.slice(0, 6)}…{botWalletAddress.slice(-4)}
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <CopyAddressButton
+                        copied={copiedField === 'wallet'}
+                        onCopy={() => handleCopyAddress('wallet', botWalletAddress)}
+                      />
+                      <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e', fontFamily: 'ui-monospace, monospace' }}>
+                        {botWalletAddress.slice(0, 6)}…{botWalletAddress.slice(-4)}
+                      </span>
                     </span>
                   </div>
                 )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '13px', color: '#888' }}>Strategy</span>
                   <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e' }}>
-                    {selectedStrategyLabel}
+                    #{formData.strategyId}
                   </span>
                 </div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -1409,6 +1415,36 @@ function CreateBotContent() {
       {/* Bottom Navigation */}
       <BottomNavigation activeTab="my-bots" />
     </div>
+  )
+}
+
+function CopyAddressButton({ copied, onCopy }: { copied: boolean; onCopy: () => void }) {
+  return (
+    <button
+      type="button"
+      onClick={onCopy}
+      title={copied ? 'Copied' : 'Copy address'}
+      aria-label={copied ? 'Copied' : 'Copy address'}
+      style={{
+        background: 'none',
+        border: 'none',
+        cursor: 'pointer',
+        padding: '0',
+        display: 'flex',
+        alignItems: 'center',
+      }}
+    >
+      {copied ? (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#14b8a6" strokeWidth="2.5">
+          <polyline points="20 6 9 17 4 12" />
+        </svg>
+      ) : (
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#888" strokeWidth="2">
+          <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+          <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
+        </svg>
+      )}
+    </button>
   )
 }
 

@@ -11,13 +11,14 @@ import { formatTokenAmount } from '@/utils/formatters'
 import { useMe } from '@/contexts/MeContext'
 import { useChains } from '@/contexts/ChainContext'
 import RobotLogo from './RobotLogo'
+import ChainIcon from './ChainIcon'
 import BotDetailModal, { Bot } from './modals/BotDetailModal'
 
 export default function MiniApp() {
   const router = useRouter()
   const { authLoading, authError, authenticate, navigateToMyBots } = useQuickAuth()
   const { me, fetchMe } = useMe()
-  const { fetchChains } = useChains()
+  const { getChain, fetchChains } = useChains()
   const [isReady, setIsReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sdkRef, setSdkRef] = useState<typeof import('@farcaster/miniapp-sdk').sdk | null>(null)
@@ -329,6 +330,8 @@ export default function MiniApp() {
                     strategyId={performer.strategy_id}
                     profit={`${Number(performer.performance_pct) >= 0 ? '+' : ''}${Number(performer.performance_pct).toFixed(1)}%`}
                     avatarUrl={performer.owner_avatar_url}
+                    chain={performer.chain}
+                    chainLabel={getChain(performer.chain)?.display_name}
                     onClick={() => {
                       setSelectedBot({
                         bot_id: String(performer.bot_id),
@@ -376,14 +379,12 @@ export default function MiniApp() {
         {false && <div style={{ marginBottom: "24px" }}>
           <div style={{ fontSize: "18px", fontWeight: "700", color: "#1c1c1e", marginBottom: "16px", padding: "0 4px" }}>Popular Tokens</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            {dashboardData.popular_tokens.map((token, index) => {
-              const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+            {dashboardData.popular_tokens.map((token) => {
               return (
                 <TokenCard
                   key={token.token_symbol}
                   name={token.token_symbol}
                   tvl={`${formatCurrency(Number(token.tvl_usd))} TVL`}
-                  borderColor={colors[index % colors.length]}
                 />
               );
             })}
@@ -395,14 +396,14 @@ export default function MiniApp() {
         <div style={{ marginBottom: "24px" }}>
           <div style={{ fontSize: "18px", fontWeight: "700", color: "#1c1c1e", marginBottom: "16px", padding: "0 4px" }}>Trending Tokens</div>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
-            {dashboardData.trending_tokens.map((token, index) => {
-              const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
+            {dashboardData.trending_tokens.map((token) => {
               return (
                 <TokenCard
                   key={`${token.chain ?? ''}-${token.token_symbol}`}
                   name={token.token_symbol}
+                  chain={token.chain}
+                  chainLabel={getChain(token.chain)?.display_name}
                   tvl={`${formatCurrency(Number(token.volume_24h_usd))} VOL`}
-                  borderColor={colors[index % colors.length]}
                 />
               );
             })}
@@ -424,6 +425,8 @@ export default function MiniApp() {
                 tokenAmount={formatTokenAmount(activity.amount)}
                 tokenSymbol={activity.token_symbol}
                 avatarUrl={activity.owner_avatar_url}
+                chain={activity.chain}
+                chainLabel={getChain(activity.chain)?.display_name}
                 profit={activity.performance_pct !== null && activity.performance_pct !== undefined ? `${activity.performance_pct > 0 ? '+' : ''}${Number(activity.performance_pct).toFixed(1)}%` : undefined}
                 profitPct={activity.performance_pct !== null && activity.performance_pct !== undefined ? activity.performance_pct : undefined}
                 onClick={() => {
@@ -534,24 +537,34 @@ function MetricCard({ label, value, change, loading, onClick }: { label: string;
   )
 }
 
-function TokenCard({ name, tvl, borderColor }: { name: string; tvl: string; borderColor: string }) {
+function TokenCard({ name, tvl, chain, chainLabel }: { name: string; tvl: string; chain?: string; chainLabel?: string }) {
   const displayName = name.length > 15 ? `${name.slice(0, 15)}...` : name;
 
   return (
     <div style={{
       ...styles.card,
       textAlign: "center",
-      border: `2px solid ${borderColor}`
+      border: "2px solid #e5e5e5"
     }}>
       <div style={{
         fontSize: "14px",
         fontWeight: "700",
         marginBottom: "4px",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        whiteSpace: "nowrap",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        gap: "6px",
+        minWidth: 0,
         ...styles.textPrimary
-      }}>{displayName}</div>
+      }}>
+        <ChainIcon chain={chain} label={chainLabel} size={14} />
+        <span style={{
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+          minWidth: 0
+        }}>{displayName}</span>
+      </div>
       <div style={{ fontSize: "12px", fontWeight: "500", ...styles.textSecondary }}>{tvl}</div>
     </div>
   )
@@ -582,6 +595,8 @@ function ActivityItem({
   tokenAmount,
   tokenSymbol,
   avatarUrl,
+  chain,
+  chainLabel,
   onClick
 }: {
   action: string;
@@ -594,6 +609,8 @@ function ActivityItem({
   tokenAmount?: string;
   tokenSymbol?: string;
   avatarUrl?: string;
+  chain?: string;
+  chainLabel?: string;
   onClick?: () => void;
 }) {
   // Use imported utility
@@ -655,9 +672,13 @@ function ActivityItem({
           fontWeight: "400",
           marginBottom: "4px",
           whiteSpace: "nowrap",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px",
           ...styles.textPrimary
         }}>
-          <span style={{ fontWeight: "600" }}>{action}</span> {tokenAmount && tokenSymbol ? (
+          <ChainIcon chain={chain} label={chainLabel} size={14} />
+          <span><span style={{ fontWeight: "600" }}>{action}</span> {tokenAmount && tokenSymbol ? (
             <>
               <span style={{ fontWeight: "500", color: "rgba(28, 28, 30, 0.85)" }}>
                 {tokenSymbol.length > 12 ? `${tokenSymbol.slice(0, 12)}...` : tokenSymbol}
@@ -665,7 +686,7 @@ function ActivityItem({
             </>
           ) : (
             <span style={{ fontWeight: "600" }}>{amount}</span>
-          )}
+          )}</span>
         </div>
         <div style={{
           fontSize: "11px",
@@ -698,6 +719,8 @@ function LeaderboardItem({
   strategyId,
   profit,
   avatarUrl,
+  chain,
+  chainLabel,
   onClick,
   onClone
 }: {
@@ -709,6 +732,8 @@ function LeaderboardItem({
   strategyId: string;
   profit: string;
   avatarUrl?: string;
+  chain?: string;
+  chainLabel?: string;
   onClick?: () => void;
   onClone?: (e: React.MouseEvent) => void;
 }) {
@@ -778,8 +803,12 @@ function LeaderboardItem({
           fontSize: "15px",
           fontWeight: "600",
           color: "#1c1c1e",
-          marginBottom: "4px"
+          marginBottom: "4px",
+          display: "flex",
+          alignItems: "center",
+          gap: "6px"
         }}>
+          <ChainIcon chain={chain} label={chainLabel} size={14} />
           {strategy.length > 18 ? `${strategy.slice(0, 18)}...` : strategy}
         </div>
         <div style={{
