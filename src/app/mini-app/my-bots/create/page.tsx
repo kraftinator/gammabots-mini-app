@@ -348,7 +348,7 @@ function CreateBotContent() {
         const token = await authenticate()
         if (!token) return
 
-        const response = await fetch('/api/bots/gas_reserve', {
+        const response = await fetch(`/api/bots/gas_reserve?chain=${encodeURIComponent(selectedChain)}`, {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -365,7 +365,7 @@ function CreateBotContent() {
     }
 
     fetchGasReserve()
-  }, [authenticate])
+  }, [authenticate, selectedChain])
 
   useEffect(() => {
     async function initializePage() {

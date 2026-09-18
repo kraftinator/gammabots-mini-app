@@ -131,13 +131,10 @@ Liquidate / Deactivate / Clone drawers.
 
 ## Known gaps (verified, unfixed)
 
-1. **`/api/bots/gas_reserve` does not exist.** `my-bots/create/page.tsx` fetches it, so `gasReserve`
-   and `botWalletAddress` stay `null` and the "Gas Reserve" / "Bot Wallet" review rows and the whole
-   **Total** line never render.
-2. Leaderboard timeframe defaults disagree: the page sends `7d`, the route falls back to `all_time`.
-3. `src/contexts/AuthContext.tsx` is a 0-byte file.
-4. Duplication to watch when editing: the strategy readable/raw renderer and condition formatter are
+1. Leaderboard timeframe defaults disagree: the page sends `7d`, the route falls back to `all_time`.
+2. `src/contexts/AuthContext.tsx` is a 0-byte file.
+3. Duplication to watch when editing: the strategy readable/raw renderer and condition formatter are
    copy-pasted between `BotDetailModal` and `StrategyDetailModal`; the status label/color ternary
    chain is duplicated between `my-bots/page.tsx` and `BotDetailModal`; the `Bot` interface is
    declared in both.
-5. `public/my-bots.html` is a leftover static mockup. `next.config.ts` is empty.
+4. `public/my-bots.html` is a leftover static mockup. `next.config.ts` is empty.
