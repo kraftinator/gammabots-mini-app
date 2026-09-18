@@ -92,6 +92,7 @@ export default function MiniApp() {
       moving_average: number;
       profit_share?: number;
       profit_threshold?: number;
+      chain?: string;
     }>,
     top_performers: [] as Array<{
       bot_id: number;
@@ -106,6 +107,7 @@ export default function MiniApp() {
       trades: number;
       active_seconds: number;
       display_name: string;
+      chain?: string;
     }>,
     user_bot_count: 0,
     user_exists: true,
@@ -340,6 +342,7 @@ export default function MiniApp() {
                         active_seconds: performer.active_seconds,
                         status: 'active',
                         display_name: performer.display_name,
+                        chain: performer.chain,
                       })
                       setIsBotModalOpen(true)
                     }}
@@ -352,6 +355,7 @@ export default function MiniApp() {
                       if (performer.token_name) params.set('token_name', performer.token_name)
                       if (performer.strategy_id) params.set('strategy_id', performer.strategy_id)
                       if (performer.moving_average) params.set('moving_avg', performer.moving_average.toString())
+                      if (performer.chain) params.set('chain', performer.chain)
                       const redirectUrl = `/mini-app/my-bots/create?${params.toString()}`
                       if (dashboardData.user_exists) {
                         router.push(redirectUrl)
@@ -437,6 +441,7 @@ export default function MiniApp() {
                     active_seconds: activity.active_seconds,
                     status: 'active',
                     display_name: activity.display_name,
+                    chain: activity.chain,
                   })
                   setIsBotModalOpen(true)
                 }}

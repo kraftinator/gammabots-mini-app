@@ -36,6 +36,7 @@ interface Bot {
   profit_threshold?: number
   trade_mode?: 'buy' | 'sell'
   display_name?: string
+  chain?: string
 }
 
 export default function MyBotsPage() {
@@ -269,6 +270,7 @@ export default function MyBotsPage() {
     if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
     if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
     if (bot.init !== undefined) params.set('eth_amount', bot.init.toString())
+    if (bot.chain) params.set('chain', bot.chain)
 
     router.push(`/mini-app/my-bots/create?${params.toString()}`)
   }

@@ -27,6 +27,7 @@ interface LeaderboardBot {
   profit_threshold?: number
   trades?: number
   display_name: string
+  chain?: string
 }
 
 function LeaderboardPageContent() {
@@ -226,6 +227,7 @@ function LeaderboardPageContent() {
       owner_farcaster_username: bot.owner_farcaster_username,
       status: 'active',
       display_name: bot.display_name,
+      chain: bot.chain,
     })
     setIsModalOpen(true)
   }
@@ -247,6 +249,7 @@ function LeaderboardPageContent() {
     if (bot.moving_average) params.set('moving_avg', bot.moving_average.toString())
     if (bot.profit_share !== undefined) params.set('profit_share', bot.profit_share.toString())
     if (bot.profit_threshold !== undefined) params.set('profit_threshold', bot.profit_threshold.toString())
+    if (bot.chain) params.set('chain', bot.chain)
 
     const redirectUrl = `/mini-app/my-bots/create?${params.toString()}`
 

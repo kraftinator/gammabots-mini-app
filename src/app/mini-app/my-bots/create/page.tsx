@@ -252,11 +252,13 @@ function CreateBotContent() {
     const profitShare = searchParams.get('profit_share')
     const profitThreshold = searchParams.get('profit_threshold')
     const ethAmount = searchParams.get('eth_amount')
+    const chainParam = searchParams.get('chain')
 
-    console.log('🔍 Create page params:', { tokenAddress, tokenSymbol, tokenName, strategyId, movingAvg, profitShare, profitThreshold, ethAmount })
+    console.log('🔍 Create page params:', { tokenAddress, tokenSymbol, tokenName, strategyId, movingAvg, profitShare, profitThreshold, ethAmount, chainParam })
 
-    if (tokenAddress || strategyId || movingAvg || profitShare || profitThreshold || ethAmount) {
+    if (tokenAddress || strategyId || movingAvg || profitShare || profitThreshold || ethAmount || chainParam) {
       const newMovingAvg = movingAvg || '10'
+      const clonedChain = chainParam || DEFAULT_CHAIN_NAME
 
       setFormData(prev => ({
         ...prev,
@@ -271,9 +273,14 @@ function CreateBotContent() {
       // Sync movingAvgInput with pre-populated value
       setMovingAvgInput(newMovingAvg)
 
+      // Clone the source bot's chain, so the token below belongs to the right chain
+      if (chainParam) {
+        setSelectedChain(chainParam)
+      }
+
       // If cloning with token_symbol, skip validation and mark as found
       if (tokenAddress && tokenSymbol) {
-        lastLookedUpAddressRef.current = tokenAddress
+        lastLookedUpAddressRef.current = `${clonedChain}:${tokenAddress}`
         setTokenValidation({
           status: 'found',
           symbol: tokenSymbol,
