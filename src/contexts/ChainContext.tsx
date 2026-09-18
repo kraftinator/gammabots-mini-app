@@ -44,7 +44,6 @@ export function ChainProvider({ children }: { children: ReactNode }) {
       if (response.ok) {
         const data = await response.json()
         const list: Chain[] = Array.isArray(data) ? data : data.chains || []
-        console.log('🔗 Chains loaded:', list)
         setChains(list)
         setChainsLoaded(true)
       } else {

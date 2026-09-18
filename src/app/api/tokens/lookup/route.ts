@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const address = searchParams.get('address')
+  const chain = searchParams.get('chain')
 
   // Get authorization header from request
   const authHeader = request.headers.get('Authorization')
@@ -32,7 +33,7 @@ export async function GET(request: NextRequest) {
   }
 
   try {
-    const url = `${apiUrl}/tokens/lookup?address=${encodeURIComponent(address)}`
+    const url = `${apiUrl}/tokens/lookup?address=${encodeURIComponent(address)}${chain ? `&chain=${encodeURIComponent(chain)}` : ''}`
 
     const response = await fetch(url, {
       method: 'GET',

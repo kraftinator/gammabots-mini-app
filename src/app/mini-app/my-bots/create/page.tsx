@@ -121,8 +121,11 @@ function CreateBotContent() {
 
   // Token lookup function
   const lookupToken = useCallback(async (address: string) => {
+    // Keyed by chain too: the same address is a different token per chain
+    const lookupKey = `${selectedChain}:${address}`
+
     // Skip if same as last lookup
-    if (address === lastLookedUpAddressRef.current) {
+    if (lookupKey === lastLookedUpAddressRef.current) {
       return
     }
 
@@ -132,7 +135,7 @@ function CreateBotContent() {
     }
 
     // Update last looked up address
-    lastLookedUpAddressRef.current = address
+    lastLookedUpAddressRef.current = lookupKey
 
     // Create new abort controller
     abortControllerRef.current = new AbortController()
@@ -150,7 +153,7 @@ function CreateBotContent() {
         return
       }
 
-      const response = await fetch(`/api/tokens/lookup?address=${encodeURIComponent(address)}`, {
+      const response = await fetch(`/api/tokens/lookup?address=${encodeURIComponent(address)}&chain=${encodeURIComponent(selectedChain)}`, {
         signal: abortControllerRef.current.signal,
         headers: {
           'Authorization': `Bearer ${token}`
@@ -183,7 +186,25 @@ function CreateBotContent() {
         error: 'Failed to validate token'
       })
     }
-  }, [authenticate])
+  }, [authenticate, selectedChain])
+
+  // Switching chain clears the token: the same address is a different token
+  // (or no token at all) on the other chain.
+  const handleChainSelect = useCallback((chainName: string) => {
+    if (chainName === selectedChain) return
+
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+    }
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+    lastLookedUpAddressRef.current = ''
+
+    setSelectedChain(chainName)
+    setFormData(prev => ({ ...prev, tokenAddress: '' }))
+    setTokenValidation({ status: 'empty' })
+  }, [selectedChain])
 
   // Handle token address change with debounce
   const handleTokenAddressChange = useCallback((value: string, skipDebounce = false) => {
@@ -462,7 +483,8 @@ function CreateBotContent() {
           token_address: formData.tokenAddress,
           eth_amount: parseFloat(formData.ethAmount),
           moving_average: parseInt(formData.movingAverage),
-          strategy_id: parseInt(formData.strategyId)
+          strategy_id: parseInt(formData.strategyId),
+          chain: selectedChain
         })
       })
 
@@ -501,7 +523,24 @@ function CreateBotContent() {
               if (!valueHex.startsWith('0x')) {
                 valueHex = `0x${parseInt(valueHex).toString(16)}`
               }
-              
+
+              // Pin the chain the backend quoted this payment for. Without this the
+              // wallet sends on whatever chain it happens to be on, which can be the
+              // wrong one now that more than one chain is supported.
+              if (responseData.payment.chainId) {
+                const targetChainId = `0x${BigInt(responseData.payment.chainId).toString(16)}`
+                const currentChainId = await sdk.wallet.ethProvider.request({
+                  method: 'eth_chainId',
+                })
+
+                if (typeof currentChainId !== 'string' || BigInt(currentChainId) !== BigInt(targetChainId)) {
+                  await sdk.wallet.ethProvider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: targetChainId as `0x${string}` }],
+                  })
+                }
+              }
+
               console.log('Sending transaction with params:', {
                 from: accounts[0],
                 to: responseData.payment.to,
@@ -718,7 +757,7 @@ function CreateBotContent() {
                     <button
                       key={chain.name}
                       type="button"
-                      onClick={() => setSelectedChain(chain.name)}
+                      onClick={() => handleChainSelect(chain.name)}
                       style={{
                         flex: 1,
                         padding: '14px 12px',
