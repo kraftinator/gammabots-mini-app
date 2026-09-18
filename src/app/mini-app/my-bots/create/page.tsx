@@ -4,6 +4,7 @@ import { useState, useEffect, useRef, useCallback, useMemo, Suspense } from 'rea
 import { useRouter, useSearchParams } from 'next/navigation'
 import BottomNavigation from '@/components/BottomNavigation'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
+import { useChains, DEFAULT_CHAIN_NAME } from '@/contexts/ChainContext'
 import { styles, colors } from '@/styles/common'
 
 const RECOMMENDED_STRATEGIES = process.env.NODE_ENV === 'development' ? [
@@ -39,6 +40,8 @@ function CreateBotContent() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const { authError, authenticate } = useQuickAuth()
+  const { chains, fetchChains } = useChains()
+  const [selectedChain, setSelectedChain] = useState(DEFAULT_CHAIN_NAME)
   const [isReady, setIsReady] = useState(false)
   const [isMiniApp, setIsMiniApp] = useState<boolean | null>(null)
   const [formData, setFormData] = useState(() => {
@@ -299,6 +302,18 @@ function CreateBotContent() {
 
     fetchStrategyOptions()
   }, [authenticate])
+
+  // Fetch the chain list (no-op if another page already loaded it)
+  useEffect(() => {
+    const loadChains = async () => {
+      const token = await authenticate()
+      if (token) {
+        await fetchChains(token)
+      }
+    }
+
+    loadChains()
+  }, [authenticate, fetchChains])
 
   // Fetch gas reserve on page load
   useEffect(() => {
@@ -685,6 +700,41 @@ function CreateBotContent() {
       {/* Form */}
       {!authError && (
         <form onSubmit={handleSubmit}>
+          {/* Chain */}
+          {chains.length > 0 && (
+            <div style={styles.formGroup}>
+              <label style={styles.formLabel}>
+                Chain
+              </label>
+              <div style={{ display: 'flex', gap: '12px' }}>
+                {chains.map((chain) => {
+                  const isSelected = selectedChain === chain.name
+                  return (
+                    <button
+                      key={chain.name}
+                      type="button"
+                      onClick={() => setSelectedChain(chain.name)}
+                      style={{
+                        flex: 1,
+                        padding: '14px 12px',
+                        fontSize: '14px',
+                        fontWeight: isSelected ? '600' : '500',
+                        color: isSelected ? '#0f766e' : colors.text.primary,
+                        backgroundColor: isSelected ? '#e0f7f5' : colors.background.card,
+                        border: `2px solid ${isSelected ? '#14b8a6' : '#e5e7eb'}`,
+                        borderRadius: '12px',
+                        cursor: 'pointer',
+                        textAlign: 'center',
+                      }}
+                    >
+                      {chain.display_name}
+                    </button>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
           {/* Strategy */}
           <div style={styles.formGroup}>
             <label style={styles.formLabel}>

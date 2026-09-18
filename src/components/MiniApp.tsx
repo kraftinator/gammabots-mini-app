@@ -9,6 +9,7 @@ import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { styles, colors, getChangeColor, getCircleColor, getRankColor } from '@/styles/common'
 import { formatTokenAmount } from '@/utils/formatters'
 import { useMe } from '@/contexts/MeContext'
+import { useChains } from '@/contexts/ChainContext'
 import RobotLogo from './RobotLogo'
 import BotDetailModal, { Bot } from './modals/BotDetailModal'
 
@@ -16,6 +17,7 @@ export default function MiniApp() {
   const router = useRouter()
   const { authLoading, authError, authenticate, navigateToMyBots } = useQuickAuth()
   const { me, fetchMe } = useMe()
+  const { fetchChains } = useChains()
   const [isReady, setIsReady] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [sdkRef, setSdkRef] = useState<typeof import('@farcaster/miniapp-sdk').sdk | null>(null)
@@ -145,6 +147,7 @@ export default function MiniApp() {
         if (token) {
           await Promise.all([
             fetchMe(token),
+            fetchChains(token),
             fetchDashboardData(token)
           ])
         }
