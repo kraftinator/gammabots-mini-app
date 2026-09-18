@@ -73,6 +73,7 @@ export default function MiniApp() {
     trending_tokens: [] as Array<{
       token_symbol: string;
       volume_24h_usd: number;
+      chain?: string;
     }>,
     recent_activity: [] as Array<{
       action: string;
@@ -398,7 +399,7 @@ export default function MiniApp() {
               const colors = ["#3b82f6", "#10b981", "#f59e0b", "#ef4444"];
               return (
                 <TokenCard
-                  key={token.token_symbol}
+                  key={`${token.chain ?? ''}-${token.token_symbol}`}
                   name={token.token_symbol}
                   tvl={`${formatCurrency(Number(token.volume_24h_usd))} VOL`}
                   borderColor={colors[index % colors.length]}

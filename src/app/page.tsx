@@ -20,6 +20,7 @@ export default function Home() {
     trending_tokens: [] as Array<{
       token_symbol: string;
       volume_24h_usd: number;
+      chain?: string;
     }>,
     recent_activity: [] as Array<{
       action: string;
@@ -356,7 +357,7 @@ export default function Home() {
                     const colors = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444']
                     return (
                       <div
-                        key={token.token_symbol}
+                        key={`${token.chain ?? ''}-${token.token_symbol}`}
                         style={{
                           backgroundColor: 'white',
                           borderRadius: '12px',
