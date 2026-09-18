@@ -108,6 +108,11 @@ function CreateBotContent() {
     return true
   }, [tokenValidation.status, formData.strategyId, formData.ethAmount, formData.movingAverage])
 
+  // Get selected chain label for review box
+  const selectedChainLabel = useMemo(() => {
+    return chains.find(c => c.name === selectedChain)?.display_name
+  }, [chains, selectedChain])
+
   // Get selected strategy label for review box
   const selectedStrategyLabel = useMemo(() => {
     const strategy = strategyOptions.find(s => s.strategy_id === formData.strategyId)
@@ -988,6 +993,14 @@ function CreateBotContent() {
                 }
               `}</style>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                {selectedChainLabel && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <span style={{ fontSize: '13px', color: '#888' }}>Chain</span>
+                    <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e' }}>
+                      {selectedChainLabel}
+                    </span>
+                  </div>
+                )}
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <span style={{ fontSize: '13px', color: '#888' }}>Token</span>
                   <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e' }}>
