@@ -8,6 +8,7 @@ import { colors, getProfitColor } from '@/styles/common'
 import { formatTokenAmount, formatActiveTime } from '@/utils/formatters'
 import { useQuickAuth } from '@/hooks/useQuickAuth'
 import { useMe } from '@/contexts/MeContext'
+import { useChains, DEFAULT_CHAIN_NAME } from '@/contexts/ChainContext'
 import { copyToClipboard } from '@/utils/clipboard'
 
 export interface Bot {
@@ -36,6 +37,7 @@ export interface Bot {
   active_seconds?: number
   owner_farcaster_username?: string
   display_name?: string
+  chain?: string
 }
 
 interface BotDetailModalProps {
@@ -114,6 +116,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   const router = useRouter()
   const { authenticate } = useQuickAuth()
   const { me } = useMe()
+  const { explorerTxUrl } = useChains()
   const isOwner = me?.id != null && bot?.bot_owner_id != null && String(me.id) === String(bot.bot_owner_id)
 
   const [isMetricsExpanded, setIsMetricsExpanded] = useState(false)
@@ -1797,14 +1800,30 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                     </div>
                     <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                       <span style={{ fontSize: '14px', color: '#888' }}>Tx Hash</span>
-                      <a
-                        href={`https://basescan.org/tx/${selectedTrade.tx_hash}`}
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        style={{ fontSize: '14px', fontWeight: '500', color: '#14b8a6', fontFamily: 'ui-monospace, monospace', textDecoration: 'none' }}
-                      >
-                        {selectedTrade.tx_hash.slice(0, 6)}...{selectedTrade.tx_hash.slice(-4)}
-                      </a>
+                      {(() => {
+                        // Trades belong to the bot's chain, so the explorer follows it.
+                        const txUrl = explorerTxUrl(bot.chain || DEFAULT_CHAIN_NAME, selectedTrade.tx_hash)
+                        const shortHash = `${selectedTrade.tx_hash.slice(0, 6)}...${selectedTrade.tx_hash.slice(-4)}`
+
+                        if (!txUrl) {
+                          return (
+                            <span style={{ fontSize: '14px', fontWeight: '500', color: '#333', fontFamily: 'ui-monospace, monospace' }}>
+                              {shortHash}
+                            </span>
+                          )
+                        }
+
+                        return (
+                          <a
+                            href={txUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            style={{ fontSize: '14px', fontWeight: '500', color: '#14b8a6', fontFamily: 'ui-monospace, monospace', textDecoration: 'none' }}
+                          >
+                            {shortHash}
+                          </a>
+                        )
+                      })()}
                     </div>
                   </div>
                 )}
