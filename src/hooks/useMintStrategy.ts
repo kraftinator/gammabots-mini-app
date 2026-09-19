@@ -6,6 +6,9 @@ import { useQuickAuth } from '@/hooks/useQuickAuth'
 
 export type MintStage = 'idle' | 'validating' | 'approving' | 'minting' | 'finalizing'
 
+// Strategies are minted on Base regardless of which chain a bot runs on.
+const STRATEGY_NFT_CHAIN_ID = '0x2105' as const // 8453
+
 export interface InsufficientBalanceInfo {
   required: string
   current: string
@@ -116,6 +119,20 @@ export function useMintStrategy(): UseMintStrategyResult {
 
           if (!accounts || accounts.length === 0) {
             throw new Error('No wallet accounts available')
+          }
+
+          // Strategy NFTs live on Base only, but the wallet may be left on
+          // another chain (funding a bot switches it), so pin it before the
+          // approve and mint transactions go out.
+          const currentChainId = await sdk.wallet.ethProvider.request({
+            method: 'eth_chainId',
+          })
+
+          if (typeof currentChainId !== 'string' || BigInt(currentChainId) !== BigInt(STRATEGY_NFT_CHAIN_ID)) {
+            await sdk.wallet.ethProvider.request({
+              method: 'wallet_switchEthereumChain',
+              params: [{ chainId: STRATEGY_NFT_CHAIN_ID }],
+            })
           }
 
           // Get mint details to check if approval is needed
