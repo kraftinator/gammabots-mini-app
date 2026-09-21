@@ -557,7 +557,7 @@ function TokenCard({ name, tvl, chain, chainLabel }: { name: string; tvl: string
         minWidth: 0,
         ...styles.textPrimary
       }}>
-        <ChainIcon chain={chain} label={chainLabel} size={14} />
+        <ChainIcon chain={chain} label={chainLabel} />
         <span style={{
           overflow: "hidden",
           textOverflow: "ellipsis",
@@ -677,7 +677,7 @@ function ActivityItem({
           gap: "6px",
           ...styles.textPrimary
         }}>
-          <ChainIcon chain={chain} label={chainLabel} size={14} />
+          <ChainIcon chain={chain} label={chainLabel} />
           <span><span style={{ fontWeight: "600" }}>{action}</span> {tokenAmount && tokenSymbol ? (
             <>
               <span style={{ fontWeight: "500", color: "rgba(28, 28, 30, 0.85)" }}>
@@ -808,7 +808,7 @@ function LeaderboardItem({
           alignItems: "center",
           gap: "6px"
         }}>
-          <ChainIcon chain={chain} label={chainLabel} size={14} />
+          <ChainIcon chain={chain} label={chainLabel} />
           {strategy.length > 18 ? `${strategy.slice(0, 18)}...` : strategy}
         </div>
         <div style={{

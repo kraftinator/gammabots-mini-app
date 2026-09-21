@@ -14,7 +14,7 @@ interface ChainIconProps {
 // only need a file dropped in.
 const iconPath = (chain: string) => `/chains/${chain}.jpg`
 
-export default function ChainIcon({ chain, label, size = 16 }: ChainIconProps) {
+export default function ChainIcon({ chain, label, size = 12 }: ChainIconProps) {
   const [failed, setFailed] = useState(false)
 
   if (!chain || failed) return null
@@ -30,7 +30,9 @@ export default function ChainIcon({ chain, label, size = 16 }: ChainIconProps) {
       style={{
         width: `${size}px`,
         height: `${size}px`,
-        borderRadius: '4px',
+        borderRadius: '3px',
+        // Secondary to the text beside it: recede rather than compete with names and P&L
+        opacity: 0.6,
         flexShrink: 0,
         objectFit: 'cover',
         display: 'block',
