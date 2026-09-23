@@ -701,7 +701,7 @@ function ActivityItem({
         <div style={{
           fontSize: "15px",
           fontWeight: "700",
-          color: profitPct !== undefined ? (profitPct >= 2 ? "#34c759" : (profitPct <= -2 ? "#ff3b30" : "#8e8e93")) : "#8e8e93"
+          color: profitPct !== undefined ? (profitPct > 0 ? "#34c759" : (profitPct <= -2 ? "#ff3b30" : "#8e8e93")) : "#8e8e93"
         }}>
           {profit}
         </div>
