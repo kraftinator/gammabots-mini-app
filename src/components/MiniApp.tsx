@@ -19,6 +19,10 @@ import BotDetailModal, { Bot } from './modals/BotDetailModal'
 // MetricCard, so flipping this back on is all that is needed to restore them.
 const SHOW_METRIC_CHANGES = false
 
+// TVL is hidden while the number is small enough that a quiet spell would
+// show $0. Nothing is deleted; flip this back on and TVL returns to row one.
+const SHOW_TVL = false
+
 export default function MiniApp() {
   const router = useRouter()
   const { authLoading, authError, authenticate, navigateToMyBots } = useQuickAuth()
@@ -50,7 +54,7 @@ export default function MiniApp() {
 
       if (response.ok) {
         const data = await response.json()
-        setDashboardData(data)
+        setDashboardData(prev => ({ ...prev, ...data }))
       } else {
         console.warn('🚨 Frontend: Failed to fetch dashboard metrics data:', response.status)
       }
@@ -69,6 +73,7 @@ export default function MiniApp() {
     strategies: 0,
     total_profits: 0,
     trades_executed: 0,
+    tokens_traded: 0,
     active_bots_change_24h: 0,
     tvl_change_24h: 0,
     volume_24h_change_24h: 0,
@@ -247,10 +252,14 @@ export default function MiniApp() {
         <div style={{ marginBottom: "24px" }}>
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "12px", marginBottom: "12px" }}>
             <MetricCard label="Active Bots" value={dashboardData.active_bots.toLocaleString()} change={formatPercentageChange(dashboardData.active_bots_change_24h)} loading={dashboardLoading} />
-            <MetricCard label="TVL" value={formatCurrency(dashboardData.tvl)} change={formatPercentageChange(dashboardData.tvl_change_24h)} loading={dashboardLoading} />
+            {SHOW_TVL ? (
+              <MetricCard label="TVL" value={formatCurrency(dashboardData.tvl)} change={formatPercentageChange(dashboardData.tvl_change_24h)} loading={dashboardLoading} />
+            ) : (
+              <MetricCard label="Tokens Traded" value={dashboardData.tokens_traded.toLocaleString()} change="" loading={dashboardLoading} />
+            )}
             <MetricCard label="72h Volume" value={formatCurrency(dashboardData.volume_24h)} change={formatPercentageChange(dashboardData.volume_24h_change_24h)} loading={dashboardLoading} />
           </div>
-          <div style={{ display: "flex", justifyContent: "center", gap: "12px", marginTop: "12px" }}>
+          <div style={{ display: "flex", justifyContent: "flex-start", gap: "12px", marginTop: "12px" }}>
             <div style={{ width: "calc((100% - 24px) / 3)" }}>
               <MetricCard label="Strategies" value={dashboardData.strategies.toLocaleString()} change="" loading={dashboardLoading} onClick={() => router.push('/mini-app/strategies')} />
             </div>
