@@ -14,6 +14,11 @@ import RobotLogo from './RobotLogo'
 import ChainIcon from './ChainIcon'
 import BotDetailModal, { Bot } from './modals/BotDetailModal'
 
+// 24h change percentages are hidden for now: on small absolute numbers they
+// swing wildly in both directions. The values are still fetched and passed to
+// MetricCard, so flipping this back on is all that is needed to restore them.
+const SHOW_METRIC_CHANGES = false
+
 export default function MiniApp() {
   const router = useRouter()
   const { authLoading, authError, authenticate, navigateToMyBots } = useQuickAuth()
@@ -503,7 +508,14 @@ export default function MiniApp() {
 // Component helpers
 function MetricCard({ label, value, change, loading, onClick }: { label: string; value: string; change?: string; loading?: boolean; onClick?: () => void }) {
   return (
-    <div style={{ ...styles.metricCard, cursor: onClick ? "pointer" : "default", position: "relative" }} onClick={onClick}>
+    <div style={{
+      ...styles.metricCard,
+      cursor: onClick ? "pointer" : "default",
+      position: "relative",
+      // With the change line hidden there is nothing to space against, so
+      // centre label and value instead of leaving a gap at the bottom.
+      ...(SHOW_METRIC_CHANGES ? {} : { justifyContent: "center", gap: "4px" })
+    }} onClick={onClick}>
       <div style={styles.textSmall}>{label}</div>
       {onClick && (
         <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="#8e8e93" strokeWidth="2.5" style={{ position: "absolute", right: "8px", top: "50%", transform: "translateY(-50%)" }}>
@@ -521,7 +533,7 @@ function MetricCard({ label, value, change, loading, onClick }: { label: string;
       ) : (
         <div style={{ fontSize: "16px", fontWeight: "700", ...styles.textPrimary }}>{value}</div>
       )}
-      {loading ? (
+      {SHOW_METRIC_CHANGES && (loading ? (
         <div style={{
           height: "12px",
           width: "40%",
@@ -532,7 +544,7 @@ function MetricCard({ label, value, change, loading, onClick }: { label: string;
         <div style={{ fontSize: "10px", fontWeight: "600", color: getChangeColor(change), height: "12px", lineHeight: "12px" }}>
           {change || "\u00A0"}
         </div>
-      )}
+      ))}
     </div>
   )
 }
