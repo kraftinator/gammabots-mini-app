@@ -8,6 +8,16 @@ import { useChains, DEFAULT_CHAIN_NAME } from '@/contexts/ChainContext'
 import { styles, colors } from '@/styles/common'
 import { copyToClipboard } from '@/utils/clipboard'
 
+// Token lookup rejection codes. The API also returns its own message; these
+// take precedence so the wording stays ours. Unknown codes fall back to it.
+const TOKEN_ERROR_MESSAGES: Record<string, string> = {
+  reverseBlocked: "Token can't be sold once bought.",
+  contractCalls: 'Token is possibly malicious.',
+  obviouslyTaxed: 'This token charges a tax on every trade.',
+  tooHighImpact: 'Price impact too high.',
+  missingData: 'Insufficient data.',
+}
+
 const RECOMMENDED_STRATEGIES = process.env.NODE_ENV === 'development' ? [
   {
     id: 14,
@@ -80,6 +90,7 @@ function CreateBotContent() {
     symbol?: string
     name?: string
     chain?: string
+    code?: string
     error?: string
   }>({ status: 'empty' })
 
@@ -169,6 +180,7 @@ function CreateBotContent() {
         setTokenValidation({
           status: 'not_found',
           chain: data.chain,
+          code: data.code,
           error: data.error || 'Token not found'
         })
       }
@@ -634,7 +646,16 @@ function CreateBotContent() {
         } catch (e) {
           console.log('Failed to parse response as JSON')
         }
-        const errorMessage = errorData?.error || errorData?.message || `Failed to create bot (${response.status})`
+        // A rejected token comes back as code INVALID_TOKEN with the specific
+        // reasons in a separate array, already ordered most specific first.
+        const rejectionReason = (errorData?.reasons as string[] | undefined)
+          ?.find((reason) => TOKEN_ERROR_MESSAGES[reason])
+
+        const errorMessage = (rejectionReason && TOKEN_ERROR_MESSAGES[rejectionReason])
+          || (errorData?.code && TOKEN_ERROR_MESSAGES[errorData.code])
+          || errorData?.error
+          || errorData?.message
+          || `Failed to create bot (${response.status})`
         console.log('Error message to display:', errorMessage)
         setSubmitError(errorMessage)
         // Scroll to top to show error
@@ -861,7 +882,9 @@ function CreateBotContent() {
                 color: '#ef4444',
                 fontSize: '14px'
               }}>
-                Token not found{tokenValidation.chain ? ` on ${tokenValidation.chain}` : ''}
+                {(tokenValidation.code && TOKEN_ERROR_MESSAGES[tokenValidation.code])
+                  || tokenValidation.error
+                  || `Token not found${tokenValidation.chain ? ` on ${tokenValidation.chain}` : ''}`}
               </p>
             )}
           </div>
