@@ -173,7 +173,23 @@ function EventTimeline({ events }: { events: BotEvent[] }) {
   )
 }
 
-function PriceHistory({ points }: { points: PricePoint[] }) {
+// Prices land once a minute; a trade's exact second won't match, so both are
+// bucketed to the minute.
+function minuteKey(iso: string): string {
+  return iso.slice(0, 16)
+}
+
+function PriceHistory({ points, trades }: { points: PricePoint[]; trades: Trade[] | null }) {
+  // Which sides traded in each minute of the window
+  const sidesByMinute = new Map<string, Set<string>>()
+  for (const trade of trades || []) {
+    if (!trade.executed_at) continue
+    const key = minuteKey(new Date(trade.executed_at).toISOString())
+    const side = trade.side.toLowerCase()
+    if (!sidesByMinute.has(key)) sidesByMinute.set(key, new Set())
+    sidesByMinute.get(key)!.add(side)
+  }
+
   // Oldest first, so the window reads forward in time like the event list.
   const rows = points
 
@@ -203,6 +219,24 @@ function PriceHistory({ points }: { points: PricePoint[] }) {
           >
             <span style={{ fontSize: '13px', color: '#6b7280', fontFamily: 'monospace' }}>
               {formatTime(point.t)}
+            </span>
+            {/* Fixed width so the price column stays aligned whether or not a
+                trade landed in this minute */}
+            <span style={{ width: '28px', flexShrink: 0, display: 'flex', gap: '2px', justifyContent: 'center' }}>
+              {(() => {
+                const sides = sidesByMinute.get(minuteKey(new Date(point.t).toISOString()))
+                if (!sides) return null
+                return (
+                  <>
+                    {sides.has('buy') && (
+                      <span title="Buy" style={{ fontSize: '10px', color: '#14b8a6', lineHeight: '1' }}>&#9650;</span>
+                    )}
+                    {sides.has('sell') && (
+                      <span title="Sell" style={{ fontSize: '10px', color: '#f97316', lineHeight: '1' }}>&#9660;</span>
+                    )}
+                  </>
+                )
+              })()}
             </span>
             <span style={{ fontSize: '13px', fontWeight: '500', color: '#0891b2', fontFamily: 'monospace' }}>
               {(() => {
@@ -480,7 +514,8 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   // Fetch trades when expanded
   useEffect(() => {
     const fetchTrades = async () => {
-      if (!isTradesExpanded || tradesData || tradesLoading || !bot) return
+      // Prices marks buys and sells too, so either section can trigger this
+      if ((!isTradesExpanded && !isPricesExpanded) || tradesData || tradesLoading || !bot) return
 
       try {
         setTradesLoading(true)
@@ -515,7 +550,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
     }
 
     fetchTrades()
-  }, [isTradesExpanded, tradesData, tradesLoading, authenticate, bot])
+  }, [isTradesExpanded, isPricesExpanded, tradesData, tradesLoading, authenticate, bot])
 
   // Fetch events when expanded
   useEffect(() => {
@@ -1491,7 +1526,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 )}
 
                 {!pricesLoading && !pricesError && pricesData && pricesData.length > 0 && (
-                  <PriceHistory points={pricesData} />
+                  <PriceHistory points={pricesData} trades={tradesData} />
                 )}
               </div>
             )}
