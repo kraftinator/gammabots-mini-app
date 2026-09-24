@@ -102,7 +102,8 @@ interface BotEvent {
 
 const PRICES_HOURS = 6
 // Short lists render in full; longer ones get their own scroll area.
-const PRICES_SCROLL_THRESHOLD = 50
+const PRICES_SCROLL_THRESHOLD = 100
+const EVENTS_SCROLL_THRESHOLD = 50
 
 interface PricePoint {
   t: string
@@ -144,7 +145,7 @@ function EventTimeline({ events }: { events: BotEvent[] }) {
 
   return (
     <div>
-      <div style={rows.length > PRICES_SCROLL_THRESHOLD ? { maxHeight: '260px', overflowY: 'auto' } : undefined}>
+      <div style={rows.length > EVENTS_SCROLL_THRESHOLD ? { maxHeight: '260px', overflowY: 'auto' } : undefined}>
         {rows.map((event, index) => (
           <div
             key={`${event.at}-${index}`}
@@ -266,7 +267,7 @@ function PriceHistory({ points, trades, detailed }: { points: PricePoint[]; trad
                   fontFamily: 'monospace',
                   color: change === null || change === 0 ? '#8e8e93' : (change > 0 ? '#34c759' : '#ff3b30'),
                 }}>
-                  {change === null ? '\u2014' : `${change > 0 ? '+' : ''}${change.toFixed(3)}%`}
+                  {change === null || change === 0 ? '\u2014' : `${change > 0 ? '+' : ''}${change.toFixed(3)}%`}
                 </span>
               )
             })()}
