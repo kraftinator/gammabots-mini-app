@@ -179,7 +179,7 @@ function minuteKey(iso: string): string {
   return iso.slice(0, 16)
 }
 
-function PriceHistory({ points, trades }: { points: PricePoint[]; trades: Trade[] | null }) {
+function PriceHistory({ points, trades, detailed }: { points: PricePoint[]; trades: Trade[] | null; detailed: boolean }) {
   // Which sides traded in each minute of the window
   const sidesByMinute = new Map<string, Set<string>>()
   for (const trade of trades || []) {
@@ -200,7 +200,17 @@ function PriceHistory({ points, trades }: { points: PricePoint[]; trades: Trade[
     const day = String(date.getUTCDate()).padStart(2, '0')
     const hours = String(date.getUTCHours()).padStart(2, '0')
     const minutes = String(date.getUTCMinutes()).padStart(2, '0')
-    return `${month}-${day} ${hours}:${minutes}`
+    return detailed ? `${hours}:${minutes}` : `${month}-${day} ${hours}:${minutes}`
+  }
+
+  // Move against the previous price. Rows are oldest first, so that is the row
+  // above; the first row has nothing to compare against.
+  const changeFor = (index: number): number | null => {
+    if (index === 0) return null
+    const previous = parseFloat(String(rows[index - 1].price))
+    const current = parseFloat(String(rows[index].price))
+    if (!isFinite(previous) || !isFinite(current) || previous === 0) return null
+    return ((current - previous) / previous) * 100
   }
 
   return (
@@ -244,6 +254,22 @@ function PriceHistory({ points, trades }: { points: PricePoint[]; trades: Trade[
                 return isFinite(value) ? value.toFixed(18) : '--'
               })()}
             </span>
+            {detailed && (() => {
+              const change = changeFor(index)
+              return (
+                <span style={{
+                  width: '68px',
+                  flexShrink: 0,
+                  textAlign: 'right',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  fontFamily: 'monospace',
+                  color: change === null || change === 0 ? '#8e8e93' : (change > 0 ? '#34c759' : '#ff3b30'),
+                }}>
+                  {change === null ? '\u2014' : `${change > 0 ? '+' : ''}${change.toFixed(3)}%`}
+                </span>
+              )
+            })()}
           </div>
         ))}
       </div>
@@ -283,6 +309,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   const [eventsError, setEventsError] = useState<string | null>(null)
 
   const [isPricesExpanded, setIsPricesExpanded] = useState(false)
+  const [pricesDetailed, setPricesDetailed] = useState(false)
   const [pricesData, setPricesData] = useState<PricePoint[] | null>(null)
   const [pricesLoading, setPricesLoading] = useState(false)
   const [pricesError, setPricesError] = useState<string | null>(null)
@@ -321,6 +348,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
     setEventsData(null)
     setEventsError(null)
     setIsPricesExpanded(false)
+    setPricesDetailed(false)
     setPricesData(null)
     setPricesError(null)
     setIsStrategyExpanded(false)
@@ -1507,6 +1535,39 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 padding: '12px 16px',
                 margin: '8px 16px 10px'
               }}>
+                {/* Simple | Detailed, same shape as the strategy view toggle */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '10px' }}>
+                  <button
+                    onClick={() => setPricesDetailed(false)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      fontSize: '13px',
+                      fontWeight: pricesDetailed ? '400' : '600',
+                      color: pricesDetailed ? '#888' : '#f59e0b',
+                      cursor: 'pointer',
+                      padding: '0',
+                    }}
+                  >
+                    Simple
+                  </button>
+                  <span style={{ fontSize: '13px', color: '#ccc' }}>|</span>
+                  <button
+                    onClick={() => setPricesDetailed(true)}
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      fontSize: '13px',
+                      fontWeight: pricesDetailed ? '600' : '400',
+                      color: pricesDetailed ? '#f59e0b' : '#888',
+                      cursor: 'pointer',
+                      padding: '0',
+                    }}
+                  >
+                    Detailed
+                  </button>
+                </div>
+
                 {pricesLoading && (
                   <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 0' }}>
                     <Loader2 style={{ width: '20px', height: '20px', color: '#f59e0b', animation: 'spin 1s linear infinite' }} />
@@ -1526,7 +1587,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 )}
 
                 {!pricesLoading && !pricesError && pricesData && pricesData.length > 0 && (
-                  <PriceHistory points={pricesData} trades={tradesData} />
+                  <PriceHistory points={pricesData} trades={tradesData} detailed={pricesDetailed} />
                 )}
               </div>
             )}
