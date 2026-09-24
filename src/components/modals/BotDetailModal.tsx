@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power, Copy } from 'lucide-react'
+import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power, Copy, TrendingUp } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { colors, getProfitColor } from '@/styles/common'
 import { formatTokenAmount, formatActiveTime } from '@/utils/formatters'
@@ -94,6 +94,13 @@ interface Trade {
   step: number | null
 }
 
+const PRICES_HOURS = 6
+
+interface PricePoint {
+  t: string
+  price: string | number
+}
+
 interface StrategyStep {
   c: string
   a: string[]
@@ -111,6 +118,54 @@ interface StrategyData {
   created_at: string
   description?: string
   risk_level?: string
+}
+
+function PriceHistory({ points }: { points: PricePoint[] }) {
+  // Newest first: the recent end of the window is what you look at.
+  const rows = [...points].reverse()
+
+  const formatTime = (iso: string): string => {
+    const date = new Date(iso)
+    if (isNaN(date.getTime())) return '--'
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(date.getUTCDate()).padStart(2, '0')
+    const hours = String(date.getUTCHours()).padStart(2, '0')
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+    return `${month}-${day} ${hours}:${minutes}`
+  }
+
+  return (
+    <div>
+      {/* A 24h window can be well over a thousand points, so keep it scrollable */}
+      <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
+        {rows.map((point, index) => (
+          <div
+            key={`${point.t}-${index}`}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '8px 0',
+              borderBottom: index < rows.length - 1 ? '1px solid #f0f0f0' : 'none',
+            }}
+          >
+            <span style={{ fontSize: '13px', color: '#6b7280', fontFamily: 'monospace' }}>
+              {formatTime(point.t)}
+            </span>
+            <span style={{ fontSize: '13px', fontWeight: '500', color: '#0891b2', fontFamily: 'monospace' }}>
+              {(() => {
+                const value = parseFloat(String(point.price))
+                return isFinite(value) ? value.toFixed(18) : '--'
+              })()}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: '11px', color: '#9ca3af', textAlign: 'right', paddingTop: '8px' }}>
+        {rows.length} {rows.length === 1 ? 'price' : 'prices'} · times UTC
+      </div>
+    </div>
+  )
 }
 
 export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onRefresh, from, userExists = true, onSignUpRequired }: BotDetailModalProps) {
@@ -135,6 +190,11 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   const [tradeMetricsData, setTradeMetricsData] = useState<Record<string, string | number | boolean> | null>(null)
   const [tradeMetricsLoading, setTradeMetricsLoading] = useState(false)
   const [tradeMetricsError, setTradeMetricsError] = useState<string | null>(null)
+
+  const [isPricesExpanded, setIsPricesExpanded] = useState(false)
+  const [pricesData, setPricesData] = useState<PricePoint[] | null>(null)
+  const [pricesLoading, setPricesLoading] = useState(false)
+  const [pricesError, setPricesError] = useState<string | null>(null)
 
   const [isStrategyExpanded, setIsStrategyExpanded] = useState(false)
   const [strategyView, setStrategyView] = useState<'logic' | 'gammascript'>('logic')
@@ -166,6 +226,9 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
     setTradesData(null)
     setTradesError(null)
     setSelectedTrade(null)
+    setIsPricesExpanded(false)
+    setPricesData(null)
+    setPricesError(null)
     setIsStrategyExpanded(false)
     setStrategyData(null)
     setStrategyError(null)
@@ -393,6 +456,46 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
 
     fetchTrades()
   }, [isTradesExpanded, tradesData, tradesLoading, authenticate, bot])
+
+  // Fetch prices when expanded, and again when the range changes
+  useEffect(() => {
+    const fetchPrices = async () => {
+      if (!isPricesExpanded || !bot) return
+
+      try {
+        setPricesLoading(true)
+        setPricesError(null)
+
+        const token = await authenticate()
+        if (!token) {
+          setPricesError('Cannot load prices at this time.')
+          return
+        }
+
+        const response = await fetch(`/api/bots/${bot.bot_id}/prices?hours=${PRICES_HOURS}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          setPricesError('Cannot load prices at this time.')
+          return
+        }
+
+        const data = await response.json()
+        setPricesData(data.prices || [])
+      } catch (error) {
+        console.error('Error fetching prices:', error)
+        setPricesError('Cannot load prices at this time.')
+      } finally {
+        setPricesLoading(false)
+      }
+    }
+
+    fetchPrices()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isPricesExpanded, bot?.bot_id])
 
   // Fetch strategy when expanded (only once per bot)
   useEffect(() => {
@@ -1167,6 +1270,66 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                       </div>
                     ))}
                   </div>
+                )}
+              </div>
+            )}
+          </div>
+          )}
+
+          {isOwner && (
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                margin: '0 16px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                marginBottom: isPricesExpanded ? '0' : '10px'
+              }}
+              onClick={() => setIsPricesExpanded(!isPricesExpanded)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <TrendingUp style={{ width: '16px', height: '16px', color: '#f59e0b' }} />
+                <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Prices</span>
+              </div>
+              {isPricesExpanded ? (
+                <ChevronUp style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+              ) : (
+                <ChevronDown style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+              )}
+            </div>
+
+            {isPricesExpanded && (
+              <div style={{
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                margin: '8px 16px 10px'
+              }}>
+                {pricesLoading && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 0' }}>
+                    <Loader2 style={{ width: '20px', height: '20px', color: '#f59e0b', animation: 'spin 1s linear infinite' }} />
+                  </div>
+                )}
+
+                {pricesError && (
+                  <div style={{ color: '#6b7280', fontSize: '13px', padding: '10px 0', textAlign: 'center' }}>
+                    {pricesError}
+                  </div>
+                )}
+
+                {!pricesLoading && !pricesError && pricesData && pricesData.length === 0 && (
+                  <div style={{ color: '#6b7280', fontSize: '13px', padding: '10px 0', textAlign: 'center' }}>
+                    No price history for this range
+                  </div>
+                )}
+
+                {!pricesLoading && !pricesError && pricesData && pricesData.length > 0 && (
+                  <PriceHistory points={pricesData} />
                 )}
               </div>
             )}
