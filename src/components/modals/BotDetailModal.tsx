@@ -95,6 +95,8 @@ interface Trade {
 }
 
 const PRICES_HOURS = 6
+// Short lists render in full; longer ones get their own scroll area.
+const PRICES_SCROLL_THRESHOLD = 50
 
 interface PricePoint {
   t: string
@@ -136,8 +138,7 @@ function PriceHistory({ points }: { points: PricePoint[] }) {
 
   return (
     <div>
-      {/* A 24h window can be well over a thousand points, so keep it scrollable */}
-      <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
+      <div style={rows.length > PRICES_SCROLL_THRESHOLD ? { maxHeight: '260px', overflowY: 'auto' } : undefined}>
         {rows.map((point, index) => (
           <div
             key={`${point.t}-${index}`}
