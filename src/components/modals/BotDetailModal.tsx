@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power, Copy, TrendingUp } from 'lucide-react'
+import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power, Copy, TrendingUp, ListOrdered } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { colors, getProfitColor } from '@/styles/common'
 import { formatTokenAmount, formatActiveTime } from '@/utils/formatters'
@@ -94,6 +94,12 @@ interface Trade {
   step: number | null
 }
 
+interface BotEvent {
+  at: string
+  type: string
+  label: string
+}
+
 const PRICES_HOURS = 6
 // Short lists render in full; longer ones get their own scroll area.
 const PRICES_SCROLL_THRESHOLD = 50
@@ -122,9 +128,54 @@ interface StrategyData {
   risk_level?: string
 }
 
+function EventTimeline({ events }: { events: BotEvent[] }) {
+  // The API returns newest first; read the bot's life in order instead.
+  const rows = [...events].reverse()
+
+  const formatTime = (iso: string): string => {
+    const date = new Date(iso)
+    if (isNaN(date.getTime())) return '--'
+    const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+    const day = String(date.getUTCDate()).padStart(2, '0')
+    const hours = String(date.getUTCHours()).padStart(2, '0')
+    const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+    return `${month}-${day} ${hours}:${minutes}`
+  }
+
+  return (
+    <div>
+      <div style={rows.length > PRICES_SCROLL_THRESHOLD ? { maxHeight: '260px', overflowY: 'auto' } : undefined}>
+        {rows.map((event, index) => (
+          <div
+            key={`${event.at}-${index}`}
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              gap: '12px',
+              padding: '8px 0',
+              borderBottom: index < rows.length - 1 ? '1px solid #f0f0f0' : 'none',
+            }}
+          >
+            <span style={{ fontSize: '13px', color: '#6b7280', fontFamily: 'monospace', flexShrink: 0 }}>
+              {formatTime(event.at)}
+            </span>
+            <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e', textAlign: 'right' }}>
+              {event.label}
+            </span>
+          </div>
+        ))}
+      </div>
+      <div style={{ fontSize: '11px', color: '#9ca3af', textAlign: 'right', paddingTop: '8px' }}>
+        {rows.length} {rows.length === 1 ? 'event' : 'events'} · times UTC
+      </div>
+    </div>
+  )
+}
+
 function PriceHistory({ points }: { points: PricePoint[] }) {
-  // Newest first: the recent end of the window is what you look at.
-  const rows = [...points].reverse()
+  // Oldest first, so the window reads forward in time like the event list.
+  const rows = points
 
   const formatTime = (iso: string): string => {
     const date = new Date(iso)
@@ -192,6 +243,11 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   const [tradeMetricsLoading, setTradeMetricsLoading] = useState(false)
   const [tradeMetricsError, setTradeMetricsError] = useState<string | null>(null)
 
+  const [isEventsExpanded, setIsEventsExpanded] = useState(false)
+  const [eventsData, setEventsData] = useState<BotEvent[] | null>(null)
+  const [eventsLoading, setEventsLoading] = useState(false)
+  const [eventsError, setEventsError] = useState<string | null>(null)
+
   const [isPricesExpanded, setIsPricesExpanded] = useState(false)
   const [pricesData, setPricesData] = useState<PricePoint[] | null>(null)
   const [pricesLoading, setPricesLoading] = useState(false)
@@ -227,6 +283,9 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
     setTradesData(null)
     setTradesError(null)
     setSelectedTrade(null)
+    setIsEventsExpanded(false)
+    setEventsData(null)
+    setEventsError(null)
     setIsPricesExpanded(false)
     setPricesData(null)
     setPricesError(null)
@@ -457,6 +516,45 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
 
     fetchTrades()
   }, [isTradesExpanded, tradesData, tradesLoading, authenticate, bot])
+
+  // Fetch events when expanded
+  useEffect(() => {
+    const fetchEvents = async () => {
+      if (!isEventsExpanded || eventsData || eventsLoading || !bot) return
+
+      try {
+        setEventsLoading(true)
+        setEventsError(null)
+
+        const token = await authenticate()
+        if (!token) {
+          setEventsError('Cannot load events at this time.')
+          return
+        }
+
+        const response = await fetch(`/api/bots/${bot.bot_id}/events`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          setEventsError('Cannot load events at this time.')
+          return
+        }
+
+        const data = await response.json()
+        setEventsData(data.events || [])
+      } catch (error) {
+        console.error('Error fetching events:', error)
+        setEventsError('Cannot load events at this time.')
+      } finally {
+        setEventsLoading(false)
+      }
+    }
+
+    fetchEvents()
+  }, [isEventsExpanded, eventsData, eventsLoading, authenticate, bot])
 
   // Fetch prices when expanded, and again when the range changes
   useEffect(() => {
@@ -1276,6 +1374,69 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
             )}
           </div>
           )}
+
+          {isOwner && (
+          <div>
+            <div
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                padding: '12px 16px',
+                margin: '0 16px',
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                cursor: 'pointer',
+                marginBottom: isEventsExpanded ? '0' : '10px'
+              }}
+              onClick={() => setIsEventsExpanded(!isEventsExpanded)}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <ListOrdered style={{ width: '16px', height: '16px', color: '#6366f1' }} />
+                <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>
+                  Events{eventsData ? ` (${eventsData.length})` : ''}
+                </span>
+              </div>
+              {isEventsExpanded ? (
+                <ChevronUp style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+              ) : (
+                <ChevronDown style={{ width: '16px', height: '16px', color: '#9ca3af' }} />
+              )}
+            </div>
+
+            {isEventsExpanded && (
+              <div style={{
+                backgroundColor: '#f9fafb',
+                borderRadius: '12px',
+                padding: '12px 16px',
+                margin: '8px 16px 10px'
+              }}>
+                {eventsLoading && (
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '20px 0' }}>
+                    <Loader2 style={{ width: '20px', height: '20px', color: '#6366f1', animation: 'spin 1s linear infinite' }} />
+                  </div>
+                )}
+
+                {eventsError && (
+                  <div style={{ color: '#6b7280', fontSize: '13px', padding: '10px 0', textAlign: 'center' }}>
+                    {eventsError}
+                  </div>
+                )}
+
+                {!eventsLoading && !eventsError && eventsData && eventsData.length === 0 && (
+                  <div style={{ color: '#6b7280', fontSize: '13px', padding: '10px 0', textAlign: 'center' }}>
+                    No events yet
+                  </div>
+                )}
+
+                {!eventsLoading && !eventsError && eventsData && eventsData.length > 0 && (
+                  <EventTimeline events={eventsData} />
+                )}
+              </div>
+            )}
+          </div>
+          )}
+
 
           {isOwner && (
           <div>
