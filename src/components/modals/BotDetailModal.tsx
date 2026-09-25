@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power, Copy, TrendingUp, ListOrdered } from 'lucide-react'
+import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power, Copy, TrendingUp, ListOrdered, RefreshCw } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
 import { colors, getProfitColor } from '@/styles/common'
 import { formatTokenAmount, formatActiveTime } from '@/utils/formatters'
@@ -311,6 +311,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
 
   const [isPricesExpanded, setIsPricesExpanded] = useState(false)
   const [pricesDetailed, setPricesDetailed] = useState(false)
+  const [pricesRefreshing, setPricesRefreshing] = useState(false)
   const [pricesData, setPricesData] = useState<PricePoint[] | null>(null)
   const [pricesLoading, setPricesLoading] = useState(false)
   const [pricesError, setPricesError] = useState<string | null>(null)
@@ -350,6 +351,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
     setEventsError(null)
     setIsPricesExpanded(false)
     setPricesDetailed(false)
+    setPricesRefreshing(false)
     setPricesData(null)
     setPricesError(null)
     setIsStrategyExpanded(false)
@@ -619,6 +621,51 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
 
     fetchEvents()
   }, [isEventsExpanded, eventsData, eventsLoading, authenticate, bot])
+
+  // Manual refresh. Leaves the current rows in place so a long list does not
+  // collapse mid-read, and refetches trades too: the buy and sell markers come
+  // from them, so stale trades would mark the wrong rows.
+  const handleRefreshPrices = async () => {
+    if (!bot || pricesRefreshing) return
+
+    try {
+      setPricesRefreshing(true)
+      setPricesError(null)
+
+      const token = await authenticate()
+      if (!token) {
+        setPricesError('Cannot load prices at this time.')
+        return
+      }
+
+      const [pricesResponse, tradesResponse] = await Promise.all([
+        fetch(`/api/bots/${bot.bot_id}/prices?hours=${PRICES_HOURS}`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        }),
+        fetch(`/api/bots/${bot.bot_id}/trades`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+      ])
+
+      if (!pricesResponse.ok) {
+        setPricesError('Cannot load prices at this time.')
+        return
+      }
+
+      const pricesJson = await pricesResponse.json()
+      setPricesData(pricesJson.prices || [])
+
+      if (tradesResponse.ok) {
+        const tradesJson = await tradesResponse.json()
+        setTradesData((tradesJson.trades || []).filter((t: Trade) => t.status === 'completed'))
+      }
+    } catch (error) {
+      console.error('Error refreshing prices:', error)
+      setPricesError('Cannot load prices at this time.')
+    } finally {
+      setPricesRefreshing(false)
+    }
+  }
 
   // Fetch prices when expanded, and again when the range changes
   useEffect(() => {
@@ -1566,6 +1613,31 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                     }}
                   >
                     Detailed
+                  </button>
+
+                  <button
+                    onClick={handleRefreshPrices}
+                    disabled={pricesRefreshing || pricesLoading}
+                    title="Refresh prices"
+                    aria-label="Refresh prices"
+                    style={{
+                      marginLeft: 'auto',
+                      background: 'none',
+                      border: 'none',
+                      padding: '0',
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: pricesRefreshing || pricesLoading ? 'default' : 'pointer',
+                    }}
+                  >
+                    <RefreshCw
+                      style={{
+                        width: '14px',
+                        height: '14px',
+                        color: '#8e8e93',
+                        animation: pricesRefreshing ? 'spin 1s linear infinite' : 'none',
+                      }}
+                    />
                   </button>
                 </div>
 
