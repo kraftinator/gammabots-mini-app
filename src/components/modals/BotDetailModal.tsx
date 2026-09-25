@@ -310,7 +310,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   const [eventsError, setEventsError] = useState<string | null>(null)
 
   const [isPricesExpanded, setIsPricesExpanded] = useState(false)
-  const [pricesDetailed, setPricesDetailed] = useState(false)
+  const [pricesDetailed, setPricesDetailed] = useState(true)
   const [pricesRefreshing, setPricesRefreshing] = useState(false)
   const [pricesData, setPricesData] = useState<PricePoint[] | null>(null)
   const [pricesLoading, setPricesLoading] = useState(false)
@@ -350,7 +350,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
     setEventsData(null)
     setEventsError(null)
     setIsPricesExpanded(false)
-    setPricesDetailed(false)
+    setPricesDetailed(true)
     setPricesRefreshing(false)
     setPricesData(null)
     setPricesError(null)
