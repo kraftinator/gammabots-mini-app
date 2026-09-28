@@ -667,7 +667,7 @@ export default function MyBotsPage() {
                       {(Number(bot.trades) > 0) && (
                       <div style={{
                         ...styles.myBotProfit,
-                        color: getProfitColor(Number(bot.profit_percent) || 0, true)
+                        color: getProfitColor(Number(bot.profit_percent) || 0, false)
                       }}>
                         {Number(bot.profit_percent) > 0 ? '+' : ''}{Number(bot.profit_percent || 0).toFixed(2)}%
                       </div>
