@@ -180,11 +180,22 @@ function minuteKey(iso: string): string {
   return iso.slice(0, 16)
 }
 
-function PriceHistory({ points, trades, detailed, onSelectTrade }: {
+function formatMetricsAt(iso: string): string {
+  const date = new Date(iso)
+  if (isNaN(date.getTime())) return '--'
+  const month = String(date.getUTCMonth() + 1).padStart(2, '0')
+  const day = String(date.getUTCDate()).padStart(2, '0')
+  const hours = String(date.getUTCHours()).padStart(2, '0')
+  const minutes = String(date.getUTCMinutes()).padStart(2, '0')
+  return `${month}-${day} ${hours}:${minutes}`
+}
+
+function PriceHistory({ points, trades, detailed, onSelectTrade, onSelectPrice }: {
   points: PricePoint[]
   trades: Trade[] | null
   detailed: boolean
   onSelectTrade: (trade: Trade) => void
+  onSelectPrice: (point: PricePoint) => void
 }) {
   // Trades that landed in each minute of the window
   const tradesByMinute = new Map<string, Trade[]>()
@@ -227,6 +238,7 @@ function PriceHistory({ points, trades, detailed, onSelectTrade }: {
             onClick={() => {
               const minuteTrades = tradesByMinute.get(minuteKey(new Date(point.t).toISOString()))
               if (minuteTrades?.length) onSelectTrade(minuteTrades[0])
+              else onSelectPrice(point)
             }}
             style={{
               display: 'flex',
@@ -234,7 +246,7 @@ function PriceHistory({ points, trades, detailed, onSelectTrade }: {
               alignItems: 'center',
               padding: '8px 0',
               borderBottom: index < rows.length - 1 ? '1px solid #f0f0f0' : 'none',
-              cursor: tradesByMinute.has(minuteKey(new Date(point.t).toISOString())) ? 'pointer' : 'default',
+              cursor: 'pointer',
             }}
           >
             <span style={{ fontSize: '13px', color: '#6b7280', fontFamily: 'monospace' }}>
@@ -329,6 +341,12 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   const [isPricesExpanded, setIsPricesExpanded] = useState(false)
   const [pricesDetailed, setPricesDetailed] = useState(true)
   const [pricesRefreshing, setPricesRefreshing] = useState(false)
+
+  // A price row with no trade: metrics are computed for that timestamp
+  const [selectedPrice, setSelectedPrice] = useState<PricePoint | null>(null)
+  const [priceMetricsData, setPriceMetricsData] = useState<Record<string, string | number | boolean | null> | null>(null)
+  const [priceMetricsLoading, setPriceMetricsLoading] = useState(false)
+  const [priceMetricsError, setPriceMetricsError] = useState<string | null>(null)
   const [pricesData, setPricesData] = useState<PricePoint[] | null>(null)
   const [pricesLoading, setPricesLoading] = useState(false)
   const [pricesError, setPricesError] = useState<string | null>(null)
@@ -369,6 +387,9 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
     setIsPricesExpanded(false)
     setPricesDetailed(true)
     setPricesRefreshing(false)
+    setSelectedPrice(null)
+    setPriceMetricsData(null)
+    setPriceMetricsError(null)
     setPricesData(null)
     setPricesError(null)
     setIsStrategyExpanded(false)
@@ -431,7 +452,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   }
 
   // Helper function to format metric values
-  const formatMetricValue = (value: string | number | boolean, key?: string): string => {
+  const formatMetricValue = (value: string | number | boolean | null | undefined, key?: string): string => {
     if (value === null || value === undefined) return '--'
     if (typeof value === 'number') {
       if (isNaN(value)) return '--'
@@ -647,6 +668,56 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
 
     fetchEvents()
   }, [isEventsExpanded, eventsData, eventsLoading, authenticate, bot])
+
+  // Metrics as they stood at a past minute
+  useEffect(() => {
+    const fetchPriceMetrics = async () => {
+      if (!selectedPrice || !bot) return
+
+      try {
+        setPriceMetricsLoading(true)
+        setPriceMetricsError(null)
+        setPriceMetricsData(null)
+
+        const token = await authenticate()
+        if (!token) {
+          setPriceMetricsError('Cannot load metrics at this time.')
+          return
+        }
+
+        const at = encodeURIComponent(new Date(selectedPrice.t).toISOString())
+        const response = await fetch(`/api/bots/${bot.bot_id}/metrics?at=${at}`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          setPriceMetricsError('Cannot load metrics at this time.')
+          return
+        }
+
+        const data = await response.json()
+        const metrics: Record<string, string | number | boolean | null> = { ...(data.metrics || data) }
+
+        // Keys the API could not compute for this minute. Showing them as --
+        // keeps rows in place instead of appearing and vanishing minute to minute.
+        for (const key of (data.unavailable as string[] | undefined) || []) {
+          if (!(key in metrics)) metrics[key] = null
+        }
+
+        setPriceMetricsData(metrics)
+      } catch (error) {
+        console.error('Error fetching price metrics:', error)
+        setPriceMetricsError('Cannot load metrics at this time.')
+      } finally {
+        setPriceMetricsLoading(false)
+      }
+    }
+
+    fetchPriceMetrics()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPrice?.t, bot?.bot_id])
 
   // Manual refresh. Leaves the current rows in place so a long list does not
   // collapse mid-read, and refetches trades too: the buy and sell markers come
@@ -1686,7 +1757,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 )}
 
                 {!pricesLoading && !pricesError && pricesData && pricesData.length > 0 && (
-                  <PriceHistory points={pricesData} trades={tradesData} detailed={pricesDetailed} onSelectTrade={(trade) => openTrade(trade, 'metrics')} />
+                  <PriceHistory points={pricesData} trades={tradesData} detailed={pricesDetailed} onSelectTrade={(trade) => openTrade(trade, 'metrics')} onSelectPrice={setSelectedPrice} />
                 )}
               </div>
             )}
@@ -2178,6 +2249,132 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
             <span style={{ color: '#1c1c1e', fontSize: '14px', fontWeight: '500' }}>Clone</span>
           </button>
         </div>
+        )}
+
+        {/* Price Metrics Drawer: a minute with no trade, so metrics are
+            computed for that timestamp rather than read off a trade */}
+        {selectedPrice && (
+          <div
+            onClick={() => setSelectedPrice(null)}
+            style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              right: 0,
+              bottom: 0,
+              backgroundColor: 'rgba(0,0,0,0.4)',
+              display: 'flex',
+              alignItems: 'flex-end',
+              animation: 'fadeIn 0.2s ease',
+              zIndex: 1001,
+            }}
+          >
+            <div
+              onClick={(e) => e.stopPropagation()}
+              style={{
+                width: '100%',
+                backgroundColor: '#fff',
+                borderTopLeftRadius: '20px',
+                borderTopRightRadius: '20px',
+                padding: '0 20px 32px 20px',
+                animation: 'slideUp 0.25s ease',
+              }}
+            >
+              {/* Drag handle */}
+              <div style={{ display: 'flex', justifyContent: 'center', padding: '12px 0' }}>
+                <div style={{ width: '36px', height: '4px', backgroundColor: '#ddd', borderRadius: '2px' }} />
+              </div>
+
+              {/* Header */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'baseline', gap: '10px' }}>
+                  <span style={{ fontSize: '18px', fontWeight: '700', color: '#f59e0b' }}>
+                    {formatMetricsAt(selectedPrice.t)}
+                  </span>
+                  <span style={{ fontSize: '14px', color: '#888' }}>Metrics</span>
+                </div>
+                <button
+                  onClick={() => setSelectedPrice(null)}
+                  style={{
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    backgroundColor: '#f5f5f5',
+                    border: 'none',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#666" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', paddingBottom: '12px' }}>
+                <span style={{ fontSize: '14px', color: '#888' }}>Price</span>
+                <span style={{ fontSize: '14px', fontWeight: '500', color: '#0891b2', fontFamily: 'monospace' }}>
+                  {(() => {
+                    const value = parseFloat(String(selectedPrice.price))
+                    return isFinite(value) ? value.toFixed(18) : '--'
+                  })()}
+                </span>
+              </div>
+
+              <div style={{ maxHeight: '70vh', overflowY: 'auto', paddingRight: '8px' }}>
+                {priceMetricsLoading && (
+                  <div style={{ display: 'flex', justifyContent: 'center', padding: '20px 0' }}>
+                    <Loader2 style={{ width: '20px', height: '20px', color: '#f59e0b', animation: 'spin 1s linear infinite' }} />
+                  </div>
+                )}
+
+                {priceMetricsError && (
+                  <div style={{ color: '#6b7280', fontSize: '13px', padding: '10px 0', textAlign: 'center' }}>
+                    {priceMetricsError}
+                  </div>
+                )}
+
+                {!priceMetricsLoading && !priceMetricsError && priceMetricsData && (
+                  <>
+                    {metricsCategories.filter(c => !['Position & Trades', 'Profitability', 'Timing'].includes(c.title)).map((category, categoryIndex) => {
+                      // Only some metrics can be reconstructed for a past minute
+                      const availableKeys = category.keys.filter(key => key in priceMetricsData)
+                      if (availableKeys.length === 0) return null
+
+                      return (
+                        <div key={category.title}>
+                          <div style={{
+                            color: '#14b8a6',
+                            fontSize: '11px',
+                            fontWeight: '700',
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.5px',
+                            paddingTop: categoryIndex === 0 ? '4px' : '16px',
+                            paddingBottom: '8px',
+                            borderBottom: '1px solid #e5e7eb',
+                            marginBottom: '4px'
+                          }}>
+                            {category.title}
+                          </div>
+
+                          {availableKeys.map(key => (
+                            <div key={key} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '6px 0' }}>
+                              <span style={{ color: '#6b7280', fontSize: '13px', fontWeight: '400' }}>{key}</span>
+                              <span style={{ color: '#0891b2', fontSize: '13px', fontFamily: 'monospace', fontWeight: '500' }}>
+                                {formatMetricValue(priceMetricsData[key], key)}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )
+                    })}
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
         )}
 
         {/* Trade Details Drawer */}

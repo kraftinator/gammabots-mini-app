@@ -10,7 +10,9 @@ export const GET = withAuth(async (request: NextRequest, auth) => {
   console.log('Get Bot Metrics API called for bot:', id)
 
   try {
-    const apiUrl = `${auth.apiUrl}/bots/${id}/metrics`
+    // Forward query parameters (notably `at`, for metrics at a past minute)
+    const searchParams = request.nextUrl.searchParams.toString()
+    const apiUrl = `${auth.apiUrl}/bots/${id}/metrics${searchParams ? `?${searchParams}` : ''}`
 
     console.log('Proxying to Rails backend:', apiUrl)
 
