@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power, Copy, TrendingUp, ListOrdered, RefreshCw } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -180,15 +180,19 @@ function minuteKey(iso: string): string {
   return iso.slice(0, 16)
 }
 
-function PriceHistory({ points, trades, detailed }: { points: PricePoint[]; trades: Trade[] | null; detailed: boolean }) {
-  // Which sides traded in each minute of the window
-  const sidesByMinute = new Map<string, Set<string>>()
+function PriceHistory({ points, trades, detailed, onSelectTrade }: {
+  points: PricePoint[]
+  trades: Trade[] | null
+  detailed: boolean
+  onSelectTrade: (trade: Trade) => void
+}) {
+  // Trades that landed in each minute of the window
+  const tradesByMinute = new Map<string, Trade[]>()
   for (const trade of trades || []) {
     if (!trade.executed_at) continue
     const key = minuteKey(new Date(trade.executed_at).toISOString())
-    const side = trade.side.toLowerCase()
-    if (!sidesByMinute.has(key)) sidesByMinute.set(key, new Set())
-    sidesByMinute.get(key)!.add(side)
+    if (!tradesByMinute.has(key)) tradesByMinute.set(key, [])
+    tradesByMinute.get(key)!.push(trade)
   }
 
   // Oldest first, so the window reads forward in time like the event list.
@@ -220,12 +224,17 @@ function PriceHistory({ points, trades, detailed }: { points: PricePoint[]; trad
         {rows.map((point, index) => (
           <div
             key={`${point.t}-${index}`}
+            onClick={() => {
+              const minuteTrades = tradesByMinute.get(minuteKey(new Date(point.t).toISOString()))
+              if (minuteTrades?.length) onSelectTrade(minuteTrades[0])
+            }}
             style={{
               display: 'flex',
               justifyContent: 'space-between',
               alignItems: 'center',
               padding: '8px 0',
               borderBottom: index < rows.length - 1 ? '1px solid #f0f0f0' : 'none',
+              cursor: tradesByMinute.has(minuteKey(new Date(point.t).toISOString())) ? 'pointer' : 'default',
             }}
           >
             <span style={{ fontSize: '13px', color: '#6b7280', fontFamily: 'monospace' }}>
@@ -234,20 +243,28 @@ function PriceHistory({ points, trades, detailed }: { points: PricePoint[]; trad
             {/* Fixed width so the price column stays aligned whether or not a
                 trade landed in this minute */}
             <span style={{ width: '28px', flexShrink: 0, display: 'flex', gap: '2px', justifyContent: 'center' }}>
-              {(() => {
-                const sides = sidesByMinute.get(minuteKey(new Date(point.t).toISOString()))
-                if (!sides) return null
+              {(tradesByMinute.get(minuteKey(new Date(point.t).toISOString())) || []).map((trade) => {
+                const isBuy = trade.side.toLowerCase() === 'buy'
                 return (
-                  <>
-                    {sides.has('buy') && (
-                      <span title="Buy" style={{ fontSize: '10px', color: '#14b8a6', lineHeight: '1' }}>&#9650;</span>
-                    )}
-                    {sides.has('sell') && (
-                      <span title="Sell" style={{ fontSize: '10px', color: '#f97316', lineHeight: '1' }}>&#9660;</span>
-                    )}
-                  </>
+                  <span
+                    key={trade.id}
+                    onClick={(e) => {
+                      // A minute can hold both a buy and a sell; open the one clicked
+                      e.stopPropagation()
+                      onSelectTrade(trade)
+                    }}
+                    title={isBuy ? 'Buy' : 'Sell'}
+                    style={{
+                      fontSize: '10px',
+                      color: isBuy ? '#14b8a6' : '#f97316',
+                      lineHeight: '1',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    {isBuy ? '\u25B2' : '\u25BC'}
+                  </span>
                 )
-              })()}
+              })}
             </span>
             <span style={{ fontSize: '13px', fontWeight: '500', color: '#0891b2', fontFamily: 'monospace' }}>
               {(() => {
@@ -366,9 +383,18 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
     setDeactivateError(null)
   }, [bot?.bot_id])
 
+  // Which tab the drawer opens on: Trades opens the trade, a marked price row
+  // opens the metrics that were captured at that moment.
+  const tradeTabOnOpenRef = useRef<'trade' | 'metrics'>('trade')
+
+  const openTrade = (trade: Trade, tab: 'trade' | 'metrics' = 'trade') => {
+    tradeTabOnOpenRef.current = tab
+    setSelectedTrade(trade)
+  }
+
   // Reset trade metrics state when selected trade changes
   useEffect(() => {
-    setTradeDetailTab('trade')
+    setTradeDetailTab(tradeTabOnOpenRef.current)
     setTradeMetricsData(null)
     setTradeMetricsError(null)
   }, [selectedTrade?.id])
@@ -1439,7 +1465,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                     {tradesData.map((trade, index) => (
                       <div
                         key={trade.id}
-                        onClick={() => setSelectedTrade(trade)}
+                        onClick={() => openTrade(trade)}
                         style={{
                           display: 'flex',
                           justifyContent: 'space-between',
@@ -1660,7 +1686,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 )}
 
                 {!pricesLoading && !pricesError && pricesData && pricesData.length > 0 && (
-                  <PriceHistory points={pricesData} trades={tradesData} detailed={pricesDetailed} />
+                  <PriceHistory points={pricesData} trades={tradesData} detailed={pricesDetailed} onSelectTrade={(trade) => openTrade(trade, 'metrics')} />
                 )}
               </div>
             )}
