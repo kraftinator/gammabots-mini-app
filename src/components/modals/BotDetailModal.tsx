@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Activity, ChevronDown, ChevronUp, ArrowLeftRight, Edit3, Banknote, Loader2, GitBranch, Power, Copy, TrendingUp, ListOrdered, RefreshCw } from 'lucide-react'
 import { formatDistanceToNow } from 'date-fns'
@@ -100,6 +100,8 @@ interface BotEvent {
   label: string
 }
 
+type PricesMode = 'simple' | 'detailed' | 'compact'
+
 const PRICES_HOURS = 6
 // Short lists render in full; longer ones get their own scroll area.
 const PRICES_SCROLL_THRESHOLD = 100
@@ -190,13 +192,45 @@ function formatMetricsAt(iso: string): string {
   return `${month}-${day} ${hours}:${minutes}`
 }
 
-function PriceHistory({ points, trades, detailed, onSelectTrade, onSelectPrice }: {
+function PriceHistory({ points, trades, mode, onSelectTrade, onSelectPrice }: {
   points: PricePoint[]
   trades: Trade[] | null
-  detailed: boolean
+  mode: PricesMode
   onSelectTrade: (trade: Trade) => void
   onSelectPrice: (point: PricePoint) => void
 }) {
+  const detailed = mode !== 'simple'
+  const compact = mode === 'compact'
+
+  // One multiplier for the whole window, sized so the largest price has four
+  // digits. A price dipping below a decade then reads as shorter, rather than
+  // resetting and looking like a crash.
+  const numericPrices = points.map(p => parseFloat(String(p.price))).filter(v => isFinite(v) && v > 0)
+  const scaleExponent = numericPrices.length ? 3 - Math.floor(Math.log10(Math.max(...numericPrices))) : 0
+  const scaleFactor = Math.pow(10, scaleExponent)
+
+  // Gain against the entry price: the first buy of whichever cycle the bot was
+  // in at that minute, which is what initBuyPrice tracks.
+  const sortedTrades = [...(trades || [])].sort(
+    (a, b) => new Date(a.executed_at).getTime() - new Date(b.executed_at).getTime()
+  )
+
+  const plAt = (iso: string, price: number): number | null => {
+    if (!isFinite(price)) return null
+
+    const upTo = new Date(iso).getTime()
+    const soFar = sortedTrades.filter(t => new Date(t.executed_at).getTime() <= upTo)
+    if (soFar.length === 0) return null
+
+    const currentCycle = soFar[soFar.length - 1].cycle
+    const firstBuy = soFar.filter(t => t.cycle === currentCycle).find(t => t.side.toLowerCase() === 'buy')
+    if (!firstBuy) return null
+
+    const entry = parseFloat(firstBuy.price)
+    if (!isFinite(entry) || entry === 0) return null
+
+    return (price / entry - 1) * 100
+  }
   // Trades that landed in each minute of the window
   const tradesByMinute = new Map<string, Trade[]>()
   for (const trade of trades || []) {
@@ -242,8 +276,9 @@ function PriceHistory({ points, trades, detailed, onSelectTrade, onSelectPrice }
             }}
             style={{
               display: 'flex',
-              justifyContent: 'space-between',
+              justifyContent: compact ? 'flex-start' : 'space-between',
               alignItems: 'center',
+              gap: compact ? '12px' : undefined,
               padding: '8px 0',
               borderBottom: index < rows.length - 1 ? '1px solid #f0f0f0' : 'none',
               cursor: 'pointer',
@@ -278,10 +313,17 @@ function PriceHistory({ points, trades, detailed, onSelectTrade, onSelectPrice }
                 )
               })}
             </span>
-            <span style={{ fontSize: '13px', fontWeight: '500', color: '#0891b2', fontFamily: 'monospace' }}>
+            <span style={{
+              fontSize: '13px',
+              fontWeight: '500',
+              color: '#0891b2',
+              fontFamily: 'monospace',
+              ...(compact ? { textAlign: 'left' as const } : {}),
+            }}>
               {(() => {
                 const value = parseFloat(String(point.price))
-                return isFinite(value) ? value.toFixed(18) : '--'
+                if (!isFinite(value)) return '--'
+                return compact ? String(Math.round(value * scaleFactor)) : value.toFixed(18)
               })()}
             </span>
             {detailed && (() => {
@@ -290,7 +332,7 @@ function PriceHistory({ points, trades, detailed, onSelectTrade, onSelectPrice }
                 <span style={{
                   width: '68px',
                   flexShrink: 0,
-                  textAlign: 'right',
+                  textAlign: compact ? 'left' : 'right',
                   fontSize: '13px',
                   fontWeight: '500',
                   fontFamily: 'monospace',
@@ -300,10 +342,27 @@ function PriceHistory({ points, trades, detailed, onSelectTrade, onSelectPrice }
                 </span>
               )
             })()}
+            {compact && (() => {
+              const pl = plAt(point.t, parseFloat(String(point.price)))
+              return (
+                <span style={{
+                  width: '68px',
+                  flexShrink: 0,
+                  textAlign: 'left',
+                  fontSize: '13px',
+                  fontWeight: '500',
+                  fontFamily: 'monospace',
+                  color: pl === null || pl === 0 ? '#8e8e93' : (pl > 0 ? '#34c759' : '#ff3b30'),
+                }}>
+                  {pl === null ? '\u2014' : `${pl > 0 ? '+' : ''}${pl.toFixed(3)}%`}
+                </span>
+              )
+            })()}
           </div>
         ))}
       </div>
       <div style={{ fontSize: '11px', color: '#9ca3af', textAlign: 'right', paddingTop: '8px' }}>
+        {compact && scaleExponent !== 0 && <>prices &times;10<sup>-{scaleExponent}</sup> · </>}
         {rows.length} {rows.length === 1 ? 'price' : 'prices'} · times UTC
       </div>
     </div>
@@ -339,7 +398,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
   const [eventsError, setEventsError] = useState<string | null>(null)
 
   const [isPricesExpanded, setIsPricesExpanded] = useState(false)
-  const [pricesDetailed, setPricesDetailed] = useState(true)
+  const [pricesMode, setPricesMode] = useState<PricesMode>('detailed')
   const [pricesRefreshing, setPricesRefreshing] = useState(false)
 
   // A price row with no trade: metrics are computed for that timestamp
@@ -385,7 +444,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
     setEventsData(null)
     setEventsError(null)
     setIsPricesExpanded(false)
-    setPricesDetailed(true)
+    setPricesMode('detailed')
     setPricesRefreshing(false)
     setSelectedPrice(null)
     setPriceMetricsData(null)
@@ -1680,37 +1739,28 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 padding: '12px 16px',
                 margin: '8px 16px 10px'
               }}>
-                {/* Simple | Detailed, same shape as the strategy view toggle */}
+                {/* Simple | Detailed | Compact, same shape as the strategy view toggle */}
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', paddingBottom: '10px' }}>
-                  <button
-                    onClick={() => setPricesDetailed(false)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: '13px',
-                      fontWeight: pricesDetailed ? '400' : '600',
-                      color: pricesDetailed ? '#888' : '#f59e0b',
-                      cursor: 'pointer',
-                      padding: '0',
-                    }}
-                  >
-                    Simple
-                  </button>
-                  <span style={{ fontSize: '13px', color: '#ccc' }}>|</span>
-                  <button
-                    onClick={() => setPricesDetailed(true)}
-                    style={{
-                      background: 'none',
-                      border: 'none',
-                      fontSize: '13px',
-                      fontWeight: pricesDetailed ? '600' : '400',
-                      color: pricesDetailed ? '#f59e0b' : '#888',
-                      cursor: 'pointer',
-                      padding: '0',
-                    }}
-                  >
-                    Detailed
-                  </button>
+                  {(['simple', 'detailed', 'compact'] as PricesMode[]).map((mode, index) => (
+                    <React.Fragment key={mode}>
+                      {index > 0 && <span style={{ fontSize: '13px', color: '#ccc' }}>|</span>}
+                      <button
+                        onClick={() => setPricesMode(mode)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          fontSize: '13px',
+                          fontWeight: pricesMode === mode ? '600' : '400',
+                          color: pricesMode === mode ? '#f59e0b' : '#888',
+                          cursor: 'pointer',
+                          padding: '0',
+                          textTransform: 'capitalize',
+                        }}
+                      >
+                        {mode}
+                      </button>
+                    </React.Fragment>
+                  ))}
 
                   <button
                     onClick={handleRefreshPrices}
@@ -1757,7 +1807,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 )}
 
                 {!pricesLoading && !pricesError && pricesData && pricesData.length > 0 && (
-                  <PriceHistory points={pricesData} trades={tradesData} detailed={pricesDetailed} onSelectTrade={(trade) => openTrade(trade, 'metrics')} onSelectPrice={setSelectedPrice} />
+                  <PriceHistory points={pricesData} trades={tradesData} mode={pricesMode} onSelectTrade={(trade) => openTrade(trade, 'metrics')} onSelectPrice={setSelectedPrice} />
                 )}
               </div>
             )}
