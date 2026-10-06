@@ -98,6 +98,7 @@ interface BotEvent {
   at: string
   type: string
   label: string
+  detail?: Record<string, string | number | null>
 }
 
 type PricesMode = 'simple' | 'detailed' | 'compact'
@@ -164,7 +165,15 @@ function EventTimeline({ events }: { events: BotEvent[] }) {
               {formatTime(event.at)}
             </span>
             <span style={{ fontSize: '13px', fontWeight: '500', color: '#1c1c1e', textAlign: 'right' }}>
-              {event.label}
+              {(() => {
+                // Name the spread that caused the skip, rather than the API's
+                // generic "spread too wide"
+                const spread = event.detail?.spread_pct
+                if (event.type === 'spread_too_wide' && spread !== undefined && spread !== null) {
+                  return `Skipped buy: spread was ${Number(spread)}%`
+                }
+                return event.label
+              })()}
             </span>
           </div>
         ))}
