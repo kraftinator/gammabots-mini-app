@@ -194,7 +194,7 @@ function GammaScriptPageContent() {
         backgroundColor: '#fff',
       }}>
         <button
-          onClick={() => router.push('/mini-app/strategies/create')}
+          onClick={() => router.push('/mini-app/strategies')}
           style={{
             display: 'flex',
             alignItems: 'center',

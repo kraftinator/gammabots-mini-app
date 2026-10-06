@@ -132,7 +132,7 @@ function StrategiesPageContent() {
 
   // Handle Create Strategy - requires auth
   const handleCreateStrategy = async () => {
-    const redirectUrl = '/mini-app/strategies/create'
+    const redirectUrl = '/mini-app/strategies/create/gammascript'
 
     // If user hasn't signed up, show signup modal
     if (!userExists) {
