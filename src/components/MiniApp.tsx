@@ -321,8 +321,6 @@ export default function MiniApp() {
             )}
             <p style={{ fontSize: '12px', marginTop: dashboardData.user_exists ? '0' : '12px', marginBottom: '8px' }}>
               <a onClick={() => router.push('/mini-app/docs/how-it-works')} style={{ color: 'rgba(59, 130, 246, 0.8)', cursor: 'pointer' }}>How it works</a>
-              <span style={{ color: '#6b7280', margin: '0 8px' }}>·</span>
-              <a onClick={() => router.push('/mini-app/docs/what-is-gammascript')} style={{ color: 'rgba(59, 130, 246, 0.8)', cursor: 'pointer' }}>What is GammaScript?</a>
             </p>
           </div>
         </div>
