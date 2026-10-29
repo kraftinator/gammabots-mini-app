@@ -516,6 +516,39 @@ export const styles = {
     outline: 'none'
   } as CSSProperties,
 
+  // Two-value status filter. A segmented pill rather than a <select> so
+  // switching lists is one tap instead of opening the native option sheet.
+  myBotsSegmented: {
+    flex: 1,
+    display: 'flex',
+    padding: '3px',
+    border: '1px solid #f2f2f7',
+    borderRadius: '16px',
+    // Darker than the sort select beside it so the white selected pill reads.
+    background: '#f2f2f7'
+  } as CSSProperties,
+
+  myBotsSegment: {
+    flex: 1,
+    padding: '9px 4px',
+    border: 'none',
+    borderRadius: '13px',
+    background: 'transparent',
+    color: '#8e8e93',
+    fontSize: '14px',
+    fontFamily: "'Inter', sans-serif",
+    fontWeight: '500',
+    cursor: 'pointer',
+    outline: 'none'
+  } as CSSProperties,
+
+  myBotsSegmentActive: {
+    background: '#ffffff',
+    color: '#1c1c1e',
+    fontWeight: '600',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.12)'
+  } as CSSProperties,
+
   myBotsList: {
     padding: '20px 16px 120px'
   } as CSSProperties,

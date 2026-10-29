@@ -504,14 +504,22 @@ export default function MyBotsPage() {
             <option value="id">Sort by ID</option>
           </select>
           
-          <select
-            value={status}
-            onChange={(e) => handleStatusChange(e.target.value as 'active' | 'inactive')}
-            style={styles.myBotsSelect}
-          >
-            <option value="active">Active</option>
-            <option value="inactive">Inactive</option>
-          </select>
+          <div style={styles.myBotsSegmented} role="group" aria-label="Bot status">
+            {(['active', 'inactive'] as const).map((value) => (
+              <button
+                key={value}
+                type="button"
+                onClick={() => handleStatusChange(value)}
+                aria-pressed={status === value}
+                style={{
+                  ...styles.myBotsSegment,
+                  ...(status === value ? styles.myBotsSegmentActive : {}),
+                }}
+              >
+                {value === 'active' ? 'Active' : 'Inactive'}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
