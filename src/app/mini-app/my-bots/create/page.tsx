@@ -121,6 +121,10 @@ function CreateBotContent() {
     return true
   }, [tokenValidation.status, formData.strategyId, formData.ethAmount, formData.movingAverage])
 
+  const sortedChains = useMemo(() => {
+    return [...chains].sort((a, b) => a.display_name.localeCompare(b.display_name))
+  }, [chains])
+
   // Get selected chain label for review box
   const selectedChainLabel = useMemo(() => {
     return chains.find(c => c.name === selectedChain)?.display_name
@@ -783,7 +787,7 @@ function CreateBotContent() {
                 Chain
               </label>
               <div style={{ display: 'flex', gap: '12px' }}>
-                {chains.map((chain) => {
+                {sortedChains.map((chain) => {
                   const isSelected = selectedChain === chain.name
                   return (
                     <button
