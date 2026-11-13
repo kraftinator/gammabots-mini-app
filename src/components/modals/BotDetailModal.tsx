@@ -201,10 +201,12 @@ function formatMetricsAt(iso: string): string {
   return `${month}-${day} ${hours}:${minutes}`
 }
 
-function PriceHistory({ points, trades, mode, onSelectTrade, onSelectPrice }: {
+function PriceHistory({ points, trades, mode, tradeMode, onSelectTrade, onSelectPrice }: {
   points: PricePoint[]
   trades: Trade[] | null
   mode: PricesMode
+  /** What the bot holds right now: 'buy' = ETH (out), 'sell' = tokens (in) */
+  tradeMode?: 'buy' | 'sell'
   onSelectTrade: (trade: Trade) => void
   onSelectPrice: (point: PricePoint) => void
 }) {
@@ -231,7 +233,22 @@ function PriceHistory({ points, trades, mode, onSelectTrade, onSelectPrice }: {
     const soFar = sortedTrades.filter(t => new Date(t.executed_at).getTime() <= upTo)
     if (soFar.length === 0) return null
 
-    const currentCycle = soFar[soFar.length - 1].cycle
+    const lastTrade = soFar[soFar.length - 1]
+    const currentCycle = lastTrade.cycle
+
+    // Once the bot has sold out it holds ETH, so there is no position to price
+    // against the entry. A full exit ends the cycle, so the next trade carries a
+    // higher cycle number; a partial sell leaves the bot in and the cycle alone.
+    // For the most recent sell there is no next trade, so fall back to what the
+    // bot holds now.
+    if (lastTrade.side.toLowerCase() === 'sell') {
+      const next = sortedTrades[soFar.length]
+      const exited = next
+        ? next.cycle !== null && currentCycle !== null && next.cycle > currentCycle
+        : tradeMode === 'buy'
+      if (exited) return null
+    }
+
     const firstBuy = soFar.filter(t => t.cycle === currentCycle).find(t => t.side.toLowerCase() === 'buy')
     if (!firstBuy) return null
 
@@ -1816,7 +1833,7 @@ export default function BotDetailModal({ isOpen, onClose, bot, onBotUpdated, onR
                 )}
 
                 {!pricesLoading && !pricesError && pricesData && pricesData.length > 0 && (
-                  <PriceHistory points={pricesData} trades={tradesData} mode={pricesMode} onSelectTrade={(trade) => openTrade(trade, 'metrics')} onSelectPrice={setSelectedPrice} />
+                  <PriceHistory points={pricesData} trades={tradesData} mode={pricesMode} tradeMode={bot.trade_mode} onSelectTrade={(trade) => openTrade(trade, 'metrics')} onSelectPrice={setSelectedPrice} />
                 )}
               </div>
             )}
